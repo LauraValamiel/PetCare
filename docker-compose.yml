@@ -1,0 +1,39 @@
+#docker-compose.yml
+#version: '3.8'
+
+services:
+  # Serviço do Banco de Dados:
+  banco_de_dados:
+    image: postgres:14-alpine
+    container_name: petcare_db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/tables.sql:/docker-entrypoint-initdb.d/tables.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - backend
+
+  # Serviço do pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4:9.3.0
+    container_name: petcare_pgadmin
+    ports:
+      - "8123:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@petcare.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+  
+volumes:
+  postgres_data:
+
+networks:
+  frontend:
+  backend:

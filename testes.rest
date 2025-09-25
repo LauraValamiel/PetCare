@@ -1,0 +1,90 @@
+GET http://localhost:5000/api/status
+
+###
+POST http://localhost:5000/api/novo-tutor
+Content-Type: application/json
+
+{
+    "nome_completo": "Laura Valamiel Andrade",
+    "celular": "31998658753",
+    "email": "valamiellaura4@gmail.com",
+    "genero_tutor": "Feminino",
+    "senha": "123456"
+
+}
+
+###
+POST http://localhost:5000/api/login
+Content-Type: application/json
+
+{
+    "email": "valamiellaura4@gmail.com",
+    "senha": "123456"
+    
+}
+
+###
+GET http://localhost:5000/api/tutores
+
+###
+GET http://localhost:5000/api/tutores/1
+
+###
+PUT http://localhost:5000/api/tutores/1
+Content-Type: application/json
+
+{
+    "nome_completo": "Laura Valamiel Andrade",
+    "celular": "31998658753",
+    "email": "valamiellaura4@gmail.com",
+    "genero_tutor": "Feminino",
+    "senha": "123456"
+}
+
+###
+POST http://localhost:5000/api/tutores/1/pets/novo-pet
+Content-Type: application/json
+
+{
+    "nome_pet": "Jade",
+    "especie": "cachorro",
+    "raca": "shih-tzu",
+    "genero": "Feminino",
+    "data_nascimento": "2014-11-01",
+    "peso": "7.5",
+    //"foto_perfil": "",
+    "idade": 10,
+    "castrado": false
+}
+
+###
+GET http://localhost:5000/api/tutores/1/pets
+
+###
+GET http://localhost:5000/api/tutores/1/pets/2
+
+###
+PUT http://localhost:5000/api/tutores/1/pets/1/atualizar-pet
+Content-Type: application/json
+
+{
+    "nome_pet": "Jade",
+    "especie": "cachorro",
+    "raca": "shih-tzu",
+    "genero": "Feminino",
+    "data_nascimento": "2014-11-01",
+    "peso": "7.5",
+    //"foto_perfil": "",
+    "idade": 11,
+    "castrado": false
+}
+
+###
+DELETE http://localhost:5000/api/tutores/1/pets/1/deletar-pet
+
+###
+DELETE http://localhost:5000/api/tutores/1/pets/1/desassociar
+
+
+###
+GET http://localhost:5000/api/tutores/1/tutores-e-pets

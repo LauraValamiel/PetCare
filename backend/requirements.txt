@@ -1,0 +1,8 @@
+# backend/requirements.txt
+Flask
+psycopg2-binary
+# psycopg2-binary é para conectar o python com o PostgreSQL
+python-dotenv
+gunicorn
+bcrypt #hash em senhas
+Flask-Mail
