@@ -1,5 +1,7 @@
 GET http://localhost:5000/api/status
 
+#------------------------------------ Tutores ------------------------------------
+
 ###
 POST http://localhost:5000/api/novo-tutor
 Content-Type: application/json
@@ -41,6 +43,10 @@ Content-Type: application/json
     "senha": "123456"
 }
 
+
+#------------------------------------ Pets ------------------------------------
+
+
 ###
 POST http://localhost:5000/api/tutores/1/pets/novo-pet
 Content-Type: application/json
@@ -79,12 +85,270 @@ Content-Type: application/json
     "castrado": false
 }
 
-###
-DELETE http://localhost:5000/api/tutores/1/pets/1/deletar-pet
+#------------------------------------ Tutores e Pets ------------------------------------
 
 ###
-DELETE http://localhost:5000/api/tutores/1/pets/1/desassociar
+DELETE http://localhost:5000/api/tutores/1/pets/2/deletar-pet
+
+###
+DELETE http://localhost:5000/api/tutores/1/pets/4/desassociar
 
 
 ###
 GET http://localhost:5000/api/tutores/1/tutores-e-pets
+
+###
+POST http://localhost:5000/api/tutores/1/pets/5/convidar-tutor
+Content-Type: application/json
+
+{
+    "email": "email_exemplo@exemplo.com"
+}
+
+
+#------------------------------------ Vacinas ------------------------------------
+
+###
+POST http://localhost:5000/api/pets/5/nova-vacina
+Content-Type: application/json
+
+{
+    "nome_vacina": "V8",
+    "lote": "123ABC",
+    "data_vacinacao": "2025-09-25",
+    "nome_veterinario": "Dra. Tuane",
+    "proxima_dose": "2026-09-25",
+    "preco_vacina": 75.50,
+    "local_aplicacao": "Clinica NAV",
+    "observacoes": "Primeira dose"
+}
+
+###
+GET http://localhost:5000/api/pets/5/vacinas
+
+###
+DELETE http://localhost:5000/api/pets/5/deletar-vacina/4
+
+
+###
+PUT http://localhost:5000/api/pets/5/editar-vacina/5
+Content-Type: application/json
+
+{
+    "nome_vacina": "V8",
+    "lote": "123ABC",
+    "data_vacinacao": "2025-09-25",
+    "nome_veterinario": "Dra. Tuane",
+    "proxima_dose": "2026-09-25",
+    "preco_vacina": 78.50,
+    "local_aplicacao": "Clinica NAV",
+    "observacoes": "Primeira dose"
+}
+
+#------------------------------------ Consultas ------------------------------------
+
+###
+POST http://localhost:5000/api/pets/5/nova-consulta
+Content-Type: application/json
+
+{
+    "data_consulta": "2025-09-30",
+    "hora": "14:00",
+    "motivo": "Vacina",
+    "diagnostico": "Saudável",
+    "tratamento": "Nenhum",
+    "nome_clinica": "Clinica NAV",
+    "nome_veterinario": "Dra. Tuane",
+    "preco_consulta": 90
+}
+
+###
+GET http://localhost:5000/api/pets/5/consultas
+
+###
+POST http://localhost:5000/api/pets/consultas/<int:id_consulta>/anexar-arquivo
+Content-Type: multipart/form-data
+file: 
+
+###
+GET http://localhost:5000/api/uploads/teste.pdf/download
+
+### 
+PUT http://localhost:5000/api/pets/5/editar-consulta/1
+Content-Type: application/json
+
+{
+    "data_consulta": "2025-10-30",
+    "hora": "14:00",
+    "motivo": "Vacina",
+    "diagnostico": "Saudável",
+    "tratamento": "Nenhum",
+    "nome_clinica": "Clinica NAV",
+    "nome_veterinario": "Dra. Tuane",
+    "preco_consulta": 90
+}
+
+
+###
+DELETE http://localhost:5000/api/pets/5/deletar-consulta/1
+
+
+#------------------------------------ Remédios ------------------------------------
+
+###
+POST http://localhost:5000/api/pets/5/novo-remedio
+Content-Type: application/json
+
+{
+    "nome_remedio": "Bravecto",
+    "tipo_remedio": "Anti-pulgas - comprimido",
+    "dosagem": "250mg",
+    "data_inicio": "2025-09-25",
+    "data_fim": "2025-09-25",
+    "frequencia": "De 6 em 6 meses",
+    "proxima_dose": "2026-03-25",
+    "observacoes": "Comprimido",
+    "preco_remedio": 110.0
+}
+
+###
+GET http://localhost:5000/api/pets/5/remedios
+
+###
+PuT http://localhost:5000/api/pets/5/editar-remedio/1
+Content-Type: application/json
+
+{
+    "nome_remedio": "Bravecto",
+    "tipo_remedio": "Anti-pulgas - comprimido",
+    "dosagem": "250mg",
+    "data_inicio": "2025-09-25",
+    "data_fim": "2025-09-25",
+    "frequencia": "De 6 em 6 meses",
+    "proxima_dose": "2026-03-24",
+    "observacoes": "Comprimido",
+    "preco_remedio": 110.0
+}
+
+
+### 
+DELETE http://localhost:5000/api/pets/5/deletar-remedio/3
+
+
+#------------------------------------ Produtos ------------------------------------
+
+###
+POST http://localhost:5000/api/pets/5/novo-produto
+Content-Type: application/json
+
+{
+    "nome_produto": "Ração - Fórmula Natural",
+    "categoria": "Alimento",
+    "quantidade": 1,
+    "consumo_medio": 1,
+    "data_compra": "2025-09-20",
+    "preco_compra": 55.90,
+    "loja": "Amazon",
+    "observacoes" : "Dura aproximadamente 15 a 20 dias"
+}
+
+###
+GET http://localhost:5000/api/pets/5/produtos
+
+###
+PUT http://localhost:5000/api/pets/5/produtos/1
+Content-Type: application/json
+
+{
+    "nome_produto": "Ração - Fórmula Natural Pro",
+    "categoria": "Alimento",
+    "quantidade": 1,
+    "consumo_medio": 2,
+    "data_compra": "2025-09-20",
+    "preco_compra": 55.90,
+    "loja": "Amazon",
+    "observacoes" : "Dura aproximadamente 15 a 20 dias"
+}
+
+###
+POST http://localhost:5000/api/pets/5/produtos/1/consumo
+Content-Type: application/json
+
+{
+    "quantidade_consumida": 0.5
+}
+
+
+###
+DELETE http://localhost:5000/api/pets/5/produtos/1
+
+
+#------------------------------------ Compromissos ------------------------------------
+
+###
+POST http://localhost:5000/api/pets/5/agendar-compromissos
+Content-Type: application/json
+
+{
+    "titulo": "Vacina",
+    "descricao": "Vacina de raiva",
+    "data_compromisso": "2025-10-16",
+    "hora": "10:15",
+    "localizacao": "Clínica NAV",
+    "lembrete": true
+}
+
+###
+GET http://localhost:5000/api/pets/5/compromissos
+
+###
+PUT http://localhost:5000/api/pets/5/compromissos/1
+Content-Type: application/json
+
+{
+    "titulo": "Vacina",
+    "descricao": "Vacina de raiva",
+    "data_compromisso": "2025-10-18",
+    "hora": "10:15",
+    "localizacao": "Clínica NAV",
+    "lembrete": true
+}
+
+###
+DELETE http://localhost:5000/api/pets/5/compromissos/2
+
+#------------------------------------ Clínicas Veterinárias ------------------------------------
+
+###
+POST http://localhost:5000/api/nova-clinica
+Content-Type: application/json
+
+{
+    "nome_clinica": "Clinica NAV",
+    "endereco": "Rua A, 123",
+    "telefone": "31123456789", 
+    "email": "contato@nav.com"
+}
+
+###
+GET http://localhost:5000/api/clinicas
+
+###
+PUT http://localhost:5000/api/clinica/1
+Content-Type: application/json
+
+{
+    "nome_clinica": "Clinica NAV",
+    "endereco": "Rua A, 123",
+    "telefone": "31123456789", 
+    "email": "contato@nav.com"
+}
+
+###
+DELETE http://localhost:5000/api/clinica/2
+
+
+#------------------------------------ Relatórios ------------------------------------
+
+###
+GET http://localhost:5000/api/tutores/1/despesas

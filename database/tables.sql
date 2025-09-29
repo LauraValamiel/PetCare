@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS compromissos (
 );
 
 -- Tabela de Compras
-CREATE TABLE IF NOT EXISTS compras (
+CREATE TABLE IF NOT EXISTS produtos (
     id_compra SERIAL PRIMARY KEY,
     id_pet INT REFERENCES pets(id_pet) ON DELETE CASCADE,
     nome_produto VARCHAR(100) NOT NULL,
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS arquivos_consultas (
 );
 
 -- Tabela de Remedios Preventivos
-CREATE TABLE IF NOT EXISTS remedios_preventivos (
+CREATE TABLE IF NOT EXISTS remedios (
     id_remedio SERIAL PRIMARY KEY,
     id_pet INT REFERENCES pets(id_pet) ON DELETE CASCADE,
     nome_remedio VARCHAR(100) NOT NULL,
