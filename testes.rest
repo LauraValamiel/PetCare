@@ -109,7 +109,7 @@ Content-Type: application/json
 #------------------------------------ Vacinas ------------------------------------
 
 ###
-POST http://localhost:5000/api/pets/5/nova-vacina
+POST http://localhost:5000/api/pets/7/nova-vacina
 Content-Type: application/json
 
 {
@@ -148,11 +148,11 @@ Content-Type: application/json
 #------------------------------------ Consultas ------------------------------------
 
 ###
-POST http://localhost:5000/api/pets/5/nova-consulta
+POST http://localhost:5000/api/pets/7/nova-consulta
 Content-Type: application/json
 
 {
-    "data_consulta": "2025-09-30",
+    "data_consulta": "2025-11-30",
     "hora": "14:00",
     "motivo": "Vacina",
     "diagnostico": "Saudável",
@@ -174,11 +174,11 @@ file:
 GET http://localhost:5000/api/uploads/teste.pdf/download
 
 ### 
-PUT http://localhost:5000/api/pets/5/editar-consulta/1
+PUT http://localhost:5000/api/pets/7/editar-consulta/3
 Content-Type: application/json
 
 {
-    "data_consulta": "2025-10-30",
+    "data_consulta": "2025-10-25",
     "hora": "14:00",
     "motivo": "Vacina",
     "diagnostico": "Saudável",
@@ -190,13 +190,13 @@ Content-Type: application/json
 
 
 ###
-DELETE http://localhost:5000/api/pets/5/deletar-consulta/1
+DELETE http://localhost:5000/api/pets/7/deletar-consulta/2
 
 
 #------------------------------------ Remédios ------------------------------------
 
 ###
-POST http://localhost:5000/api/pets/5/novo-remedio
+POST http://localhost:5000/api/pets/7/novo-remedio
 Content-Type: application/json
 
 {
@@ -238,7 +238,7 @@ DELETE http://localhost:5000/api/pets/5/deletar-remedio/3
 #------------------------------------ Produtos ------------------------------------
 
 ###
-POST http://localhost:5000/api/pets/5/novo-produto
+POST http://localhost:5000/api/pets/7/novo-produto
 Content-Type: application/json
 
 {

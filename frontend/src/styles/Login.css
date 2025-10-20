@@ -227,6 +227,23 @@
     justify-content: center;
     display: flex;
     align-items: center;
+    gap: 8px;
+    line-height: 1;
+    transition: all 0.2s ease-in-out;
+}
+
+.submit-btn svg {
+    vertical-align: middle;
+    margin-bottom: 0px;
+    transition: transform 0.25s ease;
+}
+
+.submit-btn:hover svg {
+    transform: translateX(4px);
+}
+
+.submit-btn:hover {
+    filter: brightness(1.07);
 }
 
 .social-login {

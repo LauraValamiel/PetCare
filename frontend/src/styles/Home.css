@@ -121,21 +121,23 @@
 .atividades-recentes, .meus-pets {
     background-color: #fff;
     padding: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
+    border: 1px solid #efe8f8;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(53, 23, 87, 0.06);
 }
 
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    gap: 16px;
+    margin-bottom: 18px;
 }
 
 .section-header h3 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #4a148c;
+    color: #5e35b1;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -144,6 +146,16 @@
 
 .item-atividade:last-child {
     border-bottom: none;
+}
+
+.atividade-icon {
+    min-width: 12px;
+    min-height: 12px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
 }
 
 .atividade-icon.vacina {
@@ -159,36 +171,66 @@
 }
 
 .atividade-info p {
-    margin: 0;
+    margin: 0 0 4px 0;
     font-size: 0.95rem;
+    color: #2f2f35;
     font-weight: 500;
 }
 
 .atividade-info small {
-    color: #777;
+    margin: 0;
+    color: #6d6d74;
     font-size: 0.85rem;
 }
 
-.pets-list, .lista-atividades {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    /*display: flex;
+.lista-atividades, .pets-list {
+    display: flex;
     flex-direction: column;
-    gap: 16px;*/
+    gap: 12px;
+    margin: 0;
+    padding: 0;
 }
 
-.pet-card-item, .item-atividade {
+.lista-atividades, .item-atividade {
     display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background-color: #fbf9fe;
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(92, 36, 158, 0.04);
+    box-shadow: none;
+}
+
+
+.pet-card-item {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    /*justify-content: space-between;*/
-    gap: 12px;
+    gap: 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid #f0e9f8;
+    box-shadow: 0 4px 14px rgba(79, 36, 99, 0.03);
 }
 
 .pet-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+}
+
+.heart-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #f3e9fb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7b4bb0;
+    flex-shrink: 0;
 }
 
 .pet-info .heart-info {
@@ -200,21 +242,36 @@
 }
 
 .pet-details p.pet-name {
-    font-weight: bold;
-    color: #333;
+    font-size: 1rem;
+    color: #2f2f35;
+    margin: 0;
+    font-weight: 700;
 }
 
 .pet-details small {
-    font-size: 0.85rem;
-    color: #777;
+    font-size: 0.88rem;
+    color: #7a7a82;
 }
 
 .pet-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
     text-align: right;
+    min-width: 160px;
 }
 
 .pet-status .badge {
-    margin-bottom: 4px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+}
+
+.pet-status .mt-3 {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    border-radius: 8px;
 }
 
 .pet-status p {
@@ -225,42 +282,67 @@
 
 .acoes-section {
     margin-top: 40px;
+    background-color: #fff;
+    padding: 22px;
+    border-radius: 14px;
+    border: 1px solid #efe8f8;
+    box-shadow: 0 6px 18px rgba(53, 23, 87, 0.06);
 }
 
 .acoes-section h2 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #4a148c;
-    margin-bottom: 16px;
+    color: #5e35b1;
+    margin-bottom: 20px;
 }
 
 .acoes-buttons {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
 }
 
 .acoes-buttons-card {
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 20px;
+    background-color: #fbf9fe;
+    border-radius: 12px;
+    border: 1px solid rgba(92, 36, 158, 0.05);
+    padding: 22px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    font-size: 1rem;
+    gap: 10px;
+    cursor: pointer;
+    transition: 0.2s;
     font-weight: 600;
     color: #5e35b1;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
 }
 
 .acoes-buttons-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    color: #4a148c;
-    border-color: #d1c4e9; 
+    box-shadow: 0 4px 12px rgba(79, 36, 99, 0.08);
+    border-color: #f5eefc; 
+}
+
+.acoes-buttons-card svg {
+    font-size: 26px;
+    color: #5e35b1;
+}
+
+.ver-todas-btn {
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+}
+
+
+@media (max-width: 900px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    .pet-status {
+        align-items: flex-start;
+        text-align: left;
+    }
 }

@@ -305,7 +305,6 @@ export default function Home() {
                 <section className='atividades-recentes'>
                     <div className='section-header'>
                         <h3>Atividades Recentes</h3>
-                        <Button variant='link' onClick={() => navigate("/atividades")}> Ver todas <ArrowRight size={16}/></Button>
                     </div>
 
                     <ul className='lista-atividades'>
@@ -317,9 +316,13 @@ export default function Home() {
                                     <small>{act.descricao}</small>
                                 </div>
                             </li>
+
                         )) : <p>Nenhuma atividade encontrada</p>
                     }
                     </ul>
+                    <div className='ver-todas-btn'>
+                        <Button variant='link' onClick={() => navigate("/atividades")}> Ver todas as atividades<ArrowRight size={16}/></Button>
+                    </div>
             </ section>
 
             {/* Meus Pets */}
@@ -361,10 +364,10 @@ export default function Home() {
             <section className='acoes-section'>
                 <h2> Ações rápidas </h2>
                 <div className='acoes-buttons'>
-                    <Button className='action-button-card' onClick={() => navigate("/pets/novo")}><Plus size={24}/><span>Adicionar Pet</span></Button>
-                    <Button className='action-button-card' onClick={() => navigate("/vacinas")}><Syringe size={24}/><span>Registrar Vacina</span></Button>
-                    <Button className='action-button-card' onClick={() => navigate("/consultas")}><CalendarPlus size={24}/><span>Agendar Consulta</span></Button>
-                    <Button className='action-button-card' onClick={() => navigate("/produtos")}><ShoppingBag size={24}/><span>Adicionar Produto</span></Button>
+                    <Button className='acoes-buttons-card' onClick={() => navigate("/pets/novo")}><Plus size={24}/><span>Adicionar Pet</span></Button>
+                    <Button className='acoes-buttons-card' onClick={() => navigate("/vacinas")}><Syringe size={24}/><span>Registrar Vacina</span></Button>
+                    <Button className='acoes-buttons-card' onClick={() => navigate("/consultas")}><CalendarPlus size={24}/><span>Agendar Consulta</span></Button>
+                    <Button className='acoes-buttons-card' onClick={() => navigate("/produtos")}><ShoppingBag size={24}/><span>Adicionar Produto</span></Button>
                 </div>
             </section>
 

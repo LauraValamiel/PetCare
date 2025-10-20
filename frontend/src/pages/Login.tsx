@@ -254,7 +254,7 @@ export default function Login() {
                                 <label><input type="checkbox" name='remember'/>Lembrar-me</label>
                                 <a href="#" onClick={esqueceuSenha}>Esqueceu a senha?</a>
                             </div>
-                            <Button type="submit" variant="primary" className='submit-btn'> Entrar <ArrowRight size={18}/></Button>
+                            <Button type="submit" variant="primary" className='submit-btn'> Entrar <ArrowRight size={16}/></Button>
                         </form>
                     ) : (
                         <form onSubmit={cadastro} className='form-login'>
@@ -280,7 +280,7 @@ export default function Login() {
                                     {mostrarConfirmarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>
                             </div>
-                            <Button type='submit' variant='primary' className='submit-btn'>Criar Conta <ArrowRight size={18}/></Button>
+                            <Button type='submit' variant='primary' className='submit-btn'>Criar Conta <ArrowRight size={16}/></Button>
                             <p className='texto-privacidade'>Ao criar uma conta, você concorda com os nossos <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a></p>
                         </form>
                     )}
