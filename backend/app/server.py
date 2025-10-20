@@ -12,11 +12,15 @@ from datetime import datetime, timedelta, time as time_obj
 from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
 from urllib.parse import quote_plus
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+
 
 
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv(dotenv_path='../.env')
 
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
 
 # Conexão com o banco de dados 
 class DatabaseConnection:
@@ -95,7 +99,7 @@ app = Flask(__name__)
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-CORS(app, origins=["http://localhost:5173"])
+CORS(app, resources={r"/api/*": {"origins":"http://localhost:5173"}})
 
 
 # Configuração do Flask-Mail com as variáveis de ambiente
@@ -205,11 +209,80 @@ def status():
     return jsonify({"status": "API is running"}), 200
 
 
+# ------------------------------------------------ Rotas Google ------------------------------------------------
+
+@app.route('/api/auth/google', methods=['POST'])
+def auth_google():
+    data = request.get_json(force=True)
+    token = data.get('id_token')
+    if not token:
+        return jsonify({'error': 'id_token é obrigatório.'}), 400
+
+    try:
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
+        email = idinfo.get('email')
+        nome = idinfo.get('name') or idinfo.get('given_name') or ''
+        picture = idinfo.get('picture')
+
+        tutor = consultar_db("SELECT * FROM tutores WHERE email = %s", (email,), one=True)
+
+        if not tutor:
+            # Se o tutor não existe, cria um novo
+            created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            senha_placeholder = secrets.token_hex(16)
+            senha_hash = bcrypt.hashpw(senha_placeholder.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            
+            # Ajuste para inserir apenas os campos necessários, assumindo que outros são nulos/padrão
+            new_tutor_id, error = executar_db(
+                "INSERT INTO tutores (nome_completo, email, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s) RETURNING id_tutor",
+                (nome, email, senha_hash, picture, created_at),
+                return_id=True
+            )
+            
+            if error:
+                print(f"Erro ao criar tutor pelo google: {error}")
+                return jsonify({'error': f'Erro ao criar novo usuário'}), 500
+            
+            # Busca o tutor recém-criado para retornar os dados completos
+            tutor = consultar_db("SELECT * FROM tutores WHERE id_tutor = %s", (new_tutor_id,), one=True)
+
+        # Se, por algum motivo, o tutor ainda for nulo, retorna um erro
+        if not tutor:
+            return jsonify({'error': 'Falha ao recuperar os dados do usuário após o login.'}), 500
+
+        query_pets = """SELECT P.* FROM pets p
+                        JOIN tutor_pet tp ON p.id_pet = tp.id_pet
+                        WHERE tp.id_tutor = %s"""
+        
+        pets = consultar_db(query_pets, (tutor['id_tutor'],), one=False)
+        tutor['pets'] = pets if pets else []
+
+        # Remover campos sensíveis antes de enviar a resposta
+        # A verificação 'in' garante que não haverá erro se a chave não existir
+        if 'senha' in tutor:
+            del tutor['senha']
+        if 'reset_token' in tutor:
+            del tutor['reset_token']
+        if 'reset_token_expires' in tutor:
+            del tutor['reset_token_expires']
+
+        return jsonify(tutor), 200
+
+    except ValueError as e:
+        print("Token inválido:", e)
+        return jsonify({'error': 'Token do Google inválido.'}), 400
+    except Exception as e:
+        print("Erro interno google auth:", e) # A mensagem de erro que você viu
+        return jsonify({'error': 'Erro interno do servidor ao autenticar com Google.'}), 500
+
+
+
+
 # ------------------------------------------------ Rotas Tutores  ------------------------------------------------
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    dados = request.json
+    dados = request.get_json(force=True)
     email = dados.get('email')
     senha = dados.get('senha')
 
@@ -221,20 +294,33 @@ def login():
     "        WHERE email = %s"
     tutor = consultar_db(query, (email,), one=True)
 
-    if tutor:
-        senha_hash_salva = tutor['senha'].encode('utf-8')
+    if tutor and 'senha' in tutor and tutor['senha'] is not None:
+        senha_hash_salva = tutor['senha']
+        
+        if isinstance(senha_hash_salva, str):
+            senha_hash_salva = senha_hash_salva.encode('utf-8')
+            
         senha_fornecida = senha.encode('utf-8')
 
         if bcrypt.checkpw(senha_fornecida, senha_hash_salva):
+            query_pets = """SELECT p.* FROM pets p
+                            JOIN tutor_pet tp ON p.id_pet = tp.id_pet
+                            WHERE tp.id_tutor = %s"""
+            pets = consultar_db(query_pets, (tutor['id_tutor'],), one=False)
+            tutor['pets'] = pets if pets else []
+
             del tutor['senha']
-            del tutor['reset_token']
-            del tutor['reset_token_expires']
-            return jsonify(tutor), 200
-        else:
+            if 'reset_token' in tutor:
+                del tutor['reset_token']
+            if 'reset_token_expires' in tutor:
+                del tutor['reset_token_expires']
+            return jsonify(tutor),200
+        else: 
             return jsonify({"error": "Credenciais invalidas."}), 401
     else:
         return jsonify({"error": "Credenciais invalidas."}), 401
 
+    
 
 @app.route('/api/novo-tutor', methods=['POST'])
 def criar_tutor():
@@ -287,7 +373,7 @@ def atualizar_tutor(id_tutor):
 def listar_tutores():
     query = "SELECT * " \
     "        FROM tutores"
-    tutor = consultar_db(query, one=False)
+    tutor = consultar_db(query)
     if tutor:
         return jsonify(tutor if tutor else []), 200
     return jsonify({"error": "Tutor nao encontrado."}), 404
@@ -1165,7 +1251,7 @@ def esqueci_senha():
     if not email:
         return jsonify({"error": "Email é obrigatório."}), 400
     
-    tutor = consultar_db("SELECT * FROM tutores WHERE email = %s", (email,))
+    tutor = consultar_db("SELECT * FROM tutores WHERE email = %s", (email,), one=True)
 
     if tutor:
         token = secrets.token_urlsafe(32)
@@ -1180,9 +1266,13 @@ def esqueci_senha():
             return jsonify({"error": f"Erro ao gerar token de redefinição: {error}"}), 500
         
         try:
-            link_redefinicao = f"http://localhost:5173/redefinir_senha?token={token}"
+            link_redefinicao = f"http://localhost:5173/redefinir-senha?token={token}"
 
-            msg = Message("Redefinição de Senha - PetCare", sender= app.config['MAIL_DEFAULT_SENDER'], recipients=[email])
+            msg = Message(
+                "Redefinição de Senha - PetCare",
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[email]
+            )
 
             msg.html = f"""
                 <p>Olá,</p>
@@ -1195,6 +1285,7 @@ def esqueci_senha():
 
             mail.send(msg)
         except Exception as e:
+            print(f"Erro ao enviar email: {str(e)}")
             return jsonify({"error": f"Erro ao enviar email de redefinicao: {str(e)}"}), 500
         pass
         
@@ -1213,7 +1304,7 @@ def redefinir_senha():
     query = "SELECT * " \
     "        FROM tutores " \
     "        WHERE reset_token = %s AND reset_token_expires > %s"
-    tutor = consultar_db(query, (token, datetime.now()))
+    tutor = consultar_db(query, (token, datetime.now()), one=True)
 
     if not tutor:
         return jsonify({"error": "Token invalido ou expirado."}), 400

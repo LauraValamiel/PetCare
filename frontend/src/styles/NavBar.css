@@ -1,0 +1,93 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.navbar-logo {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #6a1b9a;
+}
+
+.navbar-left nav {
+    display: flex;
+    gap: 8px;
+}
+
+.navbar-left nav button {
+    margin: 0 8px;
+    background-color: transparent;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    color: #555;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease
+}
+
+.navbar-left nav button:hover {
+    color: #6a1b9a;
+    background-color: #f3e5f5;
+}
+
+.navbar-left nav button.active {
+    background-color: #7e57c2;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+    color: #555;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: #d32f2f;
+    color: #fff;
+    border-radius: 50%;
+    width: 18px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border: 1px solid #fff;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #7e57c2;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    text-transform: uppercase;
+}

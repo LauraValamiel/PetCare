@@ -48,18 +48,18 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:5000/api/tutores/1/pets/novo-pet
+POST http://localhost:5000/api/tutores/6/pets/novo-pet
 Content-Type: application/json
 
 {
-    "nome_pet": "Jade",
+    "nome_pet": "Maya",
     "especie": "cachorro",
     "raca": "shih-tzu",
     "genero": "Feminino",
-    "data_nascimento": "2014-11-01",
-    "peso": "7.5",
+    "data_nascimento": "2022-10-01",
+    "peso": "3.5",
     //"foto_perfil": "",
-    "idade": 10,
+    "idade": 3,
     "castrado": false
 }
 
