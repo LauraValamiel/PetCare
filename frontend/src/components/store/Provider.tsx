@@ -1,5 +1,5 @@
-import React, { type ReactNode } from 'react';
-import StoreContext from './Context.tsx';
+import React, { useState, type ReactNode } from 'react';
+import StoreContext, { type NotificationItem } from './Context.tsx';
 import useStorage from '../utils/useStorage';
 
 interface StoreProviderProps {
@@ -10,6 +10,7 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   const [token, setToken] = useStorage("token", null);
   const [cpf, setCpf] = useStorage("cpf", null);
   const [nome, setNome] = useStorage("nome", null);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   return (
     <StoreContext.Provider
@@ -20,6 +21,8 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         setCpf,
         nome,
         setNome,
+        notifications,
+        setNotifications,
       }}
     >
       {children}

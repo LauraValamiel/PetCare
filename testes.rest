@@ -48,7 +48,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:5000/api/tutores/6/pets/novo-pet
+POST http://localhost:5000/api/tutores/2/pets/novo-pet
 Content-Type: application/json
 
 {

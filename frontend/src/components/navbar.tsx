@@ -12,7 +12,7 @@ export function Navbar() {
     const getButtonClass = (path: string) => {
         
         if (path === "/") {
-            return location.pathname === "/" || location.pathname === "/Home" ? "active" : "";
+            return location.pathname === "/" || location.pathname === "/home" ? "active" : "";
         }
         return location.pathname === path ? "active" : "";
 

@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import RedefinirSenha from './pages/RedefinirSenha';
-//import Pets from './pages/Pets'
+import Pets from './pages/MeusPets'
 //import Vacinas from './pages/Vacinas'
 //import Consultas from './pages/Consultas'
 //import Produtos from './pages/Produtos'
@@ -22,13 +22,14 @@ export const AppRoutes = () => {
             <Route path='/redefinir-senha' element={<RedefinirSenha />} />
             <Route path='/home' element={<PrivateRoute><Home /></PrivateRoute>}/>
             <Route path='/' element={<PrivateRoute><Navigate to='/home'/></PrivateRoute>}/>
+            <Route path='/pets' element={<PrivateRoute><Pets /></PrivateRoute>}/>
         </Routes>
 
     )
 
 }
 
-//<Route path='/pets' element={<Pets />}/>
+
  //               <Route path='/vacinas' element={<Vacinas />}/>
    //             <Route path='/consultas' element={<Consultas />}/>
      //           <Route path='/produtos' element={<Produtos />}/>

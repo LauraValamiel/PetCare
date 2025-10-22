@@ -53,6 +53,14 @@ interface PetComStatus extends Pet {
     next_event: string;
 }
 
+const primeiraLetraMaiuscula = (str: string): string => {
+    if (!str) {
+        return '';
+    }
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+
 export default function Home() {
 
     const [tutor, setTutor] = useState<Tutor | null>(() => {
@@ -229,7 +237,7 @@ export default function Home() {
 
             {/* Resumo */}
             <div className='summary-cards'>
-                <Card>
+                <Card className='card-total-pets'>
                     <CardHeader>
                         <CardTitle>Total de Pets</CardTitle>
                     </CardHeader>
@@ -337,8 +345,8 @@ export default function Home() {
                                 <div className='pet-info'>
                                     <div className='heart-icon'><Heart size={24}/></div>
                                     <div className='pet-details'>
-                                        <p className='pet-name'><strong>{pet.nome_pet}</strong></p>
-                                        <small>{pet.especie} • {pet.raca} </small>
+                                        <p className='pet-name'><strong>{primeiraLetraMaiuscula(pet.nome_pet)}</strong></p>
+                                        <small>{primeiraLetraMaiuscula(pet.especie)} • {primeiraLetraMaiuscula(pet.raca)} </small>
                                     </div>
                                 </div>
                                 <div className='pet-status'>

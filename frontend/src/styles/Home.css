@@ -85,7 +85,7 @@
 }
 
 .summary-cards .card-icon.vacinas {
-    background-color: #fff3e0;
+    background-color: #fffde7;
     color: #f57c00;
 }
 
@@ -97,6 +97,10 @@
 .summary-cards .card-icon.produtos {
     background-color: #e8f5e9;
     color: #43a047;
+}
+
+.card.card-total-pets {
+    background-color: #efe3fd;
 }
 
 .card.card-vacinas {

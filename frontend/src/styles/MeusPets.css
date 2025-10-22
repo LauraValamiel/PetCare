@@ -1,0 +1,214 @@
+.pets-page {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #f8f7fa;
+}
+
+.pets-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.pets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.pages-header h2{
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.pets-header p {
+    font-size: 1rem;
+    color: #777;
+    margin-top: 4px;
+}
+
+.pets-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.pets-summary-cards .card {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.pets-summary-cards .card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.pets-summary-cards .card-content .info p {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.pets-summary-cards .card-icon {
+    padding: 10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pets-summary-cards .card-icon.pets {
+    background-color: #ede7f6;
+    color: #5e35b1;
+}
+
+.pets-summary-cards .card-icon.vacinas-vencendo {
+    background-color: #fffde7;
+    color: #f57c00;
+}
+
+.pets-summary-cards .card-icon.vacinas-em-dias {
+    background-color: #e8f5e9;
+    color: #43a047;
+}
+
+.pets-summary-cards .card.card-total-pets {
+    background-color: #efe3fd;
+}
+
+.pets-summary-cards .card.card-vacinas-vencendo {
+    background-color: #fffde7;
+}
+
+.pets-summary-cards .card.card-vacinas-em-dias {
+    background-color: #e8f5e9;
+}
+
+.pets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.pet-card-detail {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #efe8f8;
+    box-shadow: 0 6px 18px rgba(54,23,87, 0.06);
+}
+
+.pet-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.pet-card-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.pet-card-header .heart-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #f3e9fb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7b4bb0;
+    flex-shrink: 0;
+}
+
+.pet-card-header .pet-details p {
+    margin: 0;
+}
+
+.pet-card-header .pet-details .pet-name {
+    font-size: 1.1rem;
+    color: #2f2f35;
+    font-weight: 700;
+}
+
+.pet-card-header .pet-details small {
+    font-size: 0.9rem;
+    color: #7a7a82;
+}
+
+.pet-card-header .edit-btn {
+    padding: 4px;
+    color: #999;
+}
+
+.pet-card-header .edit-btn:hover {
+    color: #5e35b1;
+    background-color: transparent;
+}
+
+.pet-card-status {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0e9f8;
+}
+
+.pet-card-status .status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pet-card-status .status-label {
+    font-size: 0.8rem;
+    color: #6d6d74;
+}
+
+.pet-card-status .status-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.pet-card-details-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pet-card-details-list li {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.pet-card-details-list li span:last-child {
+    font-weight: 600;
+    color: #333;
+}
+
+@media (max-width: 480px) {
+    .pets-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pet-card-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+}
