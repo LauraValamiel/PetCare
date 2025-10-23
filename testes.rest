@@ -88,7 +88,7 @@ Content-Type: application/json
 #------------------------------------ Tutores e Pets ------------------------------------
 
 ###
-DELETE http://localhost:5000/api/tutores/1/pets/2/deletar-pet
+DELETE http://localhost:5000/api/tutores/2/pets/6/deletar-pet
 
 ###
 DELETE http://localhost:5000/api/tutores/1/pets/4/desassociar

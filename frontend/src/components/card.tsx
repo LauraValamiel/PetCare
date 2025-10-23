@@ -1,14 +1,14 @@
 import '../styles/Card.css'
-import React from 'react'
+import React, { type HTMLAttributes } from 'react'
 
-interface CardProps {
+interface CardProps extends HTMLAttributes<HTMLDivElement>{
     children: React.ReactNode;
     className?: string;
 }
 
-export function Card({ children, className }: CardProps) {
+export function Card({ children, className, ...props }: CardProps) {
     const cardClassName = `card ${className || ''}`.trim()
-    return <div className={cardClassName}>{children}</div>
+    return <div className={cardClassName}{...props}>{children}</div>
 }
 
 export function CardHeader({ children, className }: CardProps) {

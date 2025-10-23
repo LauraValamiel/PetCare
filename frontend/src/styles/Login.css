@@ -140,6 +140,7 @@
     border-radius: 12px;
     padding: 4px;
     margin-bottom: 24px;
+    
 }
 
 .form-tabs button {
@@ -151,6 +152,7 @@
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s ease;
+    color: #ffffff;
 }
 
 .form-tabs button.active {
@@ -230,6 +232,8 @@
     gap: 8px;
     line-height: 1;
     transition: all 0.2s ease-in-out;
+    background-color: #bfaaeb;
+    color: #ffffff;
 }
 
 .submit-btn svg {

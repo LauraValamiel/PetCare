@@ -423,6 +423,13 @@ def tutor_e_pets(id_tutor):
 
 # ------------------------------------------------ Rotas Pets ------------------------------------------------
 
+@app.route('/api/uploads/<string:filename>', methods=['GET'])
+def get_uploaded_file(filename):
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    except FileNotFoundError:
+        return jsonify({"error": "Arquivo não encontrado."}), 404
+
 @app.route('/api/tutores/<int:id_tutor>/pets', methods=['GET'])
 def get_pets_por_tutor(id_tutor):
     query = """SELECT p.* 
@@ -448,25 +455,37 @@ def pets_por_id(id_pet, id_tutor):
 
 @app.route('/api/tutores/<int:id_tutor>/pets/novo-pet', methods=['POST'])
 def criar_pet(id_tutor):
-    dados = request.json
+    dados = request.form
     nome_pet = dados.get('nome_pet')
     especie = dados.get('especie')
     raca = dados.get('raca')
     genero = dados.get('genero')
     data_nascimento = dados.get('data_nascimento')
     peso = dados.get('peso')
-    foto_perfil = dados.get('foto_perfil')
     idade = dados.get('idade')
-    castrado = dados.get('castrado')
+    castrado_str = dados.get('castrado')
 
-    obrigatorios = [nome_pet, especie, raca, genero, data_nascimento, peso, idade, castrado]
+    obrigatorios = [nome_pet, especie, raca, genero, data_nascimento, peso, idade, castrado_str]
 
     if any( campo is None for campo in obrigatorios):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
+    foto_perfil_filename = None
+    if 'foto_perfil' in request.files:
+        file = request.files['foto_perfil']
+        if file and file.filename and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
+
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+            foto_perfil_filename = unique_filename
+
     query_pet = """INSERT INTO pets (nome_pet, especie, raca, genero, data_nascimento, peso, foto_perfil, idade, castrado) 
                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_pet"""
-    id_pet_criado, error = executar_db(query_pet, (nome_pet, especie, raca, genero, data_nascimento, peso, foto_perfil, idade, castrado), return_id=True)
+    
+    castrado_bool = castrado_str.lower() == 'true' if isinstance(castrado_str, str) else None
+
+    id_pet_criado, error = executar_db(query_pet, (nome_pet, especie, raca, genero, data_nascimento, peso, foto_perfil_filename, idade, castrado_bool), return_id=True)
 
     if error:
         return jsonify({"error": f"Erro ao criar pet: {error}"}), 500
@@ -483,21 +502,34 @@ def criar_pet(id_tutor):
 
 @app.route('/api/tutores/<int:id_tutor>/pets/<int:id_pet>/atualizar-pet', methods=['PUT'])
 def atualizar_pet(id_pet, id_tutor):
-        dados = request.json
+        dados = request.form
         nome_pet = dados.get('nome_pet')
         especie = dados.get('especie')
         raca = dados.get('raca')
         genero = dados.get('genero')
         data_nascimento = dados.get('data_nascimento')
         peso = dados.get('peso')
-        foto_perfil = dados.get('foto_perfil')
         idade = dados.get('idade')
-        castrado = dados.get('castrado')
+        castrado_str = dados.get('castrado')
+
+        foto_perfil_original = dados.get('foto_perfil_original')
+        foto_perfil_filename = foto_perfil_original
+
+        if 'foto_perfil_nova' in request.files:
+            file = request.files['foto_perfil_nova']
+            if file and file.filename and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+                foto_perfil_filename = unique_filename
 
         query = """UPDATE pets 
                    SET nome_pet = %s, especie = %s, raca = %s, genero = %s, data_nascimento = %s, peso = %s, foto_perfil = %s, idade = %s, castrado = %s 
                    WHERE id_pet = %s AND EXISTS (SELECT 1 FROM tutor_pet tp WHERE tp.id_pet = pets.id_pet AND tp.id_tutor = %s)"""
-        _, error = executar_db(query, (nome_pet, especie, raca, genero, data_nascimento, peso, foto_perfil, idade, castrado, id_pet, id_tutor))
+        
+        castrado_bool = castrado_str.lower() == 'true' if isinstance(castrado_str, str) else bool(castrado_str)
+ 
+        _, error = executar_db(query, (nome_pet, especie, raca, genero, data_nascimento, peso, foto_perfil_filename, idade, castrado_bool, id_pet, id_tutor))
 
         if error:
             return jsonify({"error": f"Erro ao atualizar pet: {error}"}), 500

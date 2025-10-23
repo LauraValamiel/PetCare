@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { Heart, Shield, AlertTriangle, Calendar, Stethoscope, ShoppingBag, Plus, ArrowRight, UserCircle, Bell, Users, Syringe, CalendarPlus } from 'lucide-react'
 import { Badge } from '../components/badge'
 import { Navbar } from '../components/navbar'
+import { AdicionarPet } from '../components/AdicionarPet'
 import '../styles/Home.css'
 
 interface Pet {
@@ -13,7 +14,8 @@ interface Pet {
     nome_pet: string;
     especie: string;
     raca: string;
-    idade: string;
+    idade: number;
+    foto_perfil: string |null;
 }
 
 interface Tutor {
@@ -84,6 +86,9 @@ export default function Home() {
     const [atividadesRecentes, setAtividadesRecentes] = useState<any[]>([])
     const [petsComStatus, setPetsComStatus] = useState<PetComStatus[]>([]);
     const navigate = useNavigate();
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [refreshData, setRefreshData] = useState(0);
 
     const getFirstName = (fullName: string | undefined) => {
         if (!fullName) {
@@ -219,7 +224,11 @@ export default function Home() {
             }
         }
         fetchDashboard();
-    }, [tutorId]);
+    }, [tutorId, refreshData]);
+
+    const handlePetAdicionado = () => {
+        setRefreshData(prev => prev + 1);
+    }
  
 
     return (
@@ -232,7 +241,7 @@ export default function Home() {
                     <p>Olá, {tutor?.nome_completo}! 🐾 </p>
                     <p>Aqui está um resumo dos seus pets!</p>
                 </div>
-                <Button variant='primary' onClick={() => navigate("/pets/novo")}> <Plus size={16} /> Adicionar Pet </Button>
+                <Button variant='primary' onClick={() => setIsModalOpen(true)}> <Plus size={16} /> Adicionar Pet </Button>
             </div>
 
             {/* Resumo */}
@@ -343,7 +352,11 @@ export default function Home() {
                         {petsComStatus.map((pet) => (
                             <li key={pet.id_pet} className='pet-card-item'>
                                 <div className='pet-info'>
-                                    <div className='heart-icon'><Heart size={24}/></div>
+                                    <div className='heart-icon'>
+                                        {pet.foto_perfil ? (
+                                                <img src={`http://localhost:5000/api/uploads/${pet.foto_perfil}`}  alt={pet.nome_pet} className="foto_perfil_pet"/>
+                                            ) : (<Heart size={24}/>)}
+                                    </div>
                                     <div className='pet-details'>
                                         <p className='pet-name'><strong>{primeiraLetraMaiuscula(pet.nome_pet)}</strong></p>
                                         <small>{primeiraLetraMaiuscula(pet.especie)} • {primeiraLetraMaiuscula(pet.raca)} </small>
@@ -372,14 +385,21 @@ export default function Home() {
             <section className='acoes-section'>
                 <h2> Ações rápidas </h2>
                 <div className='acoes-buttons'>
-                    <Button className='acoes-buttons-card' onClick={() => navigate("/pets/novo")}><Plus size={24}/><span>Adicionar Pet</span></Button>
+                    <Button className='acoes-buttons-card' onClick={() => setIsModalOpen}><Plus size={24}/><span>Adicionar Pet</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => navigate("/vacinas")}><Syringe size={24}/><span>Registrar Vacina</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => navigate("/consultas")}><CalendarPlus size={24}/><span>Agendar Consulta</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => navigate("/produtos")}><ShoppingBag size={24}/><span>Adicionar Produto</span></Button>
                 </div>
             </section>
-
         </main>
+        {tutorId && (
+            <AdicionarPet
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onPetAdded={handlePetAdicionado}
+                tutorId={tutorId}
+            />
+        )}
     </div>
   );
 

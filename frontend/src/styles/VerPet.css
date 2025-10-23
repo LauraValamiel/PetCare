@@ -1,0 +1,137 @@
+.ver-pet-modal-content {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1001;
+    color: #333;
+    position: relative;
+}
+
+.ver-pet-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    cursor: pointer;
+    color: #555;
+    padding: 6px;
+    line-height: 1;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+.ver-pet-close-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+.ver-pet-header {
+    width: 100%;
+    height: 300px;
+    background-color: #f3e9fb;
+}
+
+.ver-pet-foto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ver-pet-foto-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7b4bb0;
+}
+
+.ver-pet-body {
+    padding: 24px;
+}
+
+.ver-pet-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.ver-pet-titulo h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #4a148c;
+}
+
+.ver-pet-subtitulo {
+    font-size: 1.1rem;
+    color: #7a7a82;
+    margin-top: 0;
+    margin-bottom: 24px;
+}
+
+.ver-pet-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #f0e9f8;
+}
+
+.ver-pet-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ver-pet-stat-item .stat-label {
+    font-size: 0.9rem;
+    color: #6d6d74;
+}
+
+.ver-pet-stat-item .stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.ver-pet-details-list {
+    margin-top: 24px;
+}
+
+.ver-pet-details-list h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4a148c;
+    margin-bottom: 16px;
+}
+
+.ver-pet-details-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ver-pet-details-list li {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+    color: #555;
+    padding: 10px;
+    background-color: #fbf9fe;
+    border-radius: 8px;
+}
+
+.ver-pet-details-list li span:last-child {
+    font-weight: 600;
+    color: #333;
+}

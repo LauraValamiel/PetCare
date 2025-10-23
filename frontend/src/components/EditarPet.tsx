@@ -1,14 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from './button';
 import { Heart, UploadCloud, X } from 'lucide-react';
-import '../styles/AdicionarPet.css';
+import { AdicionarPet } from './AdicionarPet';
+import type { DetalhesPets } from '../pages/MeusPets';
 
-interface AdicionarPetModal {
+interface EditarPetModal {
     isOpen: boolean;
     onClose: () => void;
-    onPetAdded: () => void;
+    onPetAtualizado: () => void;
+    pet: DetalhesPets;
     tutorId: number;
+}
+
+const formatarDataParaInput = (data: string | null) => {
+    if (!data){
+        return '';
+    }
+
+    try {
+        const dateObj = new Date(data);
+
+        return dateObj.toISOString().split('T')[0];
+    } catch (erro) {
+        try {
+            return new Date(data).toISOString().split('T')[0];
+        } catch (error) {
+            return '';
+        }
+    }
 }
 
 const calcularIdade = (dataNascimento: string): number => {
@@ -32,9 +52,9 @@ const calcularIdade = (dataNascimento: string): number => {
     }
 };
 
-export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarPetModal) {
+export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: EditarPetModal) {
     const [erro, setErro] = useState('');
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState ({
         nome_pet: '',
         especie: '',
         raca: '',
@@ -42,61 +62,55 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
         data_nascimento: '',
         peso: '',
         castrado: '',
-
     });
 
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
+     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-    useEffect(() => {
+    
+        useEffect(() => {
+            if (isOpen && pet) {
+                setFormData({
+                    nome_pet: pet.nome_pet || '', 
+                    especie: pet.especie || '', 
+                    raca: pet.raca || '', 
+                    genero: pet.genero || '', 
+                    data_nascimento: formatarDataParaInput(pet.data_nascimento), 
+                    peso: pet.peso?.toString() || '', 
+                    castrado: pet.castrado ? 'sim' : 'nao',
+                });
+                if (pet.foto_perfil) {
+                    setImagePreview(`http://localhost:5000/api/uploads/${pet.foto_perfil}`);
+                } else {
+                    setImagePreview(null);
+                }
+                setSelectedFile(null);
+                setErro('');
+            }
+        }, [isOpen, pet])
+    
         if (!isOpen) {
-            setFormData({
-                nome_pet: '', 
-                especie: '', 
-                raca: '', 
-                genero: '', 
-                data_nascimento: '', 
-                peso: '', 
-                castrado: '',
-            });
-            setSelectedFile(null);
-            setImagePreview(null);
-            setErro('');
+            return null;
+        };
+
+        const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+                const { name, value } = event.target;
+                setFormData(prev => ({...prev, [name]: value}));
+            };
+        
+        const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+            if (event.target.files && event.target.files.length > 0){
+                    const file = event.target.files[0];
+                    setSelectedFile(file);
+                    setImagePreview(URL.createObjectURL(file));
+            } 
         }
-    }, [isOpen])
 
-    if (!isOpen) {
-        return null;
-    };
-
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = event.target;
-        setFormData(prev => ({...prev, [name]: value}));
-    };
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files.length > 0){
-            const file = event.target.files[0];
-            setSelectedFile(file);
-            setImagePreview(URL.createObjectURL(file));
-        } else {
-            setSelectedFile(null);
-            setImagePreview(null);
-        }
-    }
-
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setErro('');
 
-        if (!formData.nome_pet || !formData.especie || !formData.raca || !formData.genero || !formData.data_nascimento || !formData.peso || formData.castrado === '') {
-            setErro('Por favor, preencha todos os campos obrogatórios (*).');
-            return;
-        }
-
         const idadeCalculada = calcularIdade(formData.data_nascimento);
-
         const formDataApi = new FormData();
 
         formDataApi.append('nome_pet', formData.nome_pet);
@@ -107,22 +121,23 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
         formDataApi.append('peso', (parseFloat(formData.peso.replace(',', '.')) || 0).toString());
         formDataApi.append('idade', idadeCalculada.toString());
         formDataApi.append('castrado', String(formData.castrado === 'sim'));
+        formDataApi.append('foto_perfil_original', pet.foto_perfil || '');
 
         if (selectedFile) {
-            formDataApi.append('foto_perfil', selectedFile, selectedFile.name);
+            formDataApi.append('foto_perfil_nova', selectedFile, selectedFile.name);
         } 
 
         try {
-            const response = await axios.post(`http://localhost:5000/api/tutores/${tutorId}/pets/novo-pet`, formDataApi, {
+            const response = await axios.put(`http://localhost:5000/api/tutores/${tutorId}/pets/${pet.id_pet}/atualizar-pet`, formDataApi, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             }); //ver
 
-            if (response.status === 201) {
-                onPetAdded();
+            if (response.status === 200) {
+                onPetAtualizado();
                 onClose();
             }
         } catch (erro: any) {
-            console.error("Erro ao adicionar pet:", erro);
+            console.error("Erro ao atualizar pet:", erro);
             setErro(erro.response?.data?.error || 'Erro ao salvar pet. Tente novamente.');
         }
     };
@@ -131,28 +146,27 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
         <div className='form' onClick={onClose}>
             <div className='form-content' onClick={(event) => event.stopPropagation()}>
                 <div className='form-header'>
-                    <h3><Heart size={20}/> Adicionar Novo Pet</h3>
+                    <h3><Heart size={20}/> Editar Pet</h3>
                     <button onClick={onClose} className='form-close-btn'><X size={22}/></button>
                 </div>
                 <form onSubmit={handleSubmit}>
+                    {/* Preview da foto (igual ao AdicionarPet) */}
                     <div className='form-foto-perfil'>
-                        <label htmlFor="foto_perfil" className='foto-perfil-label'>
+                        <label htmlFor="foto-perfil" className='foto-perfil-label'>
                             {imagePreview ? (
-                                <img src={imagePreview} alt='Preview' className='foto-perfil-preview'/>
+                                <img src={imagePreview} alt="Preview" className='foto-perfil-preview' />
                             ) : (
                                 <div className='foto-perfil-placeholder'>
-                                    <UploadCloud size={18}/>
-                                    <span>Adicionar foto</span>
+                                    <UploadCloud size={24} />
+                                    <span>Trocar Foto</span>
                                 </div>
                             )}
-                            </label>                            
-                            <input type="file" id='foto_perfil' onChange={handleFileChange} accept='image/png, image/jpeg, image/jpg' style={{display: 'none'}} />
-
+                        </label>
+                        <input type="file" id='foto-perfil' onChange={handleFileChange} accept='image/png, image/jpeg, image/jpg' style={{display: 'none'}} />
                     </div>
 
                     <div className='form-body'>
                         {erro && <p className='form-error'>{erro}</p>}
-
                         <div className='form-grid'>
                             <div className='form-group'>
                                 <label htmlFor="nome_pet">Nome *</label>
@@ -169,8 +183,7 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
                                     <option value="Outro">Outro</option>
                                 </select>
                             </div>
-
-                            <div className='form-group'>
+                             <div className='form-group'>
                                 <label htmlFor="raca">Raça *</label>
                                 <input type="text" id='raca' name='raca' placeholder='Ex: Shih-tzu' value={formData.raca} onChange={handleChange} />
                             </div>
@@ -182,12 +195,10 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
                                     <option value="Macho">Macho</option>
                                 </select>
                             </div>
-
                             <div className='form-group'>
                                 <label htmlFor="data_nascimento">Data de Nascimento *</label>
                                 <input type="date" id='data_nascimento' name='data_nascimento' placeholder='dd/mm/aaaa' value={formData.data_nascimento} onChange={handleChange} />
                             </div>
-
                             <div className='form-group'>
                                 <label htmlFor="castrado">Castrado *</label>
                                 <select name="castrado" id="castrado" value={formData.castrado} onChange={handleChange}>
@@ -196,26 +207,20 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
                                     <option value="nao">Não</option>
                                 </select>
                             </div>
-
                             <div className="form-group">
                                 <label htmlFor="peso">Peso *</label>
                                 <input type="text" id="peso" name="peso" placeholder="Ex: 4.2 kg" value={formData.peso} onChange={handleChange} />
                             </div>
                         </div>
                     </div>
-
                     <div className='form-footer'>
                         <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                        <Button variant='primary' type='submit'>Adicionar Pet</Button>
-
+                        <Button variant='primary' type='submit'>Salvar Alterações</Button>
                     </div>
-
                 </form>
-
             </div>
-
         </div>
-    )
+    );
+
 
 }
-

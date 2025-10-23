@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { Heart, Plus, Users, Calendar, ShieldCheck, ShieldAlert, Edit } from 'lucide-react';
 import { Badge } from '../components/badge';
 import { Navbar } from "../components/navbar";
+import { AdicionarPet } from "../components/AdicionarPet";
+import { EditarPet } from "../components/EditarPet";
+import { VerPet } from "../components/VerPet";
 import '../styles/MeusPets.css'
 import '../styles/NavBar.css'
 
@@ -14,8 +17,12 @@ interface Pet {
     nome_pet: string;
     especie: string;
     raca: string;
-    idade: string;
+    genero: string;
+    data_nascimento: string;
+    idade: number;
     peso: number;
+    castrado: boolean;
+    foto_perfil: string | null;
 }
 
 interface Vacina {
@@ -37,14 +44,14 @@ interface Tutor {
     pets: Pet[];
 }
 
-interface DetalhesPets extends Pet {
+export interface DetalhesPets extends Pet {
     statusVacina: 'Em dia' | 'Vencendo' | 'Atrasada';
     ultimaVacina: string;
     proximaVacina: string;
     ultimaConsulta: string;
 }
 
-const formatDate = (dateString: string | undefined | null) : string => {
+export const formatDate = (dateString: string | undefined | null) : string => {
     if (!dateString) return '--/--/----';
     try{
         return new Date(dateString).toLocaleDateString('pt-BR');
@@ -53,7 +60,7 @@ const formatDate = (dateString: string | undefined | null) : string => {
     }
 }
 
-const primeiraLetraMaiuscula = (str: string): string => {
+export const primeiraLetraMaiuscula = (str: string): string => {
     if (!str) {
         return '';
     }
@@ -82,6 +89,11 @@ export default function MeusPets() {
 
     const navigate = useNavigate();
     const tutorId = tutor ? tutor.id_tutor : null;
+
+    const [isAdicionarModalOpen, setIsAdicionarModalOpen] = useState(false);
+    const [petEdit, setPetEdit] = useState<DetalhesPets | null>(null);
+    const [petView, setPetView] = useState<DetalhesPets | null>(null);
+    const [refreshData, setRefreshData] = useState(0);
 
     useEffect(() => {
         async function fetchDetalhesPets(){
@@ -173,8 +185,12 @@ export default function MeusPets() {
         }
 
         fetchDetalhesPets();
-    }, [tutorId])
+    }, [tutorId, refreshData])
 
+
+    const handlePetDataChange = () => {
+        setRefreshData(prev => prev + 1);
+    }
 
 
     return (
@@ -186,7 +202,7 @@ export default function MeusPets() {
                             <h2>Meus pets 🐾</h2>
                             <p>Cuidando do seu melhor amigo</p>
                         </div>
-                        <Button variant='primary' onClick={() => navigate("/pets/novo")}><Plus size={16}/> Adicionar Pet </Button>
+                        <Button variant='primary' onClick={() => setIsAdicionarModalOpen(true)}><Plus size={16}/> Adicionar Pet </Button>
                     </div>
 
                     <div className="pets-summary-cards">
@@ -236,22 +252,34 @@ export default function MeusPets() {
                     <div className="pets-grid">
                         {loading && <p>Carregando pets...</p>}
                         {!loading && detalhesPet.map((pet) => (
-                            <Card key={pet.id_pet} className="pet-card-detail">
+                            <Card 
+                                key={pet.id_pet} 
+                                className="pet-card-detail" 
+                                onClick={(e: React.MouseEvent) => {
+                                    if ((e.target as HTMLElement).closest('.edit-btn')){
+                                        return
+                                    }
+                                    setPetView(pet)
+                                    }}>
                                 <div className="pet-card-header">
                                     <div className="pet-card-info">
-                                        <div className="heart-icon"><Heart size={24}/></div>
+                                        <div className="heart-icon">
+                                            {pet.foto_perfil ? (
+                                                <img src={`http://localhost:5000/api/uploads/${pet.foto_perfil}`}  alt={pet.nome_pet} className="foto_perfil_pet"/>
+                                            ) : (<Heart size={24}/>)}
+                                            </div>
                                         <div className="pet-details">
                                             <p className="pet-name"><strong>{primeiraLetraMaiuscula(pet.nome_pet)}</strong></p>
                                             <small>{primeiraLetraMaiuscula(pet.especie)} • {primeiraLetraMaiuscula(pet.raca)} </small>
                                         </div>
                                     </div>
-                                    <Button variant="link" className="edit-btn" onClick={() => navigate(`/pets/${pet.id_pet}/editar`)}><Edit size={18}/></Button>
+                                    <Button variant="link" className="edit-btn" onClick={() => setPetEdit(pet)}><Edit size={18}/></Button>
                                 </div>
 
                                 <div className="pet-card-status">
                                     <div className="status-item">
                                         <span className="status-label">Idade</span>
-                                        <span className="status-value">{pet.idade}</span>
+                                        <span className="status-value">{pet.idade} anos</span>
                                     </div>
                                     <div className="status-item">
                                         <span className="status-label">Peso</span>
@@ -287,6 +315,33 @@ export default function MeusPets() {
                     </div>
 
                 </main>
+
+                {tutorId && (
+                    <AdicionarPet
+                        isOpen={isAdicionarModalOpen}
+                        onClose={() => setIsAdicionarModalOpen(false)}
+                        onPetAdded={handlePetDataChange}
+                        tutorId={tutorId}
+                    />
+                )}
+
+                {petEdit && tutorId && (
+                    <EditarPet
+                        isOpen={!!petEdit}
+                        onClose={() => setPetEdit(null)}
+                        onPetAtualizado={handlePetDataChange}
+                        pet={petEdit}
+                        tutorId={tutorId}
+                    />
+                )}
+
+                {petView && (
+                    <VerPet
+                        isOpen={!!petView}
+                        onClose={() => setPetView(null)}
+                        pet={petView}
+                    />
+                )}
 
         </div>
     )
