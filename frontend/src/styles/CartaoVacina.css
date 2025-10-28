@@ -71,13 +71,6 @@
     justify-content: center;
 }
 
-.resumo-vacinas-card .card-title svg {
-    width: 28px;
-    height: 28px;
-    padding: 5px;
-    border-radius: 50%;
-    color: #fff !important;
-}
 
 .resumo-vacinas-card .card-content {
     font-size: 1.8rem;
@@ -91,51 +84,51 @@
 }
 
 .resumo-vacinas-card .card-em-dia {
-    background-color: #f1f8e9;
+    background-color: #e8f5e9;
 }
 
 .resumo-vacinas-card .card-em-dia .card-title {
-    color: #558b2f;
+    color: #30640a;
 }
 
 .resumo-vacinas-card .card-em-dia .card-title svg {
-    color: #7cb342;
+    color: #30640a;
 }
 
 .resumo-vacinas-card .card-vencendo {
-    background-color: #fff8e1;
+    background-color: #fffde7;
 }
 
 .resumo-vacinas-card .card-vencendo .card-title {
-    color: #ffa000;
+    color: #ff8a04;
 }
 
 .resumo-vacinas-card .card-vencendo .card-title svg {
-    color: #ffb300;
+    color: #ff8a04;
 }
 
 .resumo-vacinas-card .card-atrasadas {
-    background-color: #fff1f0;
+    background-color: #f8dddb;
 }
 
 .resumo-vacinas-card .card-atrasadas .card-title {
-    color: #e53935;
+    color: #e92c28;
 }
 
 .resumo-vacinas-card .card-atrasadas .card-title svg {
-    color: #f44336;
+    color: #e92c28;
 }
 
 .resumo-vacinas-card .card-total {
-    background-color: #f3e5f5;
+    background-color: #efe3fd;
 }
 
 .resumo-vacinas-card .card-total .card-title {
-    color: #8e24aa;
+    color: #8916a9;
 }
 
 .resumo-vacinas-card .card-total .card-title svg {
-    color: #ab47bc;
+    color: #8916a9;
 }
 
 .vacina-pet-area {

@@ -23,7 +23,7 @@ export function Navbar() {
             <div className="navbar-left">
                 <h1 className="navbar-logo"> 🐾 PetCare </h1>
                 <nav>
-                    <button onClick={() => navigate("/")} className={getButtonClass("/")}>Dashboard</button>
+                    <button onClick={() => navigate("/")} className={getButtonClass("/")}>Página inicial</button>
                     <button onClick={() => navigate("/pets")} className={getButtonClass("/pets")}>Meus Pets</button>
                     <button onClick={() => navigate("/vacinas")} className={getButtonClass("/vacinas")}>Cartão de Vacina</button>
                     <button onClick={() => navigate("/consultas")} className={getButtonClass("/consultas")}>Consultas/Exames</button>

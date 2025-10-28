@@ -273,7 +273,7 @@ export default function Home() {
         <main className='dashboard'>
             <div className='dashboard-header'>
                 <div>
-                    <h2>Dashboard</h2>
+                    {/*<h2>Dashboard</h2>*/}
                     <p>Olá, {tutor?.nome_completo}! 🐾 </p>
                     <p>Aqui está um resumo dos seus pets!</p>
                 </div>
