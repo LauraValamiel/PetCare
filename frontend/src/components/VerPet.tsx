@@ -66,11 +66,7 @@ export function VerPet({ isOpen, onClose, pet}: VerPetModal) {
                         </div>
                         <div className='ver-pet-stat-item'>
                             <span className='stat-label'>Castrado</span>
-                            <span className='stat-value'>{pet.castrado}</span>
-                        </div>
-                        <div className='ver-pet-stat-item'>
-                            <span className='stat-label'>Idade</span>
-                            <span className='stat-value'>{pet.idade}</span>
+                            <span className='stat-value'>{pet.castrado  ? 'Sim' : 'Não'}</span>
                         </div>
                     </div>
 

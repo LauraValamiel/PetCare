@@ -6,16 +6,22 @@ import { useNavigate } from 'react-router-dom'
 import { Heart, Shield, AlertTriangle, Calendar, Stethoscope, ShoppingBag, Plus, ArrowRight, UserCircle, Bell, Users, Syringe, CalendarPlus } from 'lucide-react'
 import { Badge } from '../components/badge'
 import { Navbar } from '../components/navbar'
+import { VerPet } from '../components/VerPet'
 import { AdicionarPet } from '../components/AdicionarPet'
 import '../styles/Home.css'
+import { formatDate, type DetalhesPets } from './MeusPets'
 
 interface Pet {
+    peso: number
     id_pet: number;
     nome_pet: string;
     especie: string;
     raca: string;
     idade: number;
     foto_perfil: string |null;
+    genero: string;
+    data_nascimento: string;
+    castrado: boolean;
 }
 
 interface Tutor {
@@ -27,6 +33,7 @@ interface Tutor {
 interface Vacina {
     id_vacina: number;
     nome_vacina: string;
+    data_vacinacao: string;
     proxima_dose: string;
 }
 
@@ -48,11 +55,6 @@ interface Atividades {
     titulo: string;
     descricao: string;
     data: Date;
-}
-
-interface PetComStatus extends Pet {
-    status: 'Em dia' | 'Vencido' | 'Atrasado';
-    next_event: string;
 }
 
 const primeiraLetraMaiuscula = (str: string): string => {
@@ -84,11 +86,13 @@ export default function Home() {
     });
 
     const [atividadesRecentes, setAtividadesRecentes] = useState<any[]>([])
-    const [petsComStatus, setPetsComStatus] = useState<PetComStatus[]>([]);
     const navigate = useNavigate();
+    const [petsComDetalhes, setPetsComDetalhes] = useState<DetalhesPets[]>([]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [refreshData, setRefreshData] = useState(0);
+    const [petView, setPetView] = useState<DetalhesPets | null>(null);
+    
 
     const getFirstName = (fullName: string | undefined) => {
         if (!fullName) {
@@ -121,7 +125,7 @@ export default function Home() {
                     let consultasAgendadas = 0;
                     let produtosAcabando = 0;
                     const atividades: Atividades[] = [];
-                    const petsStatus: PetComStatus[] = [];
+                    const petsProcessados: DetalhesPets[] = [];
 
                     // Buscando dados de cada pet
                     await Promise.all(
@@ -186,18 +190,51 @@ export default function Home() {
                             const proximosEventos = todosEventos.filter(evento => evento.date >= today).sort((a, b) => a.date.getTime() - b.date.getTime());
                             const eventosPassados = todosEventos.filter(evento => evento.date < today).sort((a, b) => b.date.getTime() - a.date.getTime());
 
-                            let petStatus: PetComStatus['status'] = 'Em dia';
+                            const vacinasOrdenadas = vacinas.sort((a, b) => new Date(a.proxima_dose).getTime() - new Date(b.proxima_dose).getTime());
+                            const consultasOrdenadas = consultas.sort((a, b) => new Date(a.data_consulta).getTime() - new Date(b.data_consulta).getTime());
+
+                            const vacinasFuturas = vacinasOrdenadas.filter(v => new Date(v.proxima_dose) >= today);
+                            const vacinasPassadas = vacinasOrdenadas.filter(v => new Date(v.proxima_dose) < today);
+                            const consultasPassadas = consultasOrdenadas.filter(c => new Date(c.data_consulta) <= today).sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
+                            const vacinacoesPassadas = vacinas.filter(v => new Date(v.data_vacinacao) <= today).sort((a, b) => new Date(b.data_vacinacao).getTime() - new Date(a.data_vacinacao).getTime());
+
+                            let statusVacina: DetalhesPets['statusVacina'] = 'Em dia';
+                            let proximaVacinaData: string | null = null;
                             let nextEvent = 'Nenhum evento futuro';
 
                             if (eventosPassados.length > 0) {
-                                petStatus = 'Atrasado';
+                                statusVacina = 'Atrasada';
                                 nextEvent = `Próximo: ${eventosPassados[0].nome} em ${eventosPassados[0].date.toLocaleDateString()}`;
                             } else if (proximosEventos.length > 0) {
-                                petStatus = 'Em dia';
+                                statusVacina = 'Em dia';
                                 nextEvent = `Próximo: ${proximosEventos[0].nome} em ${proximosEventos[0].date.toLocaleDateString()}`;
                             }
 
-                            petsStatus.push({...pet, status: petStatus, next_event: nextEvent});
+                            if (vacinasFuturas.length > 0) {
+                                const proximaDose = new Date(vacinasFuturas[0].proxima_dose);
+                                proximaVacinaData = vacinasFuturas[0].proxima_dose;
+
+                                if (proximaDose <= nextWeek) {
+                                    statusVacina = 'Vencendo';
+                                } else {
+                                }
+                            } else if (vacinasPassadas.length > 0) {
+                                statusVacina = 'Atrasada';
+                                proximaVacinaData = vacinasPassadas[vacinasPassadas.length - 1].proxima_dose;
+                            }
+
+                            const ultimaVacina = vacinacoesPassadas.length > 0 ? vacinacoesPassadas[0].data_vacinacao : null;
+                            const ultimaConsulta = consultasPassadas.length > 0 ? consultasPassadas[0].data_consulta : null;
+                            
+                            petsProcessados.push({
+                                ...pet,
+                                statusVacina,
+                                ultimaVacina: formatDate(ultimaVacina),
+                                proximaVacina: formatDate(proximaVacinaData),
+                                ultimaConsulta: formatDate(ultimaConsulta),
+                                peso: pet.peso
+                            });
+
                         })
                         );
 
@@ -213,8 +250,7 @@ export default function Home() {
                         const atividadesFuturas = atividades.filter(atividade => atividade.data >= today);
                         atividadesFuturas.sort((a, b) => a.data.getTime() - b.data.getTime());
                         setAtividadesRecentes(atividadesFuturas.slice(0, 5));
-
-                        setPetsComStatus(petsStatus);
+                        setPetsComDetalhes(petsProcessados);
                     }
 
             } catch (err) {
@@ -349,7 +385,7 @@ export default function Home() {
                     <Button variant='outline' onClick={() => navigate("/pets")}> Ver todos</Button>  
                 </div>
                     <ul className='pets-list'>
-                        {petsComStatus.map((pet) => (
+                        {petsComDetalhes.map((pet) => (
                             <li key={pet.id_pet} className='pet-card-item'>
                                 <div className='pet-info'>
                                     <div className='heart-icon'>
@@ -363,14 +399,16 @@ export default function Home() {
                                     </div>
                                 </div>
                                 <div className='pet-status'>
-                                    <Badge variant={pet.status === 'Atrasado' ? 'danger' : 'success'}>
-                                        {pet.status}
+                                    <Badge variant={pet.statusVacina === 'Atrasada' ? 'danger' : pet.statusVacina === 'Vencendo' ? 'warning' : 'success'}>
+                                        {pet.statusVacina}
                                     </Badge>
-                                    <p><small>{pet.next_event}</small></p>
+                                    {/*<p><small>Próximo compromisso em {pet.next_event}</small></p>*/}
+                                    <p><small>Próxima vacina em {pet.proximaVacina}</small></p>
+
                                     <Button
                                         variant="outline"
                                         className="mt-3"
-                                        onClick={() => navigate(`/pets/${pet.id_pet}`)}
+                                        onClick={() => setPetView(pet)}
                                     >
                                     Ver Detalhes
                                     </Button>
@@ -385,7 +423,7 @@ export default function Home() {
             <section className='acoes-section'>
                 <h2> Ações rápidas </h2>
                 <div className='acoes-buttons'>
-                    <Button className='acoes-buttons-card' onClick={() => setIsModalOpen}><Plus size={24}/><span>Adicionar Pet</span></Button>
+                    <Button className='acoes-buttons-card' onClick={() => setIsModalOpen(true)}><Plus size={24}/><span>Adicionar Pet</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => navigate("/vacinas")}><Syringe size={24}/><span>Registrar Vacina</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => navigate("/consultas")}><CalendarPlus size={24}/><span>Agendar Consulta</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => navigate("/produtos")}><ShoppingBag size={24}/><span>Adicionar Produto</span></Button>
@@ -400,6 +438,15 @@ export default function Home() {
                 tutorId={tutorId}
             />
         )}
+
+        {petView && (
+            <VerPet
+                isOpen={!!petView}
+                onClose={() => setPetView(null)}
+                pet={petView}
+            />
+        )}
+
     </div>
   );
 

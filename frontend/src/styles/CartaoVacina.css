@@ -1,0 +1,318 @@
+.cartao-vacina-page {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #f8f7fa;
+}
+
+.cartao-vacina-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.cartao-vacina-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.cartao-vacina-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #7a36aa;
+    margin: 0;
+}
+
+.cartao-vacina-header p {
+    font-size: 1rem;
+    color: #777;
+    margin-top: 4px;
+}
+
+.warning-banner {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 12px 12px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+
+.resumo-vacinas-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 32px;
+}
+
+.resumo-vacinas-card .card {
+    padding: 18px 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: none;
+}
+
+.resumo-vacinas-card .card-title {
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    justify-content: center;
+}
+
+.resumo-vacinas-card .card-title svg {
+    width: 28px;
+    height: 28px;
+    padding: 5px;
+    border-radius: 50%;
+    color: #fff !important;
+}
+
+.resumo-vacinas-card .card-content {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.resumo-vacinas-card .card-em-dia {
+    background-color: #f1f8e9;
+}
+
+.resumo-vacinas-card .card-em-dia .card-title {
+    color: #558b2f;
+}
+
+.resumo-vacinas-card .card-em-dia .card-title svg {
+    color: #7cb342;
+}
+
+.resumo-vacinas-card .card-vencendo {
+    background-color: #fff8e1;
+}
+
+.resumo-vacinas-card .card-vencendo .card-title {
+    color: #ffa000;
+}
+
+.resumo-vacinas-card .card-vencendo .card-title svg {
+    color: #ffb300;
+}
+
+.resumo-vacinas-card .card-atrasadas {
+    background-color: #fff1f0;
+}
+
+.resumo-vacinas-card .card-atrasadas .card-title {
+    color: #e53935;
+}
+
+.resumo-vacinas-card .card-atrasadas .card-title svg {
+    color: #f44336;
+}
+
+.resumo-vacinas-card .card-total {
+    background-color: #f3e5f5;
+}
+
+.resumo-vacinas-card .card-total .card-title {
+    color: #8e24aa;
+}
+
+.resumo-vacinas-card .card-total .card-title svg {
+    color: #ab47bc;
+}
+
+.vacina-pet-area {
+    background-color: #fff;
+    border-radius: 14px;
+    border: 1px solid #efe8e8;
+    box-shadow: 0 6px 18px rgba(53, 23, 87, 0.06);
+    padding: 20px;
+    margin-top: 32px;
+}
+
+.pet-selection-header {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f0e9f8;
+    padding-bottom: 15px;
+}
+
+.pet-selection-header h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #4a148c;
+    font-weight: 600;
+}
+
+.pet-tabs-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    background-color: #ece2ff;
+    padding: 15px;
+    border-radius: 6px;
+    border-bottom: 1px solid #f0e9f8;
+    padding-bottom: 15px;
+}
+
+.pet-tab {
+    padding: 10px 20px;
+    border: none;
+    background-color: transparent;
+    color: #666;
+    font-weight: 500;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.pet-tab:hover {
+    color: #5e35b1;
+    background-color: #fafafa;
+}
+
+.pet-tab.active {
+    background-color: #ffffff;
+    color: #5e35b1;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.vacina-list-section {
+    margin-top: 0;
+}
+
+.vacina-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.vacina-list-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #4a148c;
+}
+
+.vacina-list-header span {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.vacina-cards-grid {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: 1fr;
+}
+
+.vacina-card {
+    background-color: #fbf9fe;
+    border-radius: 10px;
+    border: 1px solid #f5f0fb;
+    padding: 18px;
+    transition: none;
+    box-shadow: none;
+}
+
+.vacina-card:hover {
+    box-shadow: none;
+}
+
+.vacina-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e1d9f7;
+}
+
+.vacina-card-header h4 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #391483;
+    font-weight: 700;
+}
+
+.vacina-card-header .badge{
+    padding: 5px 12px;
+    font-size: 0.7rem;
+}
+
+.vacina-card-body {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 15px 25px;
+    margin-top: 15px;
+}
+
+.vacina-detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.vacina-detail-item .label {
+    font-size: 1rem;
+    color: #7b4bb0;
+    margin-bottom: 3px;
+    font-weight: 700;
+}
+
+.vacina-detail-item .value {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #444;
+}
+
+.vacina-detail-item .value.obs {
+    font-weight: 400;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.vacina-detail-item.full-width {
+    grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+    .vacina-cards-grid{
+        /*grid-template-columns: repeat(2, 1fr);*/
+    }
+}
+
+@media (max-width: 480px) {
+    .resumo-vacinas-card {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+    .vacina-card-body {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pet-tabs-container {
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .pet-tab {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}

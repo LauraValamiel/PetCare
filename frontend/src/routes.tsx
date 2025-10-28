@@ -3,7 +3,8 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import RedefinirSenha from './pages/RedefinirSenha';
 import Pets from './pages/MeusPets'
-//import Vacinas from './pages/Vacinas'
+import Vacinas from './pages/CartaoVacina'
+import CartaoVacina from './pages/CartaoVacina';
 //import Consultas from './pages/Consultas'
 //import Produtos from './pages/Produtos'
 
@@ -23,6 +24,7 @@ export const AppRoutes = () => {
             <Route path='/home' element={<PrivateRoute><Home /></PrivateRoute>}/>
             <Route path='/' element={<PrivateRoute><Navigate to='/home'/></PrivateRoute>}/>
             <Route path='/pets' element={<PrivateRoute><Pets /></PrivateRoute>}/>
+            <Route path='/vacinas' element={<PrivateRoute><CartaoVacina /></PrivateRoute>}/>
         </Routes>
 
     )
@@ -30,6 +32,6 @@ export const AppRoutes = () => {
 }
 
 
- //               <Route path='/vacinas' element={<Vacinas />}/>
+ //               
    //             <Route path='/consultas' element={<Consultas />}/>
      //           <Route path='/produtos' element={<Produtos />}/>

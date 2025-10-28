@@ -12,7 +12,7 @@ import { VerPet } from "../components/VerPet";
 import '../styles/MeusPets.css'
 import '../styles/NavBar.css'
 
-interface Pet {
+export interface Pet {
     id_pet: number;
     nome_pet: string;
     especie: string;
@@ -25,20 +25,20 @@ interface Pet {
     foto_perfil: string | null;
 }
 
-interface Vacina {
+export interface Vacina {
     id_vacina: number;
     nome_vacina: string;
     data_vacinacao: string;
     proxima_dose: string;
 }
 
-interface Consulta {
+export interface Consulta {
     id_consulta: number;
     motivo: string;
     data_consulta: string;
 }
 
-interface Tutor {
+export interface Tutor {
     id_tutor: number;
     nome_completo: string;
     pets: Pet[];
