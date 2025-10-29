@@ -4,12 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/card';
 import { Button } from '../components/button';
 import { Badge } from '../components/badge';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ShieldCheck, AlertTriangle, XCircle, Shield, CheckCircle } from 'lucide-react';
+import { Plus, ShieldCheck, AlertTriangle, XCircle, Shield, CheckCircle, Edit, Trash2, ShieldAlert } from 'lucide-react';
 import { Navbar } from '../components/navbar';
 import { type Pet,  type Tutor,  type Vacina, primeiraLetraMaiuscula, formatDate } from './MeusPets';
 import '../styles/CartaoVacina.css';
+import { AdicionarVacina } from '../components/AdicionarVacina';
+import { EditarVacina } from '../components/EditarVacina';
 
-interface VacinaDetalhada extends Vacina {
+export interface VacinaDetalhada extends Vacina {
     id_vacina: number;
     id_pet: number;
     nome_pet?: string;
@@ -30,6 +32,11 @@ interface CountsResumo {
     total: number;
 }
 
+type VacinaStatus = {
+    variant: 'success' | 'warning' | 'danger';
+    text: 'Em dia' | 'Vencendo' | 'Atrasada';
+};
+
 export default function CartaoVacina() {
     const [tutor, setTutor] = useState<Tutor | null>(() => {
         const savedTutorLocal = localStorage.getItem('tutor');
@@ -47,11 +54,20 @@ export default function CartaoVacina() {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    const [isAdicionarModalOpen, setIsAdicionarModalOpen] = useState(false);
+    const [vacinaEdit, setVacinaEdit] = useState<VacinaDetalhada | null>(null);
+    const [refreshData, setRefreshData] =useState(0);
+
+    const handleVacinaDataChanged = () => {
+        setRefreshData(prev => prev + 1);
+    }
+
+    const tutorId = tutor?.id_tutor;
+
     useEffect(() =>{
         let currentTutorId: number | null = tutor?.id_tutor || null;
 
         if (!currentTutorId) {
-            console.log('[cv] TutorId ausente - limpando dados e parando busca.');
             setLoading(false);
             setPets([]);
             setTodasVacinas([]);
@@ -64,23 +80,17 @@ export default function CartaoVacina() {
         async function fetchData(tutorId: number) {
             setLoading(true);
             
-            console.log('[cv] iniciando fetchdata para tutorId:', tutorId)
-
             try {
                 const petsResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
 
-                console.log('[cv] resposta/tutores-e-pets :', petsResponse.data)
-
                 const tutorData: Tutor = petsResponse.data;
                 const fetchedPets = Array.isArray((tutorData as any).pets) ? (tutorData as any).pets : [];
-                console.log('[cv] fetchedPets antes: ', fetchedPets);
                 setPets(fetchedPets);
 
                 if (fetchedPets.length > 0) {
                     const vacinasPromises = fetchedPets.map((pet: Pet) =>
                         axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`)
                         .then(response => {
-                             // Validação extra da resposta da API de vacinas
                              const vacinasData = Array.isArray(response.data) ? response.data : [];
                              return vacinasData.map((v: Vacina): VacinaDetalhada => ({...v, id_pet: pet.id_pet, nome_pet: pet.nome_pet}));
                         })
@@ -92,7 +102,6 @@ export default function CartaoVacina() {
 
                     const vacinasPorPet = await Promise.all(vacinasPromises);
                     const allVacinas: VacinaDetalhada[] = vacinasPorPet.flat();
-                    console.log('[CV] allVacinas (após flat):', allVacinas);
                     setTodasVacinas(allVacinas);
 
                     const today = new Date();
@@ -141,8 +150,6 @@ export default function CartaoVacina() {
                     setVacinasAtrasadasComPet(atrasadasComPet);
 
                 } else {
-                    console.log('[CV] Nenhum pet encontrado no backend para este tutor.');
-
                     setTodasVacinas([]);
                     setCountsResumo({em_dia: 0, vencendo: 0, atrasadas: 0, total: 0});
                     setVacinasAtrasadasComPet([]);
@@ -150,7 +157,6 @@ export default function CartaoVacina() {
                 }
 
             } catch (erro) {
-                console.error("Erro ao buscar dados das vacinas:", erro);
                 setPets([]);
                 setTodasVacinas([]);
                 setCountsResumo({em_dia: 0, vencendo: 0, atrasadas: 0, total: 0});
@@ -158,24 +164,21 @@ export default function CartaoVacina() {
                 setSelectedPetId(null);
             } finally {
                 setLoading(false);
-                console.log('[cv] fetchdata concluido')
             }
         }
 
         fetchData(currentTutorId);
 
-    }, [tutor]);
+    }, [tutor, refreshData]);
     
 
     useEffect(() => {
         if (!loading) {
-            console.log('[cv] Effect [pets] ativado. Pets.length:', pets.length, 'selectedPetId');
             if (pets.length > 0 && selectedPetId === null) {
-                console.log('[cv] definindo selectedPetId inicial para:', pets[0].id_pet);
                 setSelectedPetId(pets[0].id_pet);
             }
         }
-    }, [pets, loading]);
+    }, [pets, loading, selectedPetId]);
 
     const vacinasDoPetSelecionado = todasVacinas.filter(v => v.id_pet === selectedPetId)
                                                 .sort((a, b) => {
@@ -183,8 +186,6 @@ export default function CartaoVacina() {
                                                     const dateB = b.data_vacinacao ? new Date(b.data_vacinacao).getTime() : 0;
                                                     return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
                                                 });
-
-    console.log('[CV] vacinasDoPetSelecionado count:', vacinasDoPetSelecionado.length, 'selectedPetId=', selectedPetId);
 
 
     const selectedPetInfo = pets.find(p => p.id_pet === selectedPetId);
@@ -200,6 +201,53 @@ export default function CartaoVacina() {
 
     const warningMessage = getWarningMessage();
 
+    const getVacinaStatus = (proximaDoseStr: string | null): VacinaStatus => {
+        if (!proximaDoseStr) {
+            return { variant: 'success', text: 'Em dia' };
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const nextWeek = new Date();
+        nextWeek.setDate(today.getDate() + 7);
+
+        try {
+            const proximaDose = new Date(proximaDoseStr);
+            if (isNaN(proximaDose.getTime())) {
+                return { variant: 'success', text: 'Em dia' };
+            }
+            proximaDose.setHours(0, 0, 0, 0);
+
+            if (proximaDose < today) {
+                return { variant: 'danger', text: 'Atrasada' };
+            } else if (proximaDose <= nextWeek) {
+                return { variant: 'warning', text: 'Vencendo' };
+            } else {
+                return { variant: 'success', text: 'Em dia'};
+            }
+        } catch (erro) {
+            return {variant: 'success', text: 'Em dia' };
+        }
+
+    };
+
+    const handleExcluirVacina = async (vacina: VacinaDetalhada) => {
+        if (window.confirm(`Tem certeza que deseja excluir a vacina "${vacina.nome_vacina}" do pet "${vacina.nome_pet}"`)) {
+            try {
+                const response = await axios.delete(`http://localhost:5000/api/pets/${vacina.id_pet}/deletar-vacina/${vacina.id_vacina}`);
+
+                if (response.status === 200) {
+                    alert('Vacina excluída com sucesso.');
+                    handleVacinaDataChanged();
+                }
+            } catch (erro: any) {
+                console.error("Erro ao excluir vacina:", erro);
+                alert(erro.response?.data?.error || 'Erro ao excluir vacina.')
+            }
+        }
+            
+    };
+
     return (
         <div className='cartao-vacina-page'>
             <Navbar/>
@@ -209,7 +257,7 @@ export default function CartaoVacina() {
                         <h2>Cartão de Vacinas</h2>
                         <p>Acompanhe o calendário vacinal dos seus pets.</p>
                     </div>
-                    <Button variant='primary' onClick={() => alert('Adicionar vacina a ser implementada')}> <Plus size={16}/>Adicionar Vacina</Button>
+                    <Button variant='primary' onClick={() => setIsAdicionarModalOpen(true)}> <Plus size={16}/>Adicionar Vacina</Button>
                 </div>
 
                 {warningMessage && (
@@ -267,11 +315,26 @@ export default function CartaoVacina() {
                                     <p>Nenhuma vacina registrada para este pet.</p>
                                 ) : (
                                     <div className='vacina-cards-grid'>
-                                        {vacinasDoPetSelecionado.map(vacina => (
-                                            <div key={vacina.id_vacina} className='vacina-card'>
+                                        {vacinasDoPetSelecionado.map(vacina => {
+                                            const status = getVacinaStatus(vacina.proxima_dose);
+
+                                            return (
+                                                <div key={vacina.id_vacina} className='vacina-card'>
                                                 <div className='vacina-card-header'>
-                                                    <h4>{vacina.nome_vacina}</h4>
-                                                    <Badge variant='success'><CheckCircle size={12}/>Em dia</Badge>
+                                                    <div className='vacina-header-left'>
+                                                        <h4>{vacina.nome_vacina}</h4>
+                                                        <Badge variant={status.variant}>
+                                                            {status.variant === 'success' && <ShieldCheck size={12}/>}
+                                                            {status.variant === 'warning' && <ShieldAlert size={12}/>}
+                                                            {status.variant === 'danger' && <XCircle size={12}/>}
+                                                            {status.text}
+                                                        </Badge>
+                                                    </div>
+
+                                                    <div className='vacina-header-actions'>
+                                                        <Button variant="link" className="action-btn" onClick={() => setVacinaEdit(vacina)}><Edit size={18}/></Button>
+                                                        <Button variant="link" className="action-btn danger" onClick={() => handleExcluirVacina(vacina)}><Trash2 size={18}/></Button>
+                                                    </div>
                                                 </div>
                                                 <div className='vacina-card-body'>
                                                     <div className='vacina-detail-item'>
@@ -295,14 +358,8 @@ export default function CartaoVacina() {
                                                         <span className='value obs'>{vacina.observacoes || 'Nenhuma'}</span>
                                                     </div>
                                                 </div>
-
-                                                <div className='vacina-card-actions'>
-                                                    <Button variant='link'>Editar</Button>
-                                                    <Button variant='link' className='text-danger'>Excluir</Button>
-                                                </div>
-
                                             </div>
-                                        ))}
+                                        )})}
 
                                     </div>
                                 )}
@@ -319,6 +376,26 @@ export default function CartaoVacina() {
                 
 
             </main>
+
+            {tutorId && (
+                <AdicionarVacina
+                    isOpen={isAdicionarModalOpen}
+                    onClose={() => setIsAdicionarModalOpen(false)}
+                    onVacinaAdded={handleVacinaDataChanged}
+                    pets={pets}
+                    tutorId={tutorId}
+                />
+            )}
+
+            {vacinaEdit && (
+                <EditarVacina
+                    isOpen={!!vacinaEdit}
+                    onClose={() => setVacinaEdit(null)}
+                    onVacinaAtualizada={handleVacinaDataChanged}
+                    pets={pets}
+                    vacina={vacinaEdit}
+                />
+            )}
 
         </div>
     )

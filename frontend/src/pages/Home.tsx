@@ -10,6 +10,7 @@ import { VerPet } from '../components/VerPet'
 import { AdicionarPet } from '../components/AdicionarPet'
 import '../styles/Home.css'
 import { formatDate, type DetalhesPets } from './MeusPets'
+import { AdicionarVacina } from '../components/AdicionarVacina'
 
 interface Pet {
     peso: number
@@ -92,6 +93,7 @@ export default function Home() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [refreshData, setRefreshData] = useState(0);
     const [petView, setPetView] = useState<DetalhesPets | null>(null);
+    const [isAdicionarVacinaModalOpen, setIsAdicionarVacinaModalOpen] = useState(false);
     
 
     const getFirstName = (fullName: string | undefined) => {
@@ -200,28 +202,23 @@ export default function Home() {
 
                             let statusVacina: DetalhesPets['statusVacina'] = 'Em dia';
                             let proximaVacinaData: string | null = null;
-                            let nextEvent = 'Nenhum evento futuro';
 
-                            if (eventosPassados.length > 0) {
+                            if (vacinasPassadas.length > 0) {
                                 statusVacina = 'Atrasada';
-                                nextEvent = `Próximo: ${eventosPassados[0].nome} em ${eventosPassados[0].date.toLocaleDateString()}`;
-                            } else if (proximosEventos.length > 0) {
-                                statusVacina = 'Em dia';
-                                nextEvent = `Próximo: ${proximosEventos[0].nome} em ${proximosEventos[0].date.toLocaleDateString()}`;
-                            }
-
-                            if (vacinasFuturas.length > 0) {
-                                const proximaDose = new Date(vacinasFuturas[0].proxima_dose);
-                                proximaVacinaData = vacinasFuturas[0].proxima_dose;
-
-                                if (proximaDose <= nextWeek) {
+                                proximaVacinaData = vacinasPassadas[vacinasPassadas.length -1].proxima_dose;
+                            } else if (vacinasFuturas.length > 0) {
+                                const proximaDoseDate = new Date(vacinasFuturas[0].proxima_dose);
+                                proximaVacinaData = vacinasFuturas[0].proxima_dose
+                                if (proximaDoseDate <= nextWeek) {
                                     statusVacina = 'Vencendo';
                                 } else {
+                                    statusVacina = 'Em dia';
                                 }
-                            } else if (vacinasPassadas.length > 0) {
-                                statusVacina = 'Atrasada';
-                                proximaVacinaData = vacinasPassadas[vacinasPassadas.length - 1].proxima_dose;
+                            } else {
+                                statusVacina = 'Em dia';
+                                proximaVacinaData = null;
                             }
+
 
                             const ultimaVacina = vacinacoesPassadas.length > 0 ? vacinacoesPassadas[0].data_vacinacao : null;
                             const ultimaConsulta = consultasPassadas.length > 0 ? consultasPassadas[0].data_consulta : null;
@@ -264,6 +261,10 @@ export default function Home() {
 
     const handlePetAdicionado = () => {
         setRefreshData(prev => prev + 1);
+    }
+
+    const handleVacinaAdicionada = () => {
+        setRefreshData(prev => prev +1);
     }
  
 
@@ -424,7 +425,7 @@ export default function Home() {
                 <h2> Ações rápidas </h2>
                 <div className='acoes-buttons'>
                     <Button className='acoes-buttons-card' onClick={() => setIsModalOpen(true)}><Plus size={24}/><span>Adicionar Pet</span></Button>
-                    <Button className='acoes-buttons-card' onClick={() => navigate("/vacinas")}><Syringe size={24}/><span>Registrar Vacina</span></Button>
+                    <Button className='acoes-buttons-card' onClick={() => setIsAdicionarVacinaModalOpen(true)}><Syringe size={24}/><span>Registrar Vacina</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => navigate("/consultas")}><CalendarPlus size={24}/><span>Agendar Consulta</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => navigate("/produtos")}><ShoppingBag size={24}/><span>Adicionar Produto</span></Button>
                 </div>
@@ -446,6 +447,16 @@ export default function Home() {
                 pet={petView}
             />
         )}
+
+        {tutorId && (
+            <AdicionarVacina
+                isOpen={isAdicionarVacinaModalOpen}
+                onClose={() => setIsAdicionarVacinaModalOpen(false)}
+                onVacinaAdded={handleVacinaAdicionada} // Usa a função de callback
+                pets={tutor?.pets || []} // Passa a lista de pets do tutor
+                tutorId={tutorId}
+                />
+            )}
 
     </div>
   );

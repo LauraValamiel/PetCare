@@ -238,6 +238,42 @@
     border-bottom: 1px solid #e1d9f7;
 }
 
+.vacina-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vacina-header-left .badge {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+}
+
+.vacina-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.vacina-header-actions .action-btn {
+    padding: 6px;
+    color: #888;
+    line-height: 1;
+    background-color: transparent;
+    border: none;
+    border-radius: 50%;
+}
+
+.vacina-header-actions .action-btn:hover {
+    color: #5e35b1;
+    background-color: #f3e5f5;
+}
+
+.vacina-header-actions .action-btn.danger:hover {
+    color: #c62828;
+    background-color: #ffebee;
+}
+
 .vacina-card-header h4 {
     margin: 0;
     font-size: 1.05rem;
@@ -283,6 +319,17 @@
 
 .vacina-detail-item.full-width {
     grid-column: 1 / -1;
+}
+
+.vacina-card-header .edit-btn {
+    align-items: right;
+    padding: 4px;
+    color: #999;
+}
+
+.vacina-card-header .edit-btn:hover {
+    color: #5e35b1;
+    background-color: transparent;
 }
 
 @media (min-width: 768px) {
