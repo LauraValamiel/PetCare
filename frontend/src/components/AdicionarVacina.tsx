@@ -124,7 +124,7 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
                             </div>
                             <div className='form-group full-width'>
                                 <label htmlFor="observacoes">Observações *</label>
-                                <input id='observacoes' name='observacoes' placeholder='Ex: Reações, recomendações especiais...' value={formData.observacoes} onChange={handleChange}/>
+                                <textarea id='observacoes' name='observacoes' placeholder='Ex: Reações, recomendações especiais...' value={formData.observacoes} onChange={handleChange}/>
                             </div>
                         </div>
                     </div>

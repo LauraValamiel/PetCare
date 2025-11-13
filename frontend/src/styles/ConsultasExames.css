@@ -1,0 +1,384 @@
+.consultas-exames-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f8f8fa;
+}
+
+.consultas-exames-main {
+    flex-grow: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.consultas-exames-header {
+    margin-bottom: 2rem;
+}
+
+.consultas-exames-header h1 {
+    font-size: 2.2rem;
+    color: #4a148c;
+    margin-bottom: 0.5rem;
+}
+
+.consultas-exames-header p {
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e0e0e0;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.summary-card {
+    min-height: 220px;
+    justify-content: space-between;
+    padding: 1.25rem;
+}
+
+.summary-card .card-header-flex {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.summary-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #444;
+    margin: 0;
+}
+
+.summary-card .card-icon {
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.summary-card .card-icon svg {
+    color: #6a0dad;
+}
+
+.proximas-consultas-card {
+    background-color: #f0f7ff;
+    border-color: #d6eaff;
+}
+
+.proximas-consultas-card .card-icon {
+    background-color: #d6eaff;
+    color: #00529b;
+}
+
+.historico-medico-card {
+    background-color: #f0fff5;
+    border-color: #d6ffe3;
+}
+
+.historico-medico-card .card-icon {
+    background-color: #d6ffe3;
+    color: #006421;
+}
+
+.exames-recentes-card {
+    background-color: #fdf5ff;
+    border-color: #f5e0ff;
+}
+
+.exames-recentes-card .card-icon  {
+    background-color: #f5e0ff;
+    color: #5e35b1;
+}
+
+.summary-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+    color: #333;
+}
+
+.summary-card span {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.item-info {
+    margin-bottom: 1rem;
+    margin-top: 0.5rem;
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    
+}
+
+.item-info-placeholder {
+    flex-grow: 1;
+    margin-bottom: 1.5rem;
+    color: #666;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.item-info h4 {
+    font-size: 1.1rem;
+    margin: 0 0 0.3rem 0;
+    color: #333;
+    font-weight: 600;
+}
+
+.item-info span {
+    font-size: 0.9rem;
+    color: #777;
+    
+}
+
+.detalhes-info {
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+.detalhes-consulta {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.status {
+    padding: 0.3rem 0.7rem;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+.status.completed {
+    background-color: #d1acfe;
+    color: #ededed;
+}
+
+.item-info-detalhes {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 0.5rem;
+}
+
+.item-info-detalhes > span {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.item-info-detalhes .item-info-data {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 0.3rem 0.7rem;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.item-info-detalhes .status {
+    margin-top: 0;
+}
+
+.action-button {
+    padding: 0.8rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: bacckground-color 0.3s ease, color 0.3s ease;
+    width: 100%;
+}
+
+.proximas-consultas-card .action-button.primary-button {
+    background-color: #d6eaff;
+    color: #333;
+    border: 1px solid #d6eaff;
+}
+
+.proximas-consultas-card .action-button.primary-button:hover {
+    background-color: #98bce3;
+    border-color: #737174;
+}
+
+.exames-recentes-card .action-button.primary-button{
+    background-color: #f5e0ff;
+    color: #333;
+    border: 1px solid #f5e0ff;
+}
+
+.exames-recentes-card .action-button.primary-button:hover {
+    background-color: #f5e0ff;
+    border-color: #737174;
+}
+
+.historico-medico-card .action-button.secondary-button {
+    background-color: #d6ffe3;
+    color: #333;
+    border-color: #e0e0e0;
+}
+
+.historico-medico-card .action-button.secondary-button:hover {
+    background-color: #6fc289;
+}
+
+.primary-button {
+    background-color: #d89ef3;
+    color: #333;;
+}
+
+.primary-button:hover {
+    background-color: #a861e5;
+}
+
+.secondary-button {
+    background-color: #e0e0e0;
+    color: #333;
+} 
+
+.secondary-button:hover {
+    background-color: #d0d0d0;
+}
+
+.vet-clinicas-section {
+    margin-top: 2rem;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+}
+
+.vet-clinicas-section h2 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.clinicas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.clinica-card {
+    border: 1px solid #f0e9f8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.clinica-card h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+    color: #555;
+}
+
+.clinica-card p {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0.4rem;
+}
+
+.contato-clinica {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.contato-clinica p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.contato-clinica svg {
+    color: #6a0dad;
+    flex-shrink: 0;
+}
+
+.comsultas-realizadas {
+    font-size: 0.85rem;
+    color: #888;
+    background-color: #f0f0f0;
+    padding: 0.3rem 0.7rem;
+    border-radius: 12px;
+    align-self: flex-start;
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .consultas-exames-main {
+        padding: 1rem;
+    }
+
+    .consultas-exames-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .consultas-exames-header p {
+        font-size: 1rem;
+    }
+
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .clinicas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .act6ion-button {
+        width: 100%;
+    }
+
+}
+
+@media (max-width: 480px) {
+    .consultas-exames-main {
+        padding: 0.8rem;
+    }
+
+    .card {
+        padding: 1rem;
+    }
+
+    .summary-card h3 {
+        font-size: 1.1rem;
+    }
+}
+

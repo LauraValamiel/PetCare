@@ -5,6 +5,7 @@ import RedefinirSenha from './pages/RedefinirSenha';
 import Pets from './pages/MeusPets'
 import Vacinas from './pages/CartaoVacina'
 import CartaoVacina from './pages/CartaoVacina';
+import { ConsultasExames } from './pages/ConsultasExames';
 //import Consultas from './pages/Consultas'
 //import Produtos from './pages/Produtos'
 
@@ -25,6 +26,7 @@ export const AppRoutes = () => {
             <Route path='/' element={<PrivateRoute><Navigate to='/home'/></PrivateRoute>}/>
             <Route path='/pets' element={<PrivateRoute><Pets /></PrivateRoute>}/>
             <Route path='/vacinas' element={<PrivateRoute><CartaoVacina /></PrivateRoute>}/>
+            <Route path='/consultas-exames' element={<ConsultasExames />}/>
         </Routes>
 
     )
@@ -33,5 +35,5 @@ export const AppRoutes = () => {
 
 
  //               
-   //             <Route path='/consultas' element={<Consultas />}/>
+   //             
      //           <Route path='/produtos' element={<Produtos />}/>

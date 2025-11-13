@@ -45,7 +45,7 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
             });
             setErro('');
         }
-    }, [isOpen]);
+    }, [isOpen, vacina]);
 
     if (!isOpen) {
         return null;
@@ -114,7 +114,7 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
                                 <input type="text" id='lote' name='lote' value={formData.lote} onChange={handleChange}/>
                             </div>
                             <div className='form-group full=width'>
-                                <label htmlFor="nome_veterinario">Veterinário *</label>
+                                <label htmlFor="nome_veterinario">Veterinário/Clínica *</label>
                                 <input type="text" id='nome_veterinario' name='nome_veterinario' value={formData.nome_veterinario} onChange={handleChange}/>
                             </div>
                             <div className='form-group'>

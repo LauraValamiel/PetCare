@@ -26,7 +26,7 @@ export function Navbar() {
                     <button onClick={() => navigate("/")} className={getButtonClass("/")}>Página inicial</button>
                     <button onClick={() => navigate("/pets")} className={getButtonClass("/pets")}>Meus Pets</button>
                     <button onClick={() => navigate("/vacinas")} className={getButtonClass("/vacinas")}>Cartão de Vacina</button>
-                    <button onClick={() => navigate("/consultas")} className={getButtonClass("/consultas")}>Consultas/Exames</button>
+                    <button onClick={() => navigate("/consultas-exames")} className={getButtonClass("/consultas-exames")}>Consultas/Exames</button>
                     <button onClick={() => navigate("/produtos")} className={getButtonClass("/produtos")}>Produtos</button>
                 </nav>
             </div>
