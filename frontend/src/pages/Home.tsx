@@ -11,6 +11,7 @@ import { AdicionarPet } from '../components/AdicionarPet'
 import '../styles/Home.css'
 import { formatDate, type DetalhesPets } from './MeusPets'
 import { AdicionarVacina } from '../components/AdicionarVacina'
+import { AgendarCompromissoModal } from '../components/AgendarCompromissoModal'
 
 interface Pet {
     peso: number
@@ -94,7 +95,8 @@ export default function Home() {
     const [refreshData, setRefreshData] = useState(0);
     const [petView, setPetView] = useState<DetalhesPets | null>(null);
     const [isAdicionarVacinaModalOpen, setIsAdicionarVacinaModalOpen] = useState(false);
-    
+    const [isAgendarConsultaModalOpen, setIsAgendarConsultaModalOpen] = useState(false);
+
 
     const getFirstName = (fullName: string | undefined) => {
         if (!fullName) {
@@ -267,6 +269,9 @@ export default function Home() {
         setRefreshData(prev => prev +1);
     }
  
+    const handleDataChanged = () => {
+        setRefreshData(prev => prev + 1);
+    }
 
     return (
     <div className='home-page'>
@@ -426,7 +431,7 @@ export default function Home() {
                 <div className='acoes-buttons'>
                     <Button className='acoes-buttons-card' onClick={() => setIsModalOpen(true)}><Plus size={24}/><span>Adicionar Pet</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => setIsAdicionarVacinaModalOpen(true)}><Syringe size={24}/><span>Registrar Vacina</span></Button>
-                    <Button className='acoes-buttons-card' onClick={() => navigate("/consultas")}><CalendarPlus size={24}/><span>Agendar Consulta</span></Button>
+                    <Button className='acoes-buttons-card' onClick={() => setIsAgendarConsultaModalOpen(true)}><CalendarPlus size={24}/><span>Agendar Consulta</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => navigate("/produtos")}><ShoppingBag size={24}/><span>Adicionar Produto</span></Button>
                 </div>
             </section>
@@ -457,6 +462,18 @@ export default function Home() {
                 tutorId={tutorId}
                 />
             )}
+
+        {tutorId && (
+            <AgendarCompromissoModal
+                isOpen={isAgendarConsultaModalOpen}
+                onClose={() => setIsAgendarConsultaModalOpen(false)}
+                onCompromissoAdded={handleDataChanged}
+                pets={tutor?.pets || []}
+                tutorId={tutorId}
+                tipo='consulta'
+                        />
+                    )}
+        
 
     </div>
   );

@@ -40,15 +40,17 @@
 
 .summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
 }
 
 .summary-cards .card{
-    display: flex;
+    /*display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 20px;*/
+    flex: 1;
+    min-width: 0;
 }
 
 .summary-cards .card-content{
@@ -59,14 +61,14 @@
 }
 
 .summary-cards .card-content .info p:first-child {
-    font-size: 1.8rem;
+    font-size: 1.9rem;
     font-weight: bold;
     color: #333;
     margin: 0;
 }
 
 .summary-cards .card-content .info p:last-child {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #666;
     margin: 0;
 }
@@ -355,5 +357,11 @@
     .pet-status {
         align-items: flex-start;
         text-align: left;
+    }
+}
+
+@media (max-width: 480px) {
+    .summary-cards {
+        grid-template-columns: 1fr;
     }
 }

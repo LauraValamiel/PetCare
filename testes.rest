@@ -88,14 +88,14 @@ Content-Type: application/json
 #------------------------------------ Tutores e Pets ------------------------------------
 
 ###
-DELETE http://localhost:5000/api/tutores/2/pets/6/deletar-pet
+DELETE http://localhost:5000/api/tutores/2/pets/3/deletar-pet
 
 ###
 DELETE http://localhost:5000/api/tutores/1/pets/4/desassociar
 
 
 ###
-GET http://localhost:5000/api/tutores/1/tutores-e-pets
+GET http://localhost:5000/api/tutores/2/tutores-e-pets
 
 ###
 POST http://localhost:5000/api/tutores/1/pets/5/convidar-tutor

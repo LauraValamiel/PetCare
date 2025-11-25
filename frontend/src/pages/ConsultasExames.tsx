@@ -1,13 +1,17 @@
 import React, { use, useEffect, useState } from 'react';
 import axios, { all } from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Syringe, Stethoscope, FileText, CalendarPlus, Search, Phone, MapPin, Activity } from 'lucide-react';
+import { Syringe, Stethoscope, FileText, CalendarPlus, Search, Phone, MapPin, Activity, Plus, Edit, Trash2 } from 'lucide-react';
 import '../styles/ConsultasExames.css';
 import { Navbar } from '../components/navbar';
 import { type Pet, type Tutor, formatDate } from './MeusPets';
 import { type VacinaDetalhada } from './CartaoVacina';
 import { HistoricoCompletoModal } from '../components/HistoricoCompletoModal';
 import { EditarVacina } from '../components/EditarVacina';
+import { AgendarCompromissoModal } from '../components/AgendarCompromissoModal';
+import { AdicionarClinicaModal } from '../components/AdicionarClinicaModal';
+import { EditarClinicaModal } from '../components/EditarClinicaModal';
+import { Button } from '../components/button';
 
 interface Compromisso {
     id_compromisso: number;
@@ -67,6 +71,13 @@ export function ConsultasExames() {
     const [isHistoricoModalOpen, setIsHistoricoModalOpen] = useState(false);
     const [vacinaEdit, setVacinaEdit] = useState<VacinaDetalhada | null>(null);
     const [refreshData, setRefreshData] = useState(0);
+
+    const [isAgendarConsultaModalOpen, setIsAgendarConsultaModalOpen] = useState(false);
+    const [isAgendarExameModalOpen, setIsAgendarExameModalOpen] = useState(false);
+    const [isAdicionarClinicaModalOpen, setIsAdicionarClinicaModalOpen] = useState(false);
+
+    const [clinicaEdit, setClinicaEdit] = useState<Clinica | null>(null);
+    const [isEditarClinicaModalOpen, setIsEditarClinicaModalOpen] = useState(false);
 
     const tutorId = tutor?.id_tutor;
 
@@ -141,7 +152,12 @@ export function ConsultasExames() {
                     .filter(c => new Date(c.data_consulta) < today && !c.motivo.toLowerCase().includes('exame'))
                     .sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
 
-                setHistoricoItemMaisRecente(consultasPassadas.length > 0 ? consultasPassadas[0] : null);
+                setHistoricoItemMaisRecente(consultasPassadas.length > 0 ? {
+                    tipo: 'consulta',
+                    data: new Date(consultasPassadas[0].data_consulta),
+                    titulo: consultasPassadas[0].motivo,
+                    petNome: consultasPassadas[0].pet_nome || 'Pet'
+                } : null);
 
                 const examesFuturos = compromissosFuturos
                     .filter(c => c.titulo.toLowerCase().includes('exame'))
@@ -204,7 +220,11 @@ export function ConsultasExames() {
     }
 
     const handleAgendarConsulta = () => {
-        alert('Funcionalidade de agendamento de consultas ainda não implementada.');
+        setIsAgendarConsultaModalOpen(true);
+    }
+
+    const handleAdicionarClinica = () => {
+        setIsAdicionarClinicaModalOpen(true);
     }
 
     const handleVerHistorico = () => {
@@ -212,7 +232,23 @@ export function ConsultasExames() {
     }
 
     const handleAgendarExame = () => {
-        alert('Funcionalidade de solicitação de exames ainda não implementada.');
+        setIsAgendarExameModalOpen(true);
+    }
+
+    const handleExcluirClinica = async (clinica: Clinica) => {
+        if (window.confirm(`Tem certeza que deseja excluir a clínica "${clinica.nome_clinica}"? Esta ação não pode ser desfeita.`)) {
+            try {
+                const response = await axios.delete(`http://localhost:500/api/clinica/${clinica.id_clinica}`);
+
+                if (response.status === 200) {
+                    alert('Clínica excluída com sucesso.');
+                    handleDataChanged();
+                }
+            } catch (erro: any) {
+                console.error("Erro ao excluir clínica:", erro);
+                alert(erro.response?.data?.error || 'Erro ao excluir clínica.')
+            }
+        }
     }
 
     return (
@@ -241,7 +277,7 @@ export function ConsultasExames() {
                                     <h4>{proximasConsultas.pet_nome} - {proximasConsultas.titulo}</h4>
                                     <div className='item-info-detalhes'>
                                         <p className='detalhes-consulta'>{proximasConsultas.localizacao}</p>
-                                        <span className='item-info-data'>{formatDate(proximasConsultas.data_compromisso)}{proximasConsultas.hora}</span>
+                                        <span className='item-info-data'>{formatDate(proximasConsultas.data_compromisso)} - {proximasConsultas.hora}</span>
                                     </div>     
                                 </div>
                             ) : (
@@ -280,22 +316,22 @@ export function ConsultasExames() {
                         <div className='card summary-card exames-recentes-card'>
                             <div className='card-header-flex'>
                                 <div className='card-icon'><Syringe size={24}/></div>
-                                <h3>Exames Recentes</h3>
+                                <h3>Próximos Exames</h3>
                             </div>
                             {proximosExames ? (
                                 <div className='item-info'>
                                 <h4>{proximosExames.pet_nome} - {proximosExames.titulo}</h4>
                                 <div className='item-info-detalhes'>
-                                    <span>{formatDate(proximosExames.data_compromisso)} {proximosExames.hora}</span>
-                                </div>
+                                    <p className='detalhes-consulta'>{proximosExames.localizacao}</p>
+                                    <span className='item-info-data'>{formatDate(proximosExames.data_compromisso)} - {proximosExames.hora}</span>                                </div>
                             </div>
                             ) : (
                                 <div className='item-info-placeholder'>
-                                    <p>Nenhum exame recente encontrado.</p>
+                                    <p>Nenhum exame marcado para os próximos dias.</p>
                                 </div>
                             )}
                             <button className='action-button primary-button' onClick={handleAgendarExame}>
-                                <Syringe size={16}/> Ver todos os exames
+                                <Syringe size={16}/> Agendar novo exame
                             </button>
                         </div>
                     </section>
@@ -304,30 +340,48 @@ export function ConsultasExames() {
                         <h2>Clínicas Veterinárias Cadastradas</h2>
                         {clinicas.length > 0 ? (
                             <div className='clinicas-grid'>
-                            <div className='card clinica-card'>
-                                <h3>Clínica Vida Animal</h3>
-                                <p>Dr. Carlos Silva</p>
-                                <div className='contato-clinica'>
-                                    <p><MapPin size={16}/>Rua Teste</p>
-                                    <p><Phone size={16}/>99999999</p>
+                            {clinicas.map((clinica) => (
+                                <div key={clinica.id_clinica} className='card clinica-card'>
+                                    <div className='clinica-card-header-actions'>
+                                        <h3>{clinica.nome_clinica}</h3>
+                                        <div className='clinica-actions'>
+                                            <Button
+                                                variant='link'
+                                                className="action-btn edit-btn"
+                                                onClick={() => {
+                                                    setClinicaEdit(clinica);
+                                                    setIsEditarClinicaModalOpen(true);
+                                                }}>
+                                                    <Edit size={18}/>
+                                            </Button>
+                                            <Button
+                                                variant='link'
+                                                className='action-btn danger delete-btn'
+                                                onClick={() => handleExcluirClinica(clinica)}>
+                                                    <Trash2 size={18}/>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <p>{clinica.email}</p>
+                                    <div className='contato-clinica'>
+                                        <p><MapPin size={16}/>{clinica.endereco}</p>
+                                        <p><Phone size={16}/>{clinica.telefone}</p>
+                                    </div>
+                                    
+                                    
                                 </div>
-                                <span className='consultas-realizadas'>5 consultas realizadas</span>
-                            </div>
-
-                            <div className='card clinica-card'>
-                                <h3>Pet Center</h3>
-                                <p>Dra. Ana Souza</p>
-                                <div className='contato-clinica'>
-                                    <p><MapPin size={16}/>Avenida Exemplo</p>
-                                    <p><Phone size={16}/>88888888</p>
-                                </div>
-                                <span className='consultas-realizadas'>3 consultas realizadas</span>
-                            </div>
+                            ))}
 
                         </div>
                         ) : (
                             <p>Nenhuma clínica cadastrada no momento.</p>
                         )}
+
+                        <div style={{marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button className='action-button primary-button' onClick={handleAdicionarClinica} style={{ width: 'auto' }}>
+                                <Plus size={16}/>Adicionar Clínica
+                            </button>
+                        </div>
                     </section>
 
                     </>
@@ -355,6 +409,46 @@ export function ConsultasExames() {
                     }}
                     pets={pets}
                     vacina={vacinaEdit}
+                />
+            )}
+
+            {tutorId && (
+                <AgendarCompromissoModal
+                    isOpen={isAgendarConsultaModalOpen}
+                    onClose={() => setIsAgendarConsultaModalOpen(false)}
+                    onCompromissoAdded={handleDataChanged}
+                    pets={pets}
+                    tutorId={tutorId}
+                    tipo='consulta'
+                />
+            )}
+
+            {tutorId && (
+                <AgendarCompromissoModal
+                isOpen={isAgendarExameModalOpen}
+                onClose={() => setIsAgendarExameModalOpen(false)}
+                onCompromissoAdded={handleDataChanged}
+                pets={pets}
+                tutorId={tutorId}
+                tipo='exame'
+                />
+            )}
+
+            <AdicionarClinicaModal
+                isOpen={isAdicionarClinicaModalOpen}
+                onClose={() => setIsAdicionarClinicaModalOpen(false)}
+                onClinicaAdded={handleDataChanged}
+            />
+
+            {clinicaEdit && (
+                <EditarClinicaModal
+                    isOpen={isEditarClinicaModalOpen}
+                    onClose={() => {
+                        setIsEditarClinicaModalOpen(false);
+                        setClinicaEdit(null);
+                    }}
+                    onClinicaUpdated={handleDataChanged}
+                    clinica={clinicaEdit}
                 />
             )}
 

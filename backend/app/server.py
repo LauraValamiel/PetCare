@@ -105,10 +105,22 @@ CORS(app, resources={r"/api/*": {"origins":"http://localhost:5173"}})
 # Configuração do Flask-Mail com as variáveis de ambiente
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
-app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = False
+
+mail_use_ssl_str = os.environ.get('MAIL_USE_SSL')
+mail_use_tls_str = os.environ.get('MAIL_USE_TLS')
+
+if mail_use_ssl_str:
+    app.config['MAIL_USE_SSL'] = mail_use_ssl_str.lower() in ['true', 'on', '1']
+elif mail_use_tls_str:
+    app.config['MAIL_USE_TLS'] = mail_use_tls_str.lower() in ['true', 'on', '1']
+else:
+    app.config['MAIL_USE_TLS'] = True
 
 
 # Inicializa a extensão Mail
@@ -302,21 +314,25 @@ def login():
             
         senha_fornecida = senha.encode('utf-8')
 
-        if bcrypt.checkpw(senha_fornecida, senha_hash_salva):
-            query_pets = """SELECT p.* FROM pets p
-                            JOIN tutor_pet tp ON p.id_pet = tp.id_pet
-                            WHERE tp.id_tutor = %s"""
-            pets = consultar_db(query_pets, (tutor['id_tutor'],), one=False)
-            tutor['pets'] = pets if pets else []
+        try:
+            if bcrypt.checkpw(senha_fornecida, senha_hash_salva):
+                query_pets = """SELECT p.* FROM pets p
+                                JOIN tutor_pet tp ON p.id_pet = tp.id_pet
+                                WHERE tp.id_tutor = %s"""
+                pets = consultar_db(query_pets, (tutor['id_tutor'],), one=False)
+                tutor['pets'] = pets if pets else []
 
-            del tutor['senha']
-            if 'reset_token' in tutor:
-                del tutor['reset_token']
-            if 'reset_token_expires' in tutor:
-                del tutor['reset_token_expires']
-            return jsonify(tutor),200
-        else: 
-            return jsonify({"error": "Credenciais invalidas."}), 401
+                del tutor['senha']
+                if 'reset_token' in tutor:
+                    del tutor['reset_token']
+                if 'reset_token_expires' in tutor:
+                    del tutor['reset_token_expires']
+                return jsonify(tutor),200
+            else: 
+                return jsonify({"error": "Credenciais invalidas."}), 401
+        except Exception as e:
+            print(f"Erro na verificação de senha para o email {email}: {e}")
+            return jsonify({"error": "Credcenciais inválidas."}), 401
     else:
         return jsonify({"error": "Credenciais invalidas."}), 401
 
@@ -1146,7 +1162,7 @@ def compromissos_por_pet(id_pet):
             compromisso['data_compromisso'] = compromisso['data_compromisso'].isoformat()
 
         if 'hora' in compromisso and compromisso['hora']:
-            compromisso['hora'] = compromisso['hora'].isoformat()
+            compromisso['hora'] = compromisso['hora'].strftime('%H:%M')
 
         if 'criado_em' in compromisso and compromisso['criado_em']:
             compromisso['criado_em'] = compromisso['criado_em'].isoformat()
@@ -1318,7 +1334,7 @@ def esqueci_senha():
             mail.send(msg)
         except Exception as e:
             print(f"Erro ao enviar email: {str(e)}")
-            return jsonify({"error": f"Erro ao enviar email de redefinicao: {str(e)}"}), 500
+            #return jsonify({"error": f"Erro ao enviar email de redefinicao: {str(e)}"}), 500
         pass
         
     return jsonify({"message": "Se o email estiver cadastrado, um link de redefinicao foi enviado."}), 200

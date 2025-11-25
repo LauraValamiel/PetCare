@@ -40,7 +40,7 @@
 
 .summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     margin-bottom: 3rem;
 }
@@ -339,6 +339,47 @@
     border-radius: 12px;
     align-self: flex-start;
     margin-top: 1rem;
+}
+
+.clinica-card-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}
+
+.clinica-card-header-actions h3 {
+    margin: 0;
+    flex-grow: 1;
+}
+
+.clinica-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.clinica-actions .action-btn {
+    padding: 6px;
+    border-radius: 50%;
+    color: #999;
+    background-color: transparent;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.clinica-actions .action-btn:hover {
+    color: #5e35b1;
+    background-color: #f3e5f5;
+}
+
+.clinica-actions .action-btn.danger:hover {
+    color: #c62828;
+    background-color: #ffebee;
+}
+
+.clinica-card {
+    position: relative;
 }
 
 @media (max-width: 768px) {
