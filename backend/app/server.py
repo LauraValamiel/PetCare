@@ -99,7 +99,7 @@ app = Flask(__name__)
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-CORS(app, resources={r"/api/*": {"origins":"http://localhost:5173"}})
+CORS(app, resources={r"/api/*": {"origins":"http://localhost:5173", "methods": ["GET", "POST", "PUT", "DELETE"], "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"]}})
 
 
 # Configuração do Flask-Mail com as variáveis de ambiente
@@ -159,31 +159,79 @@ def criar_evento_e_enviar_alerta(id_pet, titulo, data_evento, hora_evento=None, 
     nome_pet = pet['nome_pet']
     titulo_completo = f"Alerta para {nome_pet}: {titulo}"
 
-    data_evento_obj = datetime.fromisoformat(data_evento).date() if isinstance(data_evento, str) else data_evento
+    try:
+        data_evento_obj = None
+        if isinstance(data_evento, str):
+            data_evento_obj = datetime.strptime(data_evento.split('T')[0], '%Y-%m-%d').date()
 
-    if hora_evento:
-        hora_evento_obj = None
-        if isinstance(hora_evento, str):
-            for fmt in ('%H:%M:%S', '%H:%M'):
-                try:
-                    hora_evento_obj = datetime.strptime(hora_evento, fmt).time()
-                    break
-                except ValueError:
-                    continue
-        else:
-            hora_evento_obj = hora_evento
-        
-        if hora_evento_obj is None:
-            print(f"Formato de hora invalido: {hora_evento}")
+        elif isinstance(data_evento, datetime.date):
+            data_evento_obj = data_evento
+
+        if data_evento_obj is None:
+            print(f"Formato de data inválido ou ausente: {data_evento}")
             return
+        
+        hora_evento_obj = None
+        if hora_evento:
+            print(f"DEBUG ALERTA: Hora recebida: {hora_evento}")
+            if isinstance(hora_evento, str):
+                hora_limpa = hora_evento.split('.')[0]
+                hora_limpa = hora_limpa.upper().replace('Z', '')
+                for fmt in ('%H:%M:%S', '%H:%M'):
+                    try:
+                        
+                        hora_evento_obj = datetime.strptime(hora_limpa, fmt).time()
+                        break
+                    except ValueError:
+                        continue
+            elif isinstance(hora_evento, time_obj):
+                hora_evento_obj = hora_evento
+        
+        if hora_evento_obj:
+            data_inicio = datetime.combine(data_evento_obj, hora_evento_obj)
+            data_fim = data_inicio + timedelta(hours=1)
+            datas_formatadas = f"{data_inicio.strftime('%Y%m%dT%H%M%S')}/{data_fim.strftime('%Y%m%dT%H%M%S')}"
 
-        data_inicio = datetime.combine(data_evento_obj, hora_evento_obj)
-        data_fim = data_inicio + timedelta(hours=1)
-        datas_formatadas = f"{data_inicio.strftime('%Y%m%dT%H%M%S')}/{data_fim.strftime('%Y%m%dT%H%M%S')}"
+            data_email_formatada = data_inicio.strftime('%d/%m/%Y às %H:%M')
+            print(f"DEBUG ALERTA: Data formatada com hora: {data_email_formatada}")
+        else:
+            data_inicio = data_evento_obj
+            data_fim = data_evento_obj + timedelta(days=1)
+            datas_formatadas = f"{data_inicio.strftime('%Y%m%d')}/{data_fim.strftime('%Y%m%d')}"
 
-    else:
-        data_fim = data_evento_obj + timedelta(days=1)
-        datas_formatadas = f"{data_evento_obj.strftime('%Y%m%d')}/{data_fim.strftime('%Y%m%d')}"
+            data_email_formatada = data_inicio.strftime('%d/%m/%Y')
+            print(f"DEBUG ALERTA: Data formatada sem hora: {data_email_formatada}")
+
+    except Exception as e:
+        print(f"Erro ao processar data/hora para alerta: {e}")
+        return 
+            
+
+    #data_evento_obj = datetime.fromisoformat(data_evento).date() if isinstance(data_evento, str) else data_evento
+
+    #if hora_evento:
+     #   hora_evento_obj = None
+      #  if isinstance(hora_evento, str):
+       #     for fmt in ('%H:%M:%S', '%H:%M'):
+        #        try:
+         #           hora_evento_obj = datetime.strptime(hora_evento, fmt).time()
+          #          break
+           #     except ValueError:
+            #        continue
+       # else:
+        #    hora_evento_obj = hora_evento
+        
+        #if hora_evento_obj is None:
+         #   print(f"Formato de hora invalido: {hora_evento}")
+          #  return
+
+        #data_inicio = datetime.combine(data_evento_obj, hora_evento_obj)
+        #data_fim = data_inicio + timedelta(hours=1)
+        #datas_formatadas = f"{data_inicio.strftime('%Y%m%dT%H%M%S')}/{data_fim.strftime('%Y%m%dT%H%M%S')}"
+
+    #else:
+     #   data_fim = data_evento_obj + timedelta(days=1)
+      #  datas_formatadas = f"{data_evento_obj.strftime('%Y%m%d')}/{data_fim.strftime('%Y%m%d')}"
 
     base_url = "https://www.google.com/calendar/render?action=TEMPLATE"
     link_agenda = (
@@ -200,7 +248,7 @@ def criar_evento_e_enviar_alerta(id_pet, titulo, data_evento, hora_evento=None, 
             <p>Olá,</p>
             <p>Este é um lembrete sobre um compromisso importante para <strong>{nome_pet}</strong>:</p>
             <p><strong>Evento:</strong> {titulo}</p>
-            <p><strong>Data:</strong> {data_evento.strftime('%d/%m/%Y')}</p>
+            <p><strong>Data:</strong> {data_email_formatada}</p>
             <p>Para não se esquecer, adicione este evento à sua agenda clicando no link abaixo:</p>
             <p><a href="{link_agenda}" style="padding: 10px 15px; background-color: #4285F4; color: white; text-decoration: none; border-radius: 5px;">
                 Adicionar à Agenda Google
@@ -250,6 +298,9 @@ def auth_google():
                 (nome, email, senha_hash, picture, created_at),
                 return_id=True
             )
+
+            if 'data_nascimento' in tutor and tutor['data_nascimento']:
+                tutor['data_nascimento'] = tutor['data_nascimento'].isoformat()
             
             if error:
                 print(f"Erro ao criar tutor pelo google: {error}")
@@ -267,6 +318,11 @@ def auth_google():
                         WHERE tp.id_tutor = %s"""
         
         pets = consultar_db(query_pets, (tutor['id_tutor'],), one=False)
+
+        for pet in pets:
+            if 'data_nascimento' in pet and pet['data_nascimento']:
+                pet['data_nascimento'] = pet[data_nascimento].isoformat()
+
         tutor['pets'] = pets if pets else []
 
         # Remover campos sensíveis antes de enviar a resposta
@@ -322,6 +378,15 @@ def login():
                 pets = consultar_db(query_pets, (tutor['id_tutor'],), one=False)
                 tutor['pets'] = pets if pets else []
 
+                for pet in pets: 
+                    if 'data_nascimento' in pet and pet['data_nascimento']:
+                        pet['data_nascimento'] = pet['data_nascimento'].isoformat()
+
+                if 'data_nascimento' in tutor and tutor['data_nascimento']:
+                    tutor['data_nascimento'] = tutor['data_nascimento'].isoformat()
+
+                tutor['pets'] = pets if pets else []
+                
                 del tutor['senha']
                 if 'reset_token' in tutor:
                     del tutor['reset_token']
@@ -344,6 +409,8 @@ def criar_tutor():
     nome_completo = dados.get('nome_completo')
     celular = dados.get('celular')
     email = dados.get('email')
+    cpf = dados.get('cpf')
+    data_nascimento = dados.get('data_nascimento')
     genero_tutor = dados.get('genero_tutor')
     senha = dados.get('senha')
     foto_perfil_tutor = dados.get('foto_perfil_tutor')
@@ -355,9 +422,9 @@ def criar_tutor():
     # Gerar o hash da senha
     senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
-    query = "INSERT INTO tutores (nome_completo, celular, email, genero_tutor, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s) " \
+    query = "INSERT INTO tutores (nome_completo, celular, email, cpf, data_nascimento, genero_tutor, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s) " \
     "        RETURNING id_tutor"
-    _, error = executar_db(query, (nome_completo, celular, email, genero_tutor, senha_hash, foto_perfil_tutor, created_at))
+    _, error = executar_db(query, (nome_completo, celular, email, cpf, data_nascimento, genero_tutor, senha_hash, foto_perfil_tutor, created_at))
 
     if error:
         return jsonify({"error": f"Erro ao criar tutor: {error}"}), 500
@@ -371,27 +438,57 @@ def atualizar_tutor(id_tutor):
     nome_completo = dados.get('nome_completo')
     celular = dados.get('celular')
     email = dados.get('email')
+    cpf = dados.get('cpf')
+    data_nascimento = dados.get('data_nascimento')
     genero_tutor = dados.get('genero_tutor')
     senha = dados.get('senha')
     foto_perfil_tutor = dados.get('foto_perfil_tutor')
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     query = "UPDATE tutores " \
-    "        SET nome_completo = %s, celular = %s, email = %s, genero_tutor = %s, senha = %s, foto_perfil_tutor = %s, created_at = %s " \
+    "        SET nome_completo = %s, celular = %s, email = %s, cpf = %s, data_nascimento = %s, foto_perfil_tutor = %s" \
     "        WHERE id_tutor = %s"
-    _, error = executar_db(query, (nome_completo, celular, email, genero_tutor, senha, foto_perfil_tutor, created_at, id_tutor))
+    _, error = executar_db(query, (nome_completo, celular, email, cpf, data_nascimento, foto_perfil_tutor, id_tutor))
     if error:
         return jsonify({"error": f"Erro ao atualizar tutor: {error}"}), 500
     return jsonify({"message": "Tutor atualizado com sucesso."}), 200
 
+
+@app.route('/api/tutores/<int:id_tutor>/atualizar-foto', methods=['PUT'])
+def atualizar_foto_tutor(id_tutor):
+    if 'foto_perfil_nova' not in request.files: # Use a chave 'foto_perfil_nova' ou 'foto_perfil'
+        return jsonify({"error": "Nenhuma foto enviada."}), 400
+    
+    file = request.files['foto_perfil_nova'] # Use a chave correta
+    
+    if file.filename == '' or not allowed_file(file.filename):
+        return jsonify({"error": "Arquivo inválido ou não permitido."}), 400
+
+    filename = secure_filename(file.filename)
+    unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+
+    # 1. Atualiza o banco de dados com o novo filename
+    query = "UPDATE tutores SET foto_perfil_tutor = %s WHERE id_tutor = %s"
+    _, error = executar_db(query, (unique_filename, id_tutor))
+
+    if error:
+        return jsonify({"error": f"Erro ao salvar o nome da foto no banco: {error}"}), 500
+
+    # 2. Retorna o novo filename para o frontend
+    return jsonify({"message": "Foto atualizada.", "foto_perfil_tutor": unique_filename}), 200
   
 @app.route('/api/tutores', methods=['GET'])
 def listar_tutores():
     query = "SELECT * " \
     "        FROM tutores"
-    tutor = consultar_db(query)
-    if tutor:
-        return jsonify(tutor if tutor else []), 200
+    tutor_list = consultar_db(query)
+
+    if tutor_list:
+        for tutor in tutor_list:
+            if 'data_nascimento' in tutor and tutor['data_nascimento']:
+                tutor['data_nascimento'] = tutor['data_nascimento'].isoformat()
+        return jsonify(tutor_list), 200
     return jsonify({"error": "Tutor nao encontrado."}), 404
 
 
@@ -401,6 +498,7 @@ def tutor_por_id(id_tutor):
     "        FROM tutores " \
     "        WHERE id_tutor = %s"
     tutor = consultar_db(query, (id_tutor, ), one=False)
+    
     if tutor:
         return jsonify(tutor if tutor else []), 200
     return jsonify({"error": "Tutor nao encontrado."}), 404
@@ -425,6 +523,9 @@ def tutor_e_pets(id_tutor):
     tutor = consultar_db(query_tutor, (id_tutor,), one=True)
     if not tutor:
         return jsonify({"error": "Tutor não encontrado"}), 404
+
+    if 'data_nascimento' in tutor and tutor['data_nascimento']:
+        tutor['data_nascimento'] = tutor['data_nascimento'].isoformat()
     
     query_pet = """SELECT p.*
                    FROM pets p
@@ -454,6 +555,11 @@ def get_pets_por_tutor(id_tutor):
                 WHERE tp.id_tutor = %s"""
     
     pets = consultar_db(query, (id_tutor,), one=False)
+
+    for pet in pets:
+        if 'data_nascimento' in pet and pet['data_nascimento']:
+            pet['data_nascimento'] = pet['data_nascimento'].isoformat()
+
     return jsonify(pets), 200
 
 
@@ -465,6 +571,9 @@ def pets_por_id(id_pet, id_tutor):
                 WHERE p.id_pet = %s AND tp.id_tutor = %s"""
     pet = consultar_db(query, (id_pet, id_tutor), one=False)
     if pet:
+        for p in pet:
+            if 'data_nascimento' in p and p['data_nascimento']:
+                p['data_nascimento'] = p['data_nascimento'].isoformat()
         return jsonify(pet), 200
     return jsonify({"error": "Pet não encontrado."}), 404
 
@@ -627,6 +736,14 @@ def get_vacinas_por_pet(id_pet):
     "        FROM vacinas " \
     "        WHERE id_pet = %s"
     vacinas = consultar_db(query, (id_pet,))
+
+    for vacina in vacinas:
+        if 'data_vacinacao' in vacina and vacina['data_vacinacao']:
+            vacina['data_vacinacao'] = vacina['data_vacinacao'].isoformat()
+        
+        if 'proxima_dose' in vacina and vacina['proxima_dose']:
+            vacina['proxima_dose'] = vacina['proxima_dose'].isoformat()
+
     return jsonify(vacinas), 200
 
 
@@ -1043,6 +1160,11 @@ def produtos_por_pet(id_pet):
     "        FROM produtos " \
     "        WHERE id_pet = %s"
     produtos = consultar_db(query, (id_pet,))
+
+    for produto in produtos:
+        if 'data_compra' in produto and produto['data_compra']:
+            produto['data_compra'] = produto['data_compra'].isoformat()
+
     return jsonify(produtos), 200
 
 
@@ -1057,13 +1179,14 @@ def criar_produto_pet(id_pet):
     preco_compra = dados.get('preco_compra')
     loja = dados.get('loja')
     observacoes = dados.get('observacoes')
+    consumo_periodo = dados.get('consumo_periodo', 'dia')
 
     if not all([nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
-    query = """INSERT INTO produtos (id_pet, nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja, observacoes)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    _, error = executar_db(query, (id_pet, nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja, observacoes))
+    query = """INSERT INTO produtos (id_pet, nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja, observacoes, consumo_periodo)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+    _, error = executar_db(query, (id_pet, nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja, observacoes, consumo_periodo))
     if error:
         return jsonify({"error": f"Erro ao criar produto: {error}"}), 500
     
@@ -1081,11 +1204,12 @@ def editar_produto(id_compra, id_pet):
     preco_compra = dados.get('preco_compra')
     loja = dados.get('loja')
     observacoes = dados.get('observacoes')
+    consumo_periodo = dados.get('consumo_periodo')
 
     query = """UPDATE produtos 
-               SET nome_produto = %s, categoria = %s, quantidade = %s, consumo_medio = %s, data_compra = %s, preco_compra = %s, loja = %s, observacoes = %s
+               SET nome_produto = %s, categoria = %s, quantidade = %s, consumo_medio = %s, data_compra = %s, preco_compra = %s, loja = %s, observacoes = %s, consumo_periodo = %s
                WHERE id_compra = %s AND id_pet = %s"""
-    _, error = executar_db(query, (nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja, observacoes, id_compra, id_pet))
+    _, error = executar_db(query, (nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja, observacoes, consumo_periodo, id_compra, id_pet))
 
     if error:
         return jsonify({"error": f"Erro ao atualizar produto: {error}"}), 500

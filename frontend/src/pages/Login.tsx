@@ -29,6 +29,9 @@ export default function Login() {
     const navigate = useNavigate();
     const store = useContext(StoreContext);
     const setToken = store?.setToken;
+    const setNome = store?.setNome;
+    const setCpf = store?.setCpf;
+    const setFotoPerfilTutor = store?.setFotoPerfilTutor;
 
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_CLIENT_ID';
 
@@ -89,6 +92,7 @@ export default function Login() {
     }
 
     const handleGoogleCredentialResponse = async (response: any) => {
+        const setFotoPerfilTutor = store?.setFotoPerfilTutor;
         try {
             const res = await axios.post('http://localhost:5000/api/auth/google', {
                 id_token: response.credential,
@@ -96,6 +100,13 @@ export default function Login() {
 
             if (res.status === 200) {
                 localStorage.setItem('tutor', JSON.stringify(res.data));
+                navigate('/home');
+                if (setToken && setNome && setCpf && setFotoPerfilTutor) {
+                    setToken(res.data);
+                    setNome(res.data.nome_completo);
+                    setCpf(res.data.cpf || '');
+                    setFotoPerfilTutor(res.data.foto_perfil_tutor || null);
+                }
                 navigate('/home');
             }
         } catch (erro: any){
@@ -120,6 +131,7 @@ export default function Login() {
         const email = formData.get('email') as string;
         const senha = formData.get('senha') as string;
         const remember = formData.get('remember') === 'on';
+        const setFotoPerfilTutor = store?.setFotoPerfilTutor;
 
         try {
 
@@ -140,8 +152,11 @@ export default function Login() {
                     sessionStorage.setItem('tutor', JSON.stringify(user))
                 }
 
-                if (setToken) {
+                if (setToken && setNome && setCpf && setFotoPerfilTutor) {
                     setToken(user);
+                    setNome(user.nome_completo);
+                    setCpf(user.cpf || '');
+                    setFotoPerfilTutor(user.foto_perfil_tutor || null);
                 }
 
                 navigate('/home');
@@ -240,11 +255,11 @@ export default function Login() {
                         <form onSubmit={login} className='form-login'>
                             <div className='input-group'>
                                 <Mail size={20} className='input-icon'/>
-                                <input type="email" name="email" placeholder='Email' required />
+                                <input type="email" name="email" placeholder='Email' required autoComplete='email'/>
                             </div>
                             <div className='input-group'>
                                 <Lock size={20} className='input-icon'/>
-                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required />
+                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required autoComplete='current-password'/>
                                 <div onClick={visibilidadeSenha} className='password-icon'>
                                     {mostrarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>
@@ -264,18 +279,18 @@ export default function Login() {
                             </div>
                             <div className='input-group'>
                                 <Mail size={20} className='input-icon'/>
-                                <input type="email" name="email" placeholder='Email' required />
+                                <input type="email" name="email" placeholder='Email' required autoComplete='email'/>
                             </div>
                             <div className='input-group'>
                                 <Lock size={20} className='input-icon'/>
-                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required />
+                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required autoComplete='new-password' />
                                 <div onClick={visibilidadeSenha} className='password-icon'>
                                     {mostrarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>
                             </div>
                             <div className='input-group'>
                                 <Lock size={20} className='input-icon'/>
-                                <input type={mostrarSenha ? "text" : "password"} name="confirmarSenha" placeholder='Confirmar Senha' required />
+                                <input type={mostrarSenha ? "text" : "password"} name="confirmarSenha" placeholder='Confirmar Senha' required autoComplete='new-password' />
                                 <div onClick={visibilidadeConfirmarSenha} className='password-icon'>
                                     {mostrarConfirmarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>

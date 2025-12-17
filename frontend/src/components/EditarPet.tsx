@@ -19,15 +19,23 @@ const formatarDataParaInput = (data: string | null) => {
     }
 
     try {
-        const dateObj = new Date(data);
+       // const cleanDateString = data.split('T')[0];
+        
+        //if (cleanDateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+          //  return cleanDateString;
+        //}
 
-        return dateObj.toISOString().split('T')[0];
-    } catch (erro) {
-        try {
-            return new Date(data).toISOString().split('T')[0];
-        } catch (error) {
+         //return cleanDateString;
+
+         const dateObj = new Date(data);
+         if (isNaN(dateObj.getTime())) {
             return '';
-        }
+         }
+
+         return dateObj.toISOString().split('T')[0];
+
+    } catch (erro) {
+            return '';
     }
 }
 

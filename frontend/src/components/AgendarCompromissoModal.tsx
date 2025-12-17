@@ -137,7 +137,7 @@ export function AgendarCompromissoModal({
                             </div>
 
                             <div className='form-group'>
-                                <label htmlFor="hora">Hora *</label>
+                                <label htmlFor="hora">Data *</label>
                                 <input 
                                     type="date"
                                     id='data_compromisso'

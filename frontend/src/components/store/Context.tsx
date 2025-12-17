@@ -9,6 +9,15 @@ interface StoreContextType {
   setNome: (nome: string) => void;
   notifications: NotificationItem[];
   setNotifications: (notifications: NotificationItem[]) => void;
+
+  isNotificationsOpen: boolean;
+  setIsNotificationsOpen: (isOpen: boolean) => void;
+
+  isProfileOpen: boolean;
+  setIsProfileOpen: (isOpen: boolean) => void;
+
+  fotoPerfilTutor: string | null;
+  setFotoPerfilTutor: (foto: string | null) => void;
   
 }
 

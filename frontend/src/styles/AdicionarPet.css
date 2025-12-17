@@ -10,6 +10,7 @@
     justify-content: center;
     z-index: 1000;
     backdrop-filter: blur(2px);
+    
 }
 
 .form-content {
@@ -18,10 +19,29 @@
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 600px;
+    max-width: 650px;
+    max-height: 75vh;
     z-index: 1001;
     color: #333;
     position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-content form { 
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; 
+    min-height: 0;
+}
+
+.historico-modal-body {
+    overflow-y: auto;
+    padding-right: 10px;
+    margin-bottom: 1rem;
+    flex-grow: 1; /* Permite que o corpo ocupe o espaço disponível */
+    max-height: 500px; /* Adicionado um max-height em pixels como segurança */
+    min-height: 0;
 }
 
 .form-header {
@@ -62,6 +82,10 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    overflow-y: auto;
+    padding-right: 15px;
+    flex-grow: 1;
+    min-height: 0;
 }
 
 .form-grid {
@@ -86,7 +110,7 @@
     color: #444;
 }
 
-.form-group input[type='text'], .form-group input[type='date'], .form-group select, .form-group textarea {
+.form-group input[type='text'], .form-group input[type='date'], .form-group input[type='email'], .form-group select, .form-group textarea {
     width: 100%;
     padding: 12px 14px;
     border: 1px solid #ddd;
@@ -110,11 +134,21 @@
     color: #333;
 }
 
+.form-group input[type='text']:focus, 
+.form-group input[type='email']:focus, /* Adicionado */
+.form-group input[type='text']:invalid:focus, /* Adicionado */
+.form-group input[type='email']:invalid:focus { /* Adicionado */
+    outline: none;
+    box-shadow: none;
+    border-color: #5e35b1; /* Cor do foco igual aos outros */
+}
+
 .form-footer {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
     margin-top: 24px;
+    flex-shrink: 0;
 }
 
 .form-error {
@@ -171,4 +205,18 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.form-grid .form-group-consumo.full-width {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.form-group-consumo .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }

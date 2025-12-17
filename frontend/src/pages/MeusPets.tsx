@@ -54,7 +54,43 @@ export interface DetalhesPets extends Pet {
 export const formatDate = (dateString: string | undefined | null) : string => {
     if (!dateString) return '--/--/----';
     try{
-        return new Date(dateString).toLocaleDateString('pt-BR');
+        /*const cleanDateString = dateString.split('T')[0];
+        
+        // 2. Cria a data forçando a leitura como UTC (T00:00:00Z)
+        const dateObj = new Date(cleanDateString + 'T00:00:00Z'); 
+
+        if (isNaN(dateObj.getTime())) {
+            return '--/--/----';
+        }
+
+        // 3. Usa os métodos getUTC* para extrair o dia, mês e ano originais.
+        const day = String(dateObj.getUTCDate()).padStart(2, '0');
+        const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0'); // Mês é 0-indexado
+        const year = dateObj.getUTCFullYear();
+        
+        return `${day}/${month}/${year}`;*/
+
+        let dateToProcess = dateString;
+
+        if (!dateString.includes('T')) {
+            dateToProcess = dateString;
+        } else {
+            dateToProcess = dateString.split('T')[0] + 'T00:00:00Z';
+        }
+
+        const dateObj = new Date(dateToProcess); 
+
+        if (isNaN(dateObj.getTime())) {
+            return '--/--/----';
+        }
+
+        // 2. Usamos os métodos getUTC* para garantir que o dia/mês/ano original seja exibido.
+        const day = String(dateObj.getUTCDate()).padStart(2, '0');
+        const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+        const year = dateObj.getUTCFullYear();
+        
+        return `${day}/${month}/${year}`;
+
     } catch (erro) {
         return '--/--/----';
     }

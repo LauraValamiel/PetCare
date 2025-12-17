@@ -6,8 +6,9 @@ import Pets from './pages/MeusPets'
 import Vacinas from './pages/CartaoVacina'
 import CartaoVacina from './pages/CartaoVacina';
 import { ConsultasExames } from './pages/ConsultasExames';
-//import Consultas from './pages/Consultas'
-//import Produtos from './pages/Produtos'
+import Produtos from './pages/Produtos'
+import Perfil from './pages/Perfil';
+import Configuracoes from './pages/Configuracoes';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }: { children: React.ReactNode }) => {
     const tutorData = localStorage.getItem('tutor');
@@ -27,6 +28,9 @@ export const AppRoutes = () => {
             <Route path='/pets' element={<PrivateRoute><Pets /></PrivateRoute>}/>
             <Route path='/vacinas' element={<PrivateRoute><CartaoVacina /></PrivateRoute>}/>
             <Route path='/consultas-exames' element={<ConsultasExames />}/>
+            <Route path='/produtos' element={<PrivateRoute><Produtos /></PrivateRoute>}/>
+            <Route path='/perfil' element={<PrivateRoute><Perfil /></PrivateRoute>}/>
+            <Route path='/configuracoes' element={<PrivateRoute><Configuracoes /></PrivateRoute>}/>
         </Routes>
 
     )
@@ -36,4 +40,4 @@ export const AppRoutes = () => {
 
  //               
    //             
-     //           <Route path='/produtos' element={<Produtos />}/>
+     //           

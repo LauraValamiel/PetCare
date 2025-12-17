@@ -12,6 +12,9 @@ import '../styles/Home.css'
 import { formatDate, type DetalhesPets } from './MeusPets'
 import { AdicionarVacina } from '../components/AdicionarVacina'
 import { AgendarCompromissoModal } from '../components/AgendarCompromissoModal'
+import StoreContext, { type NotificationItem } from '../components/store/Context'
+import React from 'react'
+import { AdicionarProdutoModal } from '../components/AdicionarProdutoModal'
 
 interface Pet {
     peso: number
@@ -53,10 +56,19 @@ interface Produto {
 }
 
 interface Atividades {
-    tipo: 'vacina' | 'consulta' | 'produto';
+    tipo: 'vacina' | 'consulta' | 'exame' | 'produto';
     titulo: string;
     descricao: string;
     data: Date;
+}
+
+interface Compromisso { // Adicionado
+    id_compromisso: number;
+    titulo: string;
+    descricao: string;
+    data_compromisso: string;
+    hora: string;
+    localizacao: string;
 }
 
 const primeiraLetraMaiuscula = (str: string): string => {
@@ -96,7 +108,10 @@ export default function Home() {
     const [petView, setPetView] = useState<DetalhesPets | null>(null);
     const [isAdicionarVacinaModalOpen, setIsAdicionarVacinaModalOpen] = useState(false);
     const [isAgendarConsultaModalOpen, setIsAgendarConsultaModalOpen] = useState(false);
+    const [isAdicionarProdutoModalOpen, setIsAdicionarProdutoModalOpen] = useState(false);
 
+    const store =  React.useContext(StoreContext);
+    const setNotifications = store?.setNotifications;
 
     const getFirstName = (fullName: string | undefined) => {
         if (!fullName) {
@@ -130,33 +145,60 @@ export default function Home() {
                     let produtosAcabando = 0;
                     const atividades: Atividades[] = [];
                     const petsProcessados: DetalhesPets[] = [];
+                    const notifications: NotificationItem[] = [];
 
                     // Buscando dados de cada pet
                     await Promise.all(
                         tutorData.pets.map(async (pet: Pet) => {
-                            const [vacinasRes, consultasRes, produtosRes] = await Promise.all([
+                            const [vacinasRes, consultasRes, produtosRes, compromissosRes] = await Promise.all([
                                 axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
                                 axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/consultas`).catch(() => ({ data: [] })),
                                 axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] })),
+                                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos`).catch(() => ({ data: [] })),
                             ])
 
                             const vacinas: Vacina[] = vacinasRes.data;
                             const consultas: Consulta[] = consultasRes.data;
                             const produtos: Produto[] = produtosRes.data;
+                            const compromissos: Compromisso[] = compromissosRes.data;
 
                             // Dados para os cards de resumo
 
                             vacinas.forEach((vacina) => {
                                 const proximaDose = new Date(vacina.proxima_dose);
-                                if (proximaDose >= today && proximaDose <= nextWeek) {
+                                proximaDose.setHours(0,0,0,0);
+                                if (proximaDose < today) {
                                     vacinasVencendo++;
+                                    notifications.push({
+                                        type: 'vacina',
+                                        title: `Vacina atrasada: ${vacina.nome_vacina}`,
+                                        subtitle: `A vacina do pet ${pet.nome_pet} está vencida desde ${proximaDose.toLocaleDateString()}.`,
+                                    });
+                                } else if (proximaDose >= today && proximaDose <= nextWeek) {
+                                    vacinasVencendo++;
+                                    notifications.push({
+                                        type: 'vacina',
+                                        title: `Vacina vencendo: ${vacina.nome_vacina}`,
+                                        subtitle: `A vacina do pet ${pet.nome_pet} vence em ${proximaDose.toLocaleDateString()}.`,
+                                    })
                                 }
                             });
 
-                            consultas.forEach((consulta) => {
-                                const dataConsulta = new Date(consulta.data_consulta);
-                                if (dataConsulta >= today && dataConsulta <= nextWeek) {
+                            compromissos.forEach((compromisso) => {
+                                const dataCompromisso = new Date(`${compromisso.data_compromisso}T${compromisso.hora}:00`);
+
+                                if (dataCompromisso >= today) {
                                     consultasAgendadas++;
+
+                                    if (dataCompromisso <= nextWeek){
+                                         notifications.push({
+                                        type: 'consulta',
+                                        title: `Compromisso agendado: ${compromisso.titulo}`,
+                                        subtitle: `O pet ${pet.nome_pet} tem uma consulta agendada para ${dataCompromisso.toLocaleDateString()}.`,
+                                    })
+                                    }
+
+                                   
                                 }
                             });
 
@@ -173,15 +215,21 @@ export default function Home() {
                                     tipo: 'vacina' as const,
                                     titulo: `Vacina: ${vacina.nome_vacina} - ${pet.nome_pet}`,
                                     descricao: `Próxima dose em ${new Date(vacina.proxima_dose).toLocaleDateString()}`,
-                                    data: new Date(vacina.proxima_dose),
+                                    data: new Date(vacina.proxima_dose.split('T')[0] + 'T00:00:00Z'),
                                 })),
 
-                                ...consultas.map((consulta) => ({
-                                    tipo: 'consulta' as const,
-                                    titulo: `Consulta: ${consulta.motivo} - ${pet.nome_pet}`,
-                                    descricao: `Data: ${new Date(consulta.data_consulta).toLocaleDateString()}`,
-                                    data: new Date(consulta.data_consulta),
-                                }))
+                                ...compromissos.filter(c => new Date(c.data_compromisso) >= today).map((compromisso) => {
+                                    const tipo = compromisso.titulo.toLowerCase().includes('exame') ? 'exame' : 'consulta';
+                                    const dataHora = new Date(`${compromisso.data_compromisso}T${compromisso.hora}:00Z`);
+
+                                    return {
+                                        tipo: tipo as Atividades['tipo'],
+                                        titulo: `${primeiraLetraMaiuscula(compromisso.titulo)} - ${pet.nome_pet}`,
+                                        descricao: `Em ${formatDate(compromisso.data_compromisso)} às ${compromisso.hora || 'N/A'}`,
+                                        data: dataHora,
+                                    };
+
+                                }),
                             );
 
                             // Status dos pets
@@ -245,10 +293,15 @@ export default function Home() {
                             produtos: produtosAcabando,
                         });
 
+                        store?.setNotifications(prev => {
+                            const productNotifications = prev.filter(n => n.type === 'produto');
+                            return [...notifications, ...productNotifications];
+                        })
+
                         // Ordena atividades por data e pega as 5 mais recentes
                         const atividadesFuturas = atividades.filter(atividade => atividade.data >= today);
                         atividadesFuturas.sort((a, b) => a.data.getTime() - b.data.getTime());
-                        setAtividadesRecentes(atividadesFuturas.slice(0, 5));
+                        setAtividadesRecentes(atividadesFuturas.slice(0, 4));
                         setPetsComDetalhes(petsProcessados);
                     }
 
@@ -259,7 +312,7 @@ export default function Home() {
             }
         }
         fetchDashboard();
-    }, [tutorId, refreshData]);
+    }, [tutorId, refreshData, setNotifications]);
 
     const handlePetAdicionado = () => {
         setRefreshData(prev => prev + 1);
@@ -287,7 +340,7 @@ export default function Home() {
             </div>
 
             {/* Resumo */}
-            <div className='summary-cards'>
+            <div className='summary-cards-home'>
                 <Card className='card-total-pets'>
                     <CardHeader>
                         <CardTitle>Total de Pets</CardTitle>
@@ -380,7 +433,7 @@ export default function Home() {
                     }
                     </ul>
                     <div className='ver-todas-btn'>
-                        <Button variant='link' onClick={() => navigate("/atividades")}> Ver todas as atividades<ArrowRight size={16}/></Button>
+                        <Button variant='link' onClick={() => navigate("/consultas-exames")}> Ver todas as atividades<ArrowRight size={16}/></Button>
                     </div>
             </ section>
 
@@ -432,7 +485,7 @@ export default function Home() {
                     <Button className='acoes-buttons-card' onClick={() => setIsModalOpen(true)}><Plus size={24}/><span>Adicionar Pet</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => setIsAdicionarVacinaModalOpen(true)}><Syringe size={24}/><span>Registrar Vacina</span></Button>
                     <Button className='acoes-buttons-card' onClick={() => setIsAgendarConsultaModalOpen(true)}><CalendarPlus size={24}/><span>Agendar Consulta</span></Button>
-                    <Button className='acoes-buttons-card' onClick={() => navigate("/produtos")}><ShoppingBag size={24}/><span>Adicionar Produto</span></Button>
+                    <Button className='acoes-buttons-card' onClick={() => setIsAdicionarProdutoModalOpen(true)}><ShoppingBag size={24}/><span>Adicionar Produto</span></Button>
                 </div>
             </section>
         </main>
@@ -473,6 +526,16 @@ export default function Home() {
                 tipo='consulta'
                         />
                     )}
+
+        {tutorId && (
+                <AdicionarProdutoModal
+                    isOpen={isAdicionarProdutoModalOpen}
+                    onClose={() => setIsAdicionarProdutoModalOpen(false)}
+                    onProdutoAdded={handleDataChanged}
+                    pets={tutor?.pets || []}
+                    tutorId={tutorId}
+                />
+            )}
         
 
     </div>

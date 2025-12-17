@@ -11,6 +11,11 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   const [cpf, setCpf] = useStorage("cpf", null);
   const [nome, setNome] = useStorage("nome", null);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [fotoPerfilTutor, setFotoPerfilTutor] = useStorage("foto_perfil_tutor", null);
+
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
     <StoreContext.Provider
@@ -23,7 +28,13 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         setNome,
         notifications,
         setNotifications,
-      }}
+        isNotificationsOpen,
+        setIsNotificationsOpen, 
+        isProfileOpen,
+        setIsProfileOpen,
+        fotoPerfilTutor,
+        setFotoPerfilTutor
+     }}
     >
       {children}
     </StoreContext.Provider>

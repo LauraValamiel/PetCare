@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { X, Syringe, Stethoscope, FileText, Edit, Calendar } from 'lucide-react';
+import { X, Syringe, Stethoscope, FileText, Edit, Calendar, Trash2 } from 'lucide-react';
 import { Button } from './button';
 import { type VacinaDetalhada } from '../pages/CartaoVacina';
-import { formatDate } from '../pages/MeusPets';
+import { formatDate, type Pet } from '../pages/MeusPets';
 import '../styles/HistoricoCompleto.css';
 
 interface Compromisso {
@@ -25,11 +25,16 @@ interface HistoricoCompletoModalProps {
     consultas: Consulta[];
     compromissos: Compromisso[];
     vacinas: VacinaDetalhada[];
+    pets: Pet[];
+    onDataChanged: () => void;
     setVacinaEdit: (vacina: VacinaDetalhada) => void;
+    setConsultaEdit: (consulta: Consulta) => void;
+    setCompromissoEdit: (compromisso: Compromisso) => void;
 }
 
 type HistoricoItem = {
     id: string;
+    id_pet?: number;
     tipo: 'vacina' | 'consulta' | 'compromisso' | 'exame';
     data: Date;
     titulo: string;
@@ -43,7 +48,11 @@ export function HistoricoCompletoModal ({
     consultas,
     compromissos,
     vacinas,
-    setVacinaEdit
+    pets,
+    setVacinaEdit,
+    setConsultaEdit,
+    setCompromissoEdit,
+    onDataChanged
 } : HistoricoCompletoModalProps) {
 
     const historicoUnificado = useMemo(() => {
@@ -54,7 +63,7 @@ export function HistoricoCompletoModal ({
                 listaUnificada.push({
                     id: `v-${vacina.id_vacina}`,
                     tipo: 'vacina',
-                    data: new Date(vacina.data_vacinacao),
+                    data: new Date(vacina.data_vacinacao.split('T')[0] + 'T00:00:00Z'),
                     titulo: vacina.nome_vacina,
                     petNome: vacina.nome_pet || 'Pet',
                     dataOriginal: vacina,
@@ -64,10 +73,13 @@ export function HistoricoCompletoModal ({
 
         consultas.forEach(consulta => {
             const isExame = consulta.motivo.toLowerCase().includes('exames');
+            const petId = pets.find(p => p.nome_pet === consulta.pet_nome)?.id_pet || 0;
+
             listaUnificada.push({
                 id: `c-${consulta.id_consulta}`,
+                id_pet: petId,
                 tipo: isExame ? 'exame' : 'consulta',
-                data: new Date(consulta.data_consulta),
+                data: new Date(consulta.data_consulta.split('T')[0] + 'T00:00:00Z'),
                 titulo: consulta.motivo,
                 petNome: consulta.pet_nome || 'Pet',
                 dataOriginal: consulta,
@@ -76,11 +88,18 @@ export function HistoricoCompletoModal ({
 
         compromissos.forEach(compromisso => {
             const isExame = compromisso.titulo.toLowerCase().includes('exame');
-            if (new Date(compromisso.data_compromisso) < new Date()) {
+            const dataCompromissoStr = compromisso.data_compromisso.split('T')[0];
+            const petId = pets.find(p => p.nome_pet === compromisso.pet_nome)?.id_pet || 0;
+
+            if (new Date(dataCompromissoStr + 'T00:00:00Z') < new Date()) { 
                 listaUnificada.push({
                     id: `comp-${compromisso.id_compromisso}`,
+                    id_pet: petId,
                     tipo: isExame ? 'exame' : 'compromisso',
-                    data: new Date(compromisso.data_compromisso),
+                    // Data de compromisso pode incluir hora, então criamos um novo Date com a hora original
+                    // ou mantemos o objeto Date do compromisso (que contém hora e fuso) se for o caso.
+                    // Se o compromisso for apenas data (como no exemplo), usamos a lógica UTC:
+                    data: new Date(dataCompromissoStr + 'T00:00:00Z'), 
                     titulo: compromisso.titulo,
                     petNome: compromisso.pet_nome || 'Pet',
                     dataOriginal: compromisso,
@@ -92,7 +111,7 @@ export function HistoricoCompletoModal ({
             .filter(item => !isNaN(item.data.getTime()))
             .sort((a, b) => b.data.getTime() - a.data.getTime());
 
-    }, [consultas, compromissos, vacinas]);
+    }, [consultas, compromissos, vacinas, pets]);
 
     if (!isOpen) {
         return null;
@@ -113,6 +132,32 @@ export function HistoricoCompletoModal ({
         }
     };
 
+    const handleDelete = async (item: HistoricoItem) => {
+        if (!confirm(`Tem certeza que deseja excluir: ${item.titulo}?`)) return;
+        
+        const [prefixo, idReal] = item.id.split('-');
+        
+        try {
+            let url = '';
+            if (item.tipo === 'vacina') {
+                url = `http://localhost:5000/api/pets/${item.id_pet}/deletar-vacina/${idReal}`;
+            } else if (item.tipo === 'compromisso') { // Compromissos passados
+                url = `http://localhost:5000/api/pets/${item.id_pet}/compromissos/${idReal}`;
+            } else { // Consultas e Exames (Histórico)
+                url = `http://localhost:5000/api/pets/${item.id_pet}/deletar-consulta/${idReal}`;
+            }
+
+            await axios.delete(url);
+            alert('Item excluído com sucesso!');
+            onDataChanged(); // Atualiza a lista na tela principal
+        } catch (error) {
+            console.error('Erro ao excluir:', error);
+            alert('Erro ao excluir item.');
+        }
+    };
+
+    if (!isOpen) return null;
+
     return (
         <div className='form' onClick={onClose}>
             <div className='historico-modal-content' onClick={(event) => event.stopPropagation()}>
@@ -132,12 +177,14 @@ export function HistoricoCompletoModal ({
                                         {getIcon(item.tipo)}
                                     </div>
                                     <div className='historico-item-details'>
-                                        <span className='historico-item-data'>{formatDate(item.data.toISOString())}</span>
+                                        <span className='item-info-data'>
+                                            {item.data && !isNaN(item.data.getTime()) ? formatDate(item.data.toISOString()) : '--/--/----'}
+                                        </span>
                                         <span className='historico-item-titulo'>{item.titulo}</span>
                                         <span className='historico-item-pet'>{item.petNome}</span>
                                     </div>
                                     <div className='historico-item-actions'>
-                                        {item.tipo === 'vacina' && (
+                                      { /*{item.tipo === 'vacina' && (
                                             <Button 
                                                 variant='link'
                                                 className='edit-hist-btn'
@@ -145,7 +192,26 @@ export function HistoricoCompletoModal ({
                                                 >
                                                     <Edit size={16}/>
                                             </Button>
-                                        )}
+                                        )}*/}
+                                        <Button 
+                                            variant='link'
+                                            className='edit-hist-btn'
+                                            onClick={() => {
+                                                // Abre o modal correspondente no componente pai
+                                                if (item.tipo === 'vacina') setVacinaEdit(item.dataOriginal as VacinaDetalhada);
+                                                else if (item.tipo === 'compromisso') setCompromissoEdit(item.dataOriginal as Compromisso);
+                                                else setConsultaEdit(item.dataOriginal as Consulta);
+                                            }}
+                                        >
+                                            <Edit size={16}/>
+                                        </Button>
+                                        <Button 
+                                            variant='link'
+                                            className='delete-hist-btn'
+                                            onClick={() => handleDelete(item)} // Chama a exclusão direta
+                                        >
+                                            <Trash2 size={16}/>
+                                        </Button>
                                     </div>
                                 </li>
                             ))}

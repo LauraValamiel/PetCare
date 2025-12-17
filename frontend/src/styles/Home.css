@@ -38,14 +38,14 @@
     margin-top: 4px;
 }
 
-.summary-cards {
+.summary-cards-home {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     margin-bottom: 3rem;
 }
 
-.summary-cards .card{
+.summary-cards-home .card{
     /*display: flex;
     flex-direction: column;
     padding: 20px;*/
@@ -53,27 +53,27 @@
     min-width: 0;
 }
 
-.summary-cards .card-content{
+.summary-cards-home .card-content{
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-grow: 1;
 }
 
-.summary-cards .card-content .info p:first-child {
+.summary-cards-home .card-content .info p:first-child {
     font-size: 1.9rem;
     font-weight: bold;
     color: #333;
     margin: 0;
 }
 
-.summary-cards .card-content .info p:last-child {
+.summary-cards-home .card-content .info p:last-child {
     font-size: 0.8rem;
     color: #666;
     margin: 0;
 }
 
-.summary-cards .card-icon {
+.summary-cards-home .card-icon {
     padding: 10px;
     border-radius: 50%;
     display: flex;
@@ -81,22 +81,22 @@
     justify-content: center;
 }
 
-.summary-cards .card-icon.pets {
+.summary-cards-home .card-icon.pets {
     background-color: #ede7f6;
     color: #5e35b1;
 }
 
-.summary-cards .card-icon.vacinas {
+.summary-cards-home .card-icon.vacinas {
     background-color: #fffde7;
     color: #f57c00;
 }
 
-.summary-cards .card-icon.consultas {
+.summary-cards-home .card-icon.consultas {
     background-color: #e3f2fd;
     color: #1e88e5;
 }
 
-.summary-cards .card-icon.produtos {
+.summary-cards-home .card-icon.produtos {
     background-color: #e8f5e9;
     color: #43a047;
 }

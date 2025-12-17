@@ -29,7 +29,7 @@
 }
 
 .card {
-    background-color: #fff;
+    /*background-color: #fff*/
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -46,9 +46,11 @@
 }
 
 .summary-card {
-    min-height: 220px;
+    min-height: 280px;
     justify-content: space-between;
     padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
 }
 
 .summary-card .card-header-flex {
@@ -79,12 +81,12 @@
 }
 
 .proximas-consultas-card {
-    background-color: #f0f7ff;
+    background-color: #e6f1fd;
     border-color: #d6eaff;
 }
 
 .proximas-consultas-card .card-icon {
-    background-color: #d6eaff;
+    background-color: #e6f1fd;
     color: #00529b;
 }
 
@@ -94,7 +96,7 @@
 }
 
 .historico-medico-card .card-icon {
-    background-color: #d6ffe3;
+    background-color: #f0fff5;
     color: #006421;
 }
 
@@ -104,7 +106,7 @@
 }
 
 .exames-recentes-card .card-icon  {
-    background-color: #f5e0ff;
+    background-color: #fdf5ff;
     color: #5e35b1;
 }
 
@@ -120,17 +122,18 @@
 }
 
 .item-info {
-    margin-bottom: 1rem;
-    margin-top: 0.5rem;
+    margin-bottom: 0;
+    margin-top: 0;
     background-color: #ffffff;
     border-radius: 8px;
     padding: 0.75rem 1rem;
+    border: 1px solid #f0f0f0;
     
 }
 
 .item-info-placeholder {
     flex-grow: 1;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     color: #666;
     font-size: 0.9rem;
     display: flex;
@@ -286,7 +289,7 @@
 
 .clinicas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
 }
 
@@ -380,6 +383,26 @@
 
 .clinica-card {
     position: relative;
+}
+
+.summary-card-list {
+    max-height: 160px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 1rem;
+}
+
+/* Adicione isso ao final de src/styles/ConsultasExames.css */
+.summary-card .card-actions .action-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px; /* Opcional: bordas mais quadradas para botões pequenos */
 }
 
 @media (max-width: 768px) {
