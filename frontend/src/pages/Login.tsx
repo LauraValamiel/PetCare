@@ -32,6 +32,7 @@ export default function Login() {
     const setNome = store?.setNome;
     const setCpf = store?.setCpf;
     const setFotoPerfilTutor = store?.setFotoPerfilTutor;
+    const setTutor = store?.setTutor;
 
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_CLIENT_ID';
 
@@ -157,6 +158,7 @@ export default function Login() {
                     setNome(user.nome_completo);
                     setCpf(user.cpf || '');
                     setFotoPerfilTutor(user.foto_perfil_tutor || null);
+                    if (setTutor) setTutor(user);
                 }
 
                 navigate('/home');

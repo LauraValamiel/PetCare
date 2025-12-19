@@ -239,15 +239,27 @@ export default function Produtos() {
             return {text: "OK", variant: "success"};
         }
 
+        if (item.previsao_termino === 'Estoque suficiente' || item.dias_restantes === Infinity) {
+            return { text: "Em estoque", variant: "success" };
+        }
+
+        if (item.previsao_termino === 'Esgotado' || dias <= 0) {
+            return { text: "Esgotado", variant: "danger" };
+        }
+
         const hoje = new Date().getTime();
         const previsao = new Date(item.previsao_termino).getTime();
 
-        if (isNaN(previsao)) {
+       /* if (isNaN(previsao)) {
             return { text: "Indefinido", variant: "default" };
         }
 
         if (previsao < hoje) return { text: "Atrasado", variant: "danger" };
-        if (previsao - hoje <= 7 * 24 * 60 * 60 * 1000) return { text: "Próximo", variant: "warning" };
+        if (previsao - hoje <= 7 * 24 * 60 * 60 * 1000) return { text: "Próximo", variant: "warning" };*/
+
+        if (dias <= 3) return { text: "Crítico", variant: "danger" };
+        if (dias <= 7) return { text: "Baixo", variant: "danger" };
+        if (dias <= 14) return { text: "Atenção", variant: "warning" };
 
         return { text: "Ativo", variant: "success"};
 

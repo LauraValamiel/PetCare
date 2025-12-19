@@ -71,10 +71,21 @@ export function AgendarCompromissoModal({
             tituloAjustado = `Exame: ${formData.titulo}`;
         }
 
+        const prefsSalvas = localStorage.getItem('user_prefs_config');
+        let permitirEmail = true;
+
+        if (prefsSalvas) {
+            const prefs = JSON.parse(prefsSalvas);
+            if (prefs.notificacoesEmail === false) {
+                permitirEmail = false
+            }
+        }
+
         try {
             const response = await axios.post(`http://localhost:5000/api/pets/${formData.id_pet}/agendar-compromissos`, {
                 ...formData,
-                lembrete: true
+                lembrete: true,
+                enviar_notificacao: permitirEmail
             });
 
             if (response.status === 201) {

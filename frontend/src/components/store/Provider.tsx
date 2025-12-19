@@ -1,5 +1,6 @@
 import React, { useState, type ReactNode } from 'react';
 import StoreContext, { type NotificationItem } from './Context.tsx';
+import type { Tutor } from '../../pages/MeusPets.tsx';
 import useStorage from '../utils/useStorage';
 
 interface StoreProviderProps {
@@ -8,6 +9,7 @@ interface StoreProviderProps {
 
 const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   const [token, setToken] = useStorage("token", null);
+  const [tutor, setTutor] = useStorage("tutor", null);
   const [cpf, setCpf] = useStorage("cpf", null);
   const [nome, setNome] = useStorage("nome", null);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -22,6 +24,8 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       value={{
         token,
         setToken,
+        tutor,
+        setTutor,
         cpf,
         setCpf,
         nome,

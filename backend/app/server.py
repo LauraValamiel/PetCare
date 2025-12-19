@@ -762,14 +762,16 @@ def adicionar_vacina_por_pet(id_pet):
     if not all([nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
+    enviar_notificacao = dados.get('enviar_notificacao', True)
+
     query = """INSERT INTO vacinas (id_pet, nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes) 
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
     _, error = executar_db(query, (id_pet, nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes))
 
     if error:
-        return jsonify({"error": f"Erro ao adicionar vacina: {error}"}), 500
-    
-    if proxima_dose:
+        return jsonify({"error": f"Erro ao adicionar vacina: {error}"}), 500    
+
+    if proxima_dose and enviar_notificacao:
         criar_evento_e_enviar_alerta(
             id_pet=id_pet,
             titulo=f"Proxima dose da vacina {dados.get('nome_vacina')}",
@@ -799,6 +801,7 @@ def deletar_vacina(id_pet, id_vacina):
     
     if rows_affected == 0:
         return jsonify({"message": "Nenhuma vacina encontrada"})
+    
 
     return jsonify({"message": "Vacina deletada com sucesso."}), 200
 
@@ -816,10 +819,21 @@ def editar_vacina(id_pet, id_vacina):
     local_aplicacao = dados.get('local_aplicacao')
     observacoes = dados.get('observacoes')
 
+    enviar_notificacao = dados.get('enviar_notificacao', True)
+
     query = """UPDATE vacinas 
                SET nome_vacina = %s, lote = %s, data_vacinacao = %s, nome_veterinario = %s, proxima_dose = %s, preco_vacina = %s, local_aplicacao = %s, observacoes = %s 
                WHERE id_pet = %s AND id_vacina = %s"""
     _, error = executar_db(query, (nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes, id_pet, id_vacina))
+
+    if proxima_dose and enviar_notificacao:
+        criar_evento_e_enviar_alerta(
+            id_pet=id_pet,
+            titulo=f"Proxima dose da vacina {dados.get('nome_vacina')}",
+            data_evento=proxima_dose,
+            descricao=f"Lembrete para a proxima dose da vacina {dados.get('nome_vacina')}."
+        )
+    
 
     if error:
         return jsonify({"error": f"Erro ao atualizar vacina: {error}"}), 500
@@ -985,13 +999,15 @@ def criar_remedio_pet(id_pet):
     observacoes = dados.get('observacoes')
     preco_remedio = dados.get('preco_remedio')
 
+    enviar_notificacao = dados.get('enviar_notificacao', True)
+
     query = """INSERT INTO remedios (id_pet, nome_remedio, tipo_remedio, dosagem, data_inicio, data_fim, frequencia, proxima_dose, observacoes, preco_remedio)
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
     _, error = executar_db(query, (id_pet, nome_remedio, tipo_remedio, dosagem, data_inicio, data_fim, frequencia, proxima_dose, observacoes, preco_remedio))
     if error:
         return jsonify({"error": f"Erro ao criar remedio: {error}"}), 500
     
-    if proxima_dose:
+    if proxima_dose and enviar_notificacao:
         query_pet = """SELECT nome_pet 
                        FROM pets
                        WHERE id_pet = %s"""
@@ -1021,6 +1037,8 @@ def editar_remedio_pet(id_pet, id_remedio):
     observacoes = dados.get('observacoes')
     preco_remedio = dados.get('preco_remedio')
 
+    enviar_notificacao = dados.get('enviar_notificacao', True)
+
     query = """SELECT proxima_dose
                FROM remedios
                WHERE id_remedio = %s AND id_pet = %s"""
@@ -1041,7 +1059,7 @@ def editar_remedio_pet(id_pet, id_remedio):
     if proxima_dose_nova:
         proxima_dose_nova_date = datetime.strptime(proxima_dose_nova, '%Y-%m-%d').date()
     
-    if proxima_dose_nova_date and proxima_dose_nova_date != proxima_dose_antiga:
+    if proxima_dose_nova_date and proxima_dose_nova_date != proxima_dose_antiga and enviar_notificacao:
         query_pet = """SELECT nome_pet 
                        FROM pets
                        WHERE id_pet = %s"""
@@ -1181,14 +1199,34 @@ def criar_produto_pet(id_pet):
     observacoes = dados.get('observacoes')
     consumo_periodo = dados.get('consumo_periodo', 'dia')
 
+    enviar_notificacao = dados.get('enviar_notificacao', True)
+
     if not all([nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
     query = """INSERT INTO produtos (id_pet, nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja, observacoes, consumo_periodo)
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
     _, error = executar_db(query, (id_pet, nome_produto, categoria, quantidade, consumo_medio, data_compra, preco_compra, loja, observacoes, consumo_periodo))
+
     if error:
         return jsonify({"error": f"Erro ao criar produto: {error}"}), 500
+    
+    if enviar_notificacao and quantidade > 0 and consumo_medio > 0:
+
+        dias_duracao = quantidade / consumo_medio
+
+        data_fim = datetime.now() + timedelta(days=dias_duracao)
+
+        dias_antecedencia = 5 if dias_duracao > 10 else 1
+        data_alerta = data_fim - timedelta(days=dias_antecedencia)
+
+        if data_alerta > datetime.now():
+            criar_evento_e_enviar_alerta(
+                id_pet=id_pet,
+                titulo=f"Comprar {nome_produto}",
+                data_evento=data_alerta.strftime('%Y-%m-%d'),
+                descricao=f"O produto {nome_produto} deve acabar em aproximadamente {dias_antecedencia} dias. Verifique o estoque."
+            )
     
     return jsonify({"message": "Produto criado com sucesso."}), 201
 
@@ -1206,6 +1244,8 @@ def editar_produto(id_compra, id_pet):
     observacoes = dados.get('observacoes')
     consumo_periodo = dados.get('consumo_periodo')
 
+    enviar_notificacao = dados.get('enviar_notificacao', True)
+
     query = """UPDATE produtos 
                SET nome_produto = %s, categoria = %s, quantidade = %s, consumo_medio = %s, data_compra = %s, preco_compra = %s, loja = %s, observacoes = %s, consumo_periodo = %s
                WHERE id_compra = %s AND id_pet = %s"""
@@ -1213,6 +1253,50 @@ def editar_produto(id_compra, id_pet):
 
     if error:
         return jsonify({"error": f"Erro ao atualizar produto: {error}"}), 500
+
+    query_busca = "SELECT * FROM produtos WHERE id_compra = %s AND id_pet = %s"
+    produto = consultar_db(query_busca, (id_compra, id_pet), one=True)
+
+    if not produto:
+        return jsonify({"message": "Produto atualizado com sucesso."}), 200
+
+    estoque_atual = produto.get('quantidade', 0)
+    consumo_medio = produto.get('consumo_medio', 1)
+
+    dias_restantes = float('inf')
+    if consumo_medio and consumo_medio > 0:
+        dias_restantes = estoque_atual / consumo_medio
+
+    if dias_restantes <= 7:
+        data_recompra = datetime.now().date() + timedelta(days=int(dias_restantes))
+        if enviar_notificacao:
+            criar_evento_e_enviar_alerta(
+                id_pet=produto['id_pet'],
+                titulo=f"Recomprar {produto['nome_produto']}",
+                data_evento=data_recompra,
+                descricao=f"O estoque do produto {produto['nome_produto']} esta baixo, lembrete para comprar mais."
+            )
+
+    
+    
+    
+    if enviar_notificacao and quantidade > 0 and consumo_medio > 0:
+
+        dias_duracao = quantidade / consumo_medio
+
+        data_fim = datetime.now() + timedelta(days=float(dias_duracao))
+
+        dias_antecedencia = 5 if dias_duracao > 10 else 1
+        data_alerta = data_fim - timedelta(days=dias_antecedencia)
+
+        if data_alerta > datetime.now():
+            criar_evento_e_enviar_alerta(
+                id_pet=id_pet,
+                titulo=f"Comprar {nome_produto} (Atualizado)",
+                data_evento=data_alerta.strftime('%Y-%m-%d'),
+                descricao=f"O produto {nome_produto} deve acabar em aproximadamente {dias_antecedencia} dias. Verifique o estoque."
+            )
+
     return jsonify({"message": "Produto atualizado com sucesso."}), 200
 
 
@@ -1220,6 +1304,8 @@ def editar_produto(id_compra, id_pet):
 def registrar_consumo_produto(id_compra):
     dados = request.json
     quantidade_consumida = dados.get('quantidade_consumida', 1)
+
+    enviar_notificacao = dados.get('enviar_notificacao', True)
 
     query = "UPDATE produtos " \
     "        SET quantidade = quantidade - %s " \
@@ -1243,12 +1329,13 @@ def registrar_consumo_produto(id_compra):
 
     if dias_restantes <= 7:
         data_recompra = datetime.now().date() + timedelta(days=int(dias_restantes))
-        criar_evento_e_enviar_alerta(
-            id_pet=produto['id_pet'],
-            titulo=f"Recomprar {produto['nome_produto']}",
-            data_evento=data_recompra,
-            descricao=f"O estoque do produto {produto['nome_produto']} esta baixo, lembrete para comprar mais."
-        )
+        if enviar_notificacao:
+            criar_evento_e_enviar_alerta(
+                id_pet=produto['id_pet'],
+                titulo=f"Recomprar {produto['nome_produto']}",
+                data_evento=data_recompra,
+                descricao=f"O estoque do produto {produto['nome_produto']} esta baixo, lembrete para comprar mais."
+            )
 
     return jsonify({"message": "Consumo registrado com sucesso."}), 200
 
@@ -1308,13 +1395,15 @@ def agendar_compromisso_pet(id_pet):
     if not all([titulo, descricao, data_compromisso, hora, localizacao, lembrete]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
 
+    enviar_notificacao = dados.get('enviar_notificacao', True)
+
     query = """INSERT INTO compromissos (id_pet, titulo, descricao, data_compromisso, hora, localizacao, lembrete, criado_em)
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
     _, error = executar_db(query, (id_pet, titulo, descricao, data_compromisso, hora, localizacao, lembrete, criado_em))
     if error:
         return jsonify({"error": f"Erro ao agendar compromisso: {error}"}), 500
     
-    if lembrete and data_compromisso:
+    if lembrete and data_compromisso and enviar_notificacao:
         criar_evento_e_enviar_alerta(
             id_pet=id_pet,
             titulo=dados.get('titulo'),
@@ -1335,6 +1424,8 @@ def editar_compromisso_pet(id_pet, id_compromisso):
     hora = dados.get('hora')
     localizacao = dados.get('localizacao')
     lembrete = dados.get('lembrete', False)
+
+    enviar_notificacao = dados.get('enviar_notificacao', True)
 
     query = """SELECT data_compromisso, hora
                FROM compromissos 
@@ -1357,7 +1448,7 @@ def editar_compromisso_pet(id_pet, id_compromisso):
     data_nova = datetime.strptime(data_compromisso, '%Y-%m-%d').date() if data_compromisso else None
     hora_nova = datetime.strptime(hora, '%H:%M').time() if hora else None
 
-    if lembrete and (data_original != data_nova or hora_original != hora_nova):
+    if lembrete and (data_original != data_nova or hora_original != hora_nova) and enviar_notificacao:
         criar_evento_e_enviar_alerta(
             id_pet=id_pet,
             titulo=f"Compromisso atualizado: {titulo}",
@@ -1492,6 +1583,76 @@ def redefinir_senha():
     
     return jsonify({"message": "Senha redefinida com sucesso."}), 200
 
+@app.route('/api/tutores/<int:id_tutor>/alterar-senha', methods=['PUT'])
+def alterar_senha(id_tutor):
+    dados = request.json
+    senha_atual = dados.get('senha_atual')
+    nova_senha = dados.get('nova_senha')
+
+    if not senha_atual or not nova_senha:
+        return jsonify({"error": "Senha atual e nova senha são obrigatórias"}), 400
+
+    # 1. Buscar a senha criptografada no banco (Corrigido '?' para '%s')
+    query_busca = "SELECT senha FROM tutores WHERE id_tutor = %s"
+    tutor = consultar_db(query_busca, (id_tutor,), one=True)
+    
+    if not tutor:
+        return jsonify({"error": "Tutor não encontrado"}), 404
+    
+    # 2. Verificar se a 'Senha Atual' está correta usando BCRYPT
+    senha_hash_banco = tutor['senha']
+
+    # Garante que o hash do banco esteja em bytes
+    if isinstance(senha_hash_banco, str):
+        senha_hash_banco = senha_hash_banco.encode('utf-8')
+
+    # Verifica a senha fornecida (convertida para bytes) contra o hash
+    if not bcrypt.checkpw(senha_atual.encode('utf-8'), senha_hash_banco):
+        return jsonify({"error": "A senha atual está incorreta."}), 401
+
+    # 3. Gerar o hash da nova senha com BCRYPT
+    nova_senha_hash = bcrypt.hashpw(nova_senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    # 4. Atualizar no banco (Corrigido '?' para '%s')
+    query_update = "UPDATE tutores SET senha = %s WHERE id_tutor = %s"
+    _, error = executar_db(query_update, (nova_senha_hash, id_tutor))
+
+    if error:
+        return jsonify({"error": f"Erro ao atualizar senha: {error}"}), 500
+
+    return jsonify({"message": "Senha alterada com sucesso!"}), 200
+
+@app.route('/api/tutores/<int:id_tutor>/alterar-email', methods=['PUT'])
+def alterar_email(id_tutor):
+    dados = request.json
+    novo_email = dados.get('novo_email')
+    senha_atual = dados.get('senha_atual') # Pedir senha para confirmar é boa prática
+
+    if not novo_email or not senha_atual:
+        return jsonify({"error": "Novo email e senha atual são obrigatórios"}), 400
+
+    # 1. Verificar senha
+    query = "SELECT senha FROM tutores WHERE id_tutor = %s"
+    tutor = consultar_db(query, (id_tutor,), one=True)
+
+    if not tutor:
+        return jsonify({"error": "Usuário não encontrado."}), 404
+    
+    senha_hash_banco = tutor['senha']
+
+    if isinstance(senha_hash_banco, str):
+        senha_hash_banco = senha_hash_banco.encode('utf-8')
+
+    if not bcrypt.checkpw(senha_atual.encode('utf-8'), senha_hash_banco):
+        return jsonify({"error": "Senha incorreta. Não foi possível alterar o email."}), 401
+    
+    query_update = "UPDATE tutores SET email = %s WHERE id_tutor = %s"
+    _, erro_update = executar_db(query_update, (novo_email, id_tutor))
+
+    if erro_update:
+         return jsonify({"error": "Erro ao atualizar email. Talvez este email já esteja em uso."}), 500
+
+    return jsonify({"message": "Email atualizado com sucesso!"}), 200
 
 
 # Rodando a aplicação

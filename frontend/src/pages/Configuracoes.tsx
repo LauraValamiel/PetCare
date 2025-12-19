@@ -6,14 +6,20 @@ import { Button } from '../components/button';
 import StoreContext from '../components/store/Context';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Perfil.css';
-
+import { AlterarSenhaModal } from '../components/AlterarSenhaModal';
+import { AlterarEmailModal } from '../components/AlterarEmailModal';
 
 export default function Configuracoes() {
     const store = useContext(StoreContext);
     const navigate = useNavigate();
+    const tutorId = store?.tutor?.id_tutor;
+    const emailAtual = store?.tutor?.email;
+
+    const [isSenhaModalOpen, setIsSenhaModalOpen] = useState(false);
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
     const [configuracoes, setConfiguracoes] = useState(() => {
-        const salvo = localStorage.getItem('user_prefS_config');
+        const salvo = localStorage.getItem('user_prefs_config');
         if (salvo) {
             return JSON.parse(salvo);
         }
@@ -111,9 +117,9 @@ export default function Configuracoes() {
                             </div>
                         </div>
                         <div className='security-options'>
-                            <Button className='security-btn'><Lock size={18}/>Alterar Senha</Button>
-                            <Button className='security-btn'><Mail size={18}/>Alterar Email</Button>
-                            <Button className='security-btn'><User size={18}/>Dados Pessoais</Button>
+                            <Button className='security-btn' onClick={() => setIsSenhaModalOpen(true)}><Lock size={18}/>Alterar Senha</Button>
+                            <Button className='security-btn' onClick={() => setIsEmailModalOpen(true)}><Mail size={18}/>Alterar Email</Button>
+                            <Button className='security-btn' onClick={() => navigate('/perfil')}><User size={18}/>Dados Pessoais</Button>
                         </div>
 
                     </Card>
@@ -134,7 +140,19 @@ export default function Configuracoes() {
 
             </main>
 
+            <AlterarSenhaModal 
+                isOpen={isSenhaModalOpen} 
+                onClose={() => setIsSenhaModalOpen(false)} 
+                tutorId={tutorId} 
+            />
+            <AlterarEmailModal 
+                isOpen={isEmailModalOpen} 
+                onClose={() => setIsEmailModalOpen(false)} 
+                tutorId={tutorId}
+                emailAtual={emailAtual} 
+            />
+
         </div>
-    )
+    );
 
 }

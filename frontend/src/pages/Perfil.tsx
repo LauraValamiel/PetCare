@@ -336,8 +336,8 @@ export default function Perfil() {
                             <p className='name-title'>{tutorData.nome_completo}</p>
                             <p className='email-subtitle'>{tutorData.email}</p>
                             <div className='summary-badges'>
-                                <Badge variant='default'><Users size={14}/>{stats.pets} Pets Cadastrados</Badge>
-                                <Badge variant='default'><Calendar size={14}/>Membro desde {memberSince}</Badge>
+                                <Badge variant='default'><Users size={14}/>{stats.pets}  Pets Cadastrados</Badge>
+                                <Badge variant='default'><Calendar size={14}/>  Membro desde {memberSince}</Badge>
                             </div>
                         </div>
                     </div>

@@ -100,6 +100,16 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
         event.preventDefault();
         setErro('');
 
+        const prefsSalvas = localStorage.getItem('user_prefs_config')
+        let permitirEmail = true;
+
+        if (prefsSalvas) {
+            const prefs = JSON.parse(prefsSalvas);
+            if (prefs.notificacoesEmail === false || prefs.alertasProdutos === false) {
+                permitirEmail = false;
+            }
+        }
+
         if (!formData.id_pet || !formData.nome_produto || !formData.categoria || !formData.quantidade || !formData.consumo_medio || !formData.data_compra || !formData.preco_compra || !formData.loja) {
             setErro('Por favor, preencha todos os campos obrigatórios (*).');
             return;
@@ -111,6 +121,7 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
                 quantidade: parseCommaFloat(formData.quantidade.replace(',', '.')) || 0,
                 consumo_medio: parseCommaFloat(formData.consumo_medio.replace(',', '.')) || 0,
                 preco_compra: parseCommaFloat(formData.preco_compra.replace(',', '.')) || 0,
+                enviar_notificacao: permitirEmail
             });
 
             if (response.status === 200){
@@ -139,67 +150,69 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
                         {erro && <p className='form-erro'>{erro}</p>}
                         <label htmlFor="id_pet ">Pet *</label>
                         <input type="text" id='pet_nome' name='pet_nome' value={petSelecionado?.nome_pet || `Pet ID: ${formData.id_pet}`} disabled style={{backgroundColor: '#f4f4f4', color: '#888' }} />
-                    </div>
+                    
 
-                    <div className='form-grid'>
-                        <div className='form-group'>
-                                <label htmlFor="nome_produto">Nome Produto *</label>
-                                <input type="text" id='nome_produto' name='nome_produto' placeholder='Ex: Ração, Shampoo' value={formData.nome_produto} onChange={handleChange} />
-                            </div>
-
+                        <div className='form-grid'>
                             <div className='form-group'>
-                                <label htmlFor="categoria">Categoria *</label>
-                                <select name="categoria" id="categoria" value={formData.categoria} onChange={handleChange}>
-                                    <option value="">Selecione</option>
-                                    <option value="ração">Ração/Alimento</option>
-                                    <option value="medicamento">Medicamento</option>
-                                    <option value="acessório">Acessório</option>
-                                    <option value="higiene">Higiene</option>
-                                    <option value="outros">Outros</option>
-                                </select>
-                            </div>
+                                    <label htmlFor="nome_produto">Nome Produto *</label>
+                                    <input type="text" id='nome_produto' name='nome_produto' placeholder='Ex: Ração, Shampoo' value={formData.nome_produto} onChange={handleChange} />
+                                </div>
 
-                            <div className='form-group'>
-                                <label htmlFor="quantidade">{getUnitLabel(formData.categoria, 'quantidade')}</label>
-                                <input type="text" id='quantidade' name='quantidade' placeholder={getPlaceholder(formData.categoria, 'quantidade')} value={formData.quantidade} onChange={handleChange} />
-                            </div>
+                                <div className='form-group'>
+                                    <label htmlFor="categoria">Categoria *</label>
+                                    <select name="categoria" id="categoria" value={formData.categoria} onChange={handleChange}>
+                                        <option value="">Selecione</option>
+                                        <option value="ração">Ração/Alimento</option>
+                                        <option value="medicamento">Medicamento</option>
+                                        <option value="acessório">Acessório</option>
+                                        <option value="higiene">Higiene</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                </div>
 
+                                <div className='form-group'>
+                                    <label htmlFor="quantidade">{getUnitLabel(formData.categoria, 'quantidade')}</label>
+                                    <input type="text" id='quantidade' name='quantidade' placeholder={getPlaceholder(formData.categoria, 'quantidade')} value={formData.quantidade} onChange={handleChange} />
+                                </div>
+
+                                
+                                <div className='form-group'>
+                                        <label htmlFor="consumo_medio">{getUnitLabel(formData.categoria, 'consumo_medio')}</label>
+                                        <input type="text" id='consumo_medio' name='consumo_medio' placeholder={getPlaceholder(formData.categoria, 'consumo_medio')} value={formData.consumo_medio} onChange={handleChange} />
+                                </div>
+                                
+                                <div className='form-group'>
+                                    <label htmlFor="consumo_periodo">Período de Consumo *</label>
+                                    <select name="consumo_periodo" id="consumo_periodo" value={formData.consumo_periodo} onChange={handleChange}>
+                                        <option value="dia">Dia</option>
+                                        <option value="semana">Semana</option>
+                                        <option value="mes">Mês</option>
+                                        <option value="ano">Ano</option>
+                                    </select>
+                                </div>
+
+                                <div className='form-group'>
+                                    <label htmlFor="data_compra">Data da Compra *</label>
+                                    <input type="date" id='data_compra' name='data_compra' value={formData.data_compra} onChange={handleChange} />
+                                </div>
+
+                                <div className='form-group'>
+                                    <label htmlFor="preco_compra">Preço (R$) *</label>
+                                    <input type="text" id='preco_compra' name='preco_compra' placeholder='Ex: 120,50' value={formData.preco_compra} onChange={handleChange} />
+                                </div>
+
+                                <div className='form-group full-width'>
+                                    <label htmlFor="loja">Local da Compra*</label>
+                                    <input type="text" id='loja' name='loja' placeholder='Ex: Petz, Amazon' value={formData.loja} onChange={handleChange} />
+                                </div>
+
+                                <div className='form-group full-width'>
+                                    <label htmlFor="observacoes">Observações</label>
+                                    <textarea id='observacoes' name='observacoes' placeholder='Notas sobre o produto, validade...' value={formData.observacoes} onChange={handleChange} />
+                                </div>
+
+                            </div>
                             
-                            <div className='form-group'>
-                                    <label htmlFor="consumo_medio">{getUnitLabel(formData.categoria, 'consumo_medio')}</label>
-                                    <input type="text" id='consumo_medio' name='consumo_medio' placeholder={getPlaceholder(formData.categoria, 'consumo_medio')} value={formData.consumo_medio} onChange={handleChange} />
-                            </div>
-                            
-                            <div className='form-group'>
-                                <label htmlFor="consumo_periodo">Período de Consumo *</label>
-                                <select name="consumo_periodo" id="consumo_periodo" value={formData.consumo_periodo} onChange={handleChange}>
-                                    <option value="dia">Dia</option>
-                                    <option value="semana">Semana</option>
-                                    <option value="mes">Mês</option>
-                                    <option value="ano">Ano</option>
-                                </select>
-                            </div>
-
-                            <div className='form-group'>
-                                <label htmlFor="data_compra">Data da Compra *</label>
-                                <input type="date" id='data_compra' name='data_compra' value={formData.data_compra} onChange={handleChange} />
-                            </div>
-
-                            <div className='form-group'>
-                                <label htmlFor="preco_compra">Preço (R$) *</label>
-                                <input type="text" id='preco_compra' name='preco_compra' placeholder='Ex: 120,50' value={formData.preco_compra} onChange={handleChange} />
-                            </div>
-
-                            <div className='form-group full-width'>
-                                <label htmlFor="loja">Local da Compra*</label>
-                                <input type="text" id='loja' name='loja' placeholder='Ex: Petz, Amazon' value={formData.loja} onChange={handleChange} />
-                            </div>
-
-                            <div className='form-group full-width'>
-                                <label htmlFor="observacoes">Observações</label>
-                                <textarea id='observacoes' name='observacoes' placeholder='Notas sobre o produto, validade...' value={formData.observacoes} onChange={handleChange} />
-                            </div>
-
                             <div className='form-footer'>
                                 <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
                                 <Button variant='primary' type='submit'>Salvar Alterações</Button>

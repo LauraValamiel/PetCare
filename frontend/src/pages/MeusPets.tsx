@@ -42,6 +42,7 @@ export interface Tutor {
     id_tutor: number;
     nome_completo: string;
     pets: Pet[];
+    email?: string | null;
 }
 
 export interface DetalhesPets extends Pet {

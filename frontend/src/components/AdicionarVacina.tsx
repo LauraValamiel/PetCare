@@ -54,10 +54,21 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
             return;
         }
 
+        const prefsSalvas = localStorage.getItem('user_prefs_config');
+        let permitirEmail = true;
+        
+        if (prefsSalvas) {
+            const prefs = JSON.parse(prefsSalvas);
+            if (prefs.notificacoesEmail === false) {
+                permitirEmail = false;
+            }
+        }
+
         try {
             const response = await axios.post(`http://localhost:5000/api/pets/${formData.id_pet}/nova-vacina`, {
                 ...formData,
-                preco_vacina: parseFloat(formData.preco_vacina.replace(',', '.')) || 0
+                preco_vacina: parseFloat(formData.preco_vacina.replace(',', '.')) || 0,
+                enviar_notificacao: permitirEmail
             });
 
             if (response.status === 201) {

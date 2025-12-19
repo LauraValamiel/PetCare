@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import type { Tutor } from "../../pages/MeusPets";
 
 interface StoreContextType {
   token: string | null;
@@ -19,6 +20,9 @@ interface StoreContextType {
   fotoPerfilTutor: string | null;
   setFotoPerfilTutor: (foto: string | null) => void;
   
+  tutor: Tutor | null;
+  setTutor: (tutor: Tutor | null) => void;
+
 }
 
 export interface NotificationItem {

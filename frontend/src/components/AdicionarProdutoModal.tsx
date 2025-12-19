@@ -92,12 +92,23 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
             return;
         }
 
+        const prefsSalvas = localStorage.getItem('user_prefs_config');
+        let permitirEmail = true;
+
+        if (prefsSalvas) {
+            const prefs = JSON.parse(prefsSalvas);
+            if (prefs.notificacoesEmail === false || prefs.alertasProdutos === false) {
+                permitirEmail = false;
+            }
+        }
+
         try {
             const response = await axios.post(`http://localhost:5000/api/pets/${formData.id_pet}/novo-produto`, {
                 ...formData,
                 quantidade: parseCommaFloat(formData.quantidade.replace(',', '.')) || 0,
                 consumo_medio: parseCommaFloat(formData.consumo_medio.replace(',', '.')) || 0,
-                preco_compra: parseCommaFloat(formData.preco_compra.replace(',', '.')) || 0
+                preco_compra: parseCommaFloat(formData.preco_compra.replace(',', '.')) || 0,
+                enviar_notificacao: permitirEmail
             });
 
             if (response.status === 201) {
