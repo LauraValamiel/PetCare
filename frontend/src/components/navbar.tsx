@@ -1,16 +1,16 @@
-import { Bell, Calendar, Edit, LogOut, Settings, ShieldAlert, ShoppingBag, User, UserCircle, X } from "lucide-react";
+import { Bell, Calendar, CheckCircle, Edit, LogOut, Settings, ShieldAlert, ShoppingBag, User, UserCircle, X } from "lucide-react";
 //import Bell from "lucide-react/dist/esm/icons/bell";
 //import UserCircle from "lucide-react/dist/esm/icons/user-circle";
 import { useLocation, useNavigate } from "react-router-dom";
-import '../styles/Navbar.css';
+import '../styles/NavBar.css';
 import { useContext } from "react";
-import StoreContext from "./store/Context.tsx";
+import StoreContext, { type Notificacao } from "./store/Context";
 
 const NotificationPanelItem: React.FC<any> = ({ notification }) => {
     let IconComponent;
     let iconClass;
 
-    switch (notification.type) {
+    switch (notification.tipo) {
         case 'vacina':
         case 'consulta':
         case 'exame':
@@ -21,19 +21,24 @@ const NotificationPanelItem: React.FC<any> = ({ notification }) => {
             IconComponent = ShoppingBag;
             iconClass = 'shopping-bag';
             break;
-        default:
+        case 'alerta':
             IconComponent = ShieldAlert;
+            iconClass = 'alert';
+            break;
+        default:
+            IconComponent = CheckCircle;
             iconClass = 'default';
     }
 
     return (
-        <div className={`notification-item notification-item-${notification.type}`}>
+        <div className={`notification-item notification-item-${notification.tipo}`}>
             <div className={`notification-icon notification-icon-${iconClass}`}>
                 <IconComponent size={20}/>
             </div>
             <div className="notification-details">
-                <p className="notification-title">{notification.title}</p>
-                <small className="notification-subtitle">{notification.subtitle}</small>
+                <p className="notification-title">{notification.titulo}</p>
+                <small className="notification-subtitle">{notification.mensagem}</small>
+                <span className="notification-data">{new Date(notification.data).toLocaleDateString()}</span>
             </div>
         </div>
     );
@@ -46,9 +51,11 @@ const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, naviga
 
     const handleLogout = () => {
         if (window.confirm("Tem certeza que deseja sair?")) {
+            localStorage.removeItem('token');
             localStorage.removeItem('tutor');
             sessionStorage.removeItem('tutor');
             store.setToken(null);
+            store.setTutor(null);   
             navigate('/login');
             window.location.reload();
             
@@ -61,6 +68,14 @@ const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, naviga
     }
 
     return (
+        <>
+
+        <div 
+                className={`notifications-overlay ${store.isProfileOpen ? 'open' : ''}`} 
+                onClick={() => store.setIsProfileOpen(false)}
+                style={{ zIndex: 998 }} // Garante que fique abaixo do menu
+        ></div>
+
         <div className={`profile-sidebar ${store.isProfileOpen ? 'open' : ''}`}>
             <div className="sidebar-header">
                 <h3>Meu Perfil</h3>
@@ -87,6 +102,7 @@ const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, naviga
             </div>
 
         </div>
+    </>
     )
 
 }
@@ -98,7 +114,7 @@ export function Navbar() {
 
     if (!store) return <header className="navbar">Erro ao carregar store.</header>;
 
-    const { notifications, isNotificationsOpen, setIsNotificationsOpen, isProfileOpen, setIsProfileOpen, fotoPerfilTutor } = store;
+    const { notificacoes, isNotificationsOpen, setIsNotificationsOpen, isProfileOpen, setIsProfileOpen, fotoPerfilTutor } = store;
 
     const getButtonClass = (path: string) => {
         
@@ -125,12 +141,26 @@ export function Navbar() {
                 </nav>
             </div>
             <div className="navbar-right">
-                <div className={`notification-bell ${isNotificationsOpen ? 'active' : ''}`} onClick={() => {setIsProfileOpen(false); setIsNotificationsOpen(!isNotificationsOpen)}}>
+                <div 
+                    className={`notification-bell ${isNotificationsOpen ? 'active' : ''}`} 
+                    onClick={() => {
+                        setIsProfileOpen(false); 
+                        setIsNotificationsOpen(!isNotificationsOpen)
+                    }}
+                >
                     <Bell size={24} />
-                    {notifications.length > 0 && (
-                        <span className="notification-badge">{notifications.length}</span>)} {/* Exemplo de badge de notificação - arrumar*/}{/* Exemplo de badge de notificação - arrumar*/} {/* Exemplo de badge de notificação - arrumar*/}
+                    {notificacoes && notificacoes.length > 0 && (
+                        <span className="notification-badge">{notificacoes.length}</span>
+                    )}
                 </div>
-                <div className={`user-avatar ${isProfileOpen ? 'active-profile' : ''}`} onClick={() => {setIsNotificationsOpen(false); setIsProfileOpen(!isProfileOpen)}}>
+
+                <div 
+                    className={`user-avatar ${isProfileOpen ? 'active-profile' : ''}`} 
+                    onClick={() => {
+                        setIsNotificationsOpen(false); 
+                        setIsProfileOpen(!isProfileOpen)
+                    }}
+                >
                     {profileImageUrl ? (
                         <img src={profileImageUrl} alt="Foto Perfil" className="avatar-image-navbar" />
                     ) : (
@@ -140,30 +170,29 @@ export function Navbar() {
 
             </div>
         </header>
+
+
         <div className={`notifications-sidebar ${isNotificationsOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
                     <h3>Notificações</h3>
                     <button className="close-btn" onClick={() => setIsNotificationsOpen(false)}><X size={20} /></button>
                 </div>
                 <div className="sidebar-content">
-                    {notifications.length === 0 ? (
+                    {(!notificacoes || notificacoes.length === 0) ? (
                         <p className="no-notifications">Nenhuma notificação por enquanto.</p>
                     ) : (
-                        notifications.map((notification, index) => (
+                        notificacoes.map((notification, index) => (
                             <NotificationPanelItem key={index} notification={notification} />
                         ))
                     )}
                 </div>
-                {notifications.length > 0 && (
-                    <div className="sidebar-footer">
-                        <button onClick={() => store.setNotifications([])} className="clear-all-btn">Limpar todas</button>
-                    </div>
-                )}
-            </div>
-            <div className={`notifications-overlay ${isNotificationsOpen ? 'open' : ''}`} 
-                onClick={() => setIsNotificationsOpen(false)}>
+        </div>
 
-            </div>
+
+        <div 
+            className={`notifications-overlay ${isNotificationsOpen ? 'open' : ''}`} 
+            onClick={() => setIsNotificationsOpen(false)}>
+        </div>
             
             <ProfileSidebar store={store} navigate={navigate} />
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import axios from 'axios'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/card'
 import { Button } from '../components/button'
@@ -12,7 +12,7 @@ import '../styles/Home.css'
 import { formatDate, type DetalhesPets } from './MeusPets'
 import { AdicionarVacina } from '../components/AdicionarVacina'
 import { AgendarCompromissoModal } from '../components/AgendarCompromissoModal'
-import StoreContext, { type NotificationItem } from '../components/store/Context'
+import StoreContext, { type Notificacao } from '../components/store/Context'
 import React from 'react'
 import { AdicionarProdutoModal } from '../components/AdicionarProdutoModal'
 
@@ -110,8 +110,8 @@ export default function Home() {
     const [isAgendarConsultaModalOpen, setIsAgendarConsultaModalOpen] = useState(false);
     const [isAdicionarProdutoModalOpen, setIsAdicionarProdutoModalOpen] = useState(false);
 
-    const store =  React.useContext(StoreContext);
-    const setNotifications = store?.setNotifications;
+    const store =  useContext(StoreContext);
+    const carregarNotificacoesGlobais = store?.carregarNotificacoes;
 
     const getFirstName = (fullName: string | undefined) => {
         if (!fullName) {
@@ -121,6 +121,7 @@ export default function Home() {
     }
 
     const tutorId = tutor ? tutor.id_tutor : null;
+    
 
     useEffect(() => {
         async function fetchDashboard(){
@@ -145,7 +146,6 @@ export default function Home() {
                     let produtosAcabando = 0;
                     const atividades: Atividades[] = [];
                     const petsProcessados: DetalhesPets[] = [];
-                    const notifications: NotificationItem[] = [];
 
                     // Buscando dados de cada pet
                     await Promise.all(
@@ -169,18 +169,8 @@ export default function Home() {
                                 proximaDose.setHours(0,0,0,0);
                                 if (proximaDose < today) {
                                     vacinasVencendo++;
-                                    notifications.push({
-                                        type: 'vacina',
-                                        title: `Vacina atrasada: ${vacina.nome_vacina}`,
-                                        subtitle: `A vacina do pet ${pet.nome_pet} está vencida desde ${proximaDose.toLocaleDateString()}.`,
-                                    });
                                 } else if (proximaDose >= today && proximaDose <= nextWeek) {
                                     vacinasVencendo++;
-                                    notifications.push({
-                                        type: 'vacina',
-                                        title: `Vacina vencendo: ${vacina.nome_vacina}`,
-                                        subtitle: `A vacina do pet ${pet.nome_pet} vence em ${proximaDose.toLocaleDateString()}.`,
-                                    })
                                 }
                             });
 
@@ -189,16 +179,6 @@ export default function Home() {
 
                                 if (dataCompromisso >= today) {
                                     consultasAgendadas++;
-
-                                    if (dataCompromisso <= nextWeek){
-                                         notifications.push({
-                                        type: 'consulta',
-                                        title: `Compromisso agendado: ${compromisso.titulo}`,
-                                        subtitle: `O pet ${pet.nome_pet} tem uma consulta agendada para ${dataCompromisso.toLocaleDateString()}.`,
-                                    })
-                                    }
-
-                                   
                                 }
                             });
 
@@ -293,11 +273,6 @@ export default function Home() {
                             produtos: produtosAcabando,
                         });
 
-                        store?.setNotifications(prev => {
-                            const productNotifications = prev.filter(n => n.type === 'produto');
-                            return [...notifications, ...productNotifications];
-                        })
-
                         // Ordena atividades por data e pega as 5 mais recentes
                         const atividadesFuturas = atividades.filter(atividade => atividade.data >= today);
                         atividadesFuturas.sort((a, b) => a.data.getTime() - b.data.getTime());
@@ -312,7 +287,7 @@ export default function Home() {
             }
         }
         fetchDashboard();
-    }, [tutorId, refreshData, setNotifications]);
+    }, [tutorId, refreshData]);
 
     const handlePetAdicionado = () => {
         setRefreshData(prev => prev + 1);

@@ -2,13 +2,14 @@ import React, { useState, useEffect, useContext, use } from 'react';
 import axios from 'axios';
 import { Navbar } from '../components/navbar';
 import { Card } from '../components/card';
-import { User, MapPin, Settings, ShieldCheck, Mail, Phone, Calendar, Users, Edit, LogOut, Check, X, ShieldAlert, FileText, Globe, Volume2, Moon, Sun, Monitor, XCircle, Lock, ShoppingBag, Bell, UserCircle, Camera} from 'lucide-react';
+import { User, MapPin, Settings, ShieldCheck, Mail, Phone, Calendar, Users, Edit, LogOut, Check, X, ShieldAlert, FileText, Globe, Volume2, Moon, Sun, Monitor, XCircle, Lock, ShoppingBag, Bell, UserCircle, Camera, UserPlus} from 'lucide-react';
 import { Button } from '../components/button';
 import { Badge } from '../components/badge';
-import StoreContext from '../components/store/Context.tsx';
+import StoreContext from '../components/store/Context';
 import { formatDate } from './MeusPets';
 import '../styles/Perfil.css';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { ConvidarTutorModal } from '../components/ConvidarTutorModal'; 
 
 interface TutorData {
     id_tutor: number;
@@ -78,6 +79,7 @@ export default function Perfil() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+    const [isConviteModalOpen, setIsConviteModalOpen] = useState(false);
 
     useEffect(() => {
         const localTutor = localStorage.getItem('tutor') || sessionStorage.getItem('tutor');
@@ -310,7 +312,11 @@ export default function Perfil() {
                              <Button variant='primary' onClick={handleEditSubmit as any} disabled={loading}><Check size={16}/>{loading ? 'Salvando...' : 'Salvar'}</Button>
                             </>
                         ) : (
+                            <>
+                            <Button variant='primary' onClick={() => setIsConviteModalOpen(true)}><UserPlus size={16}/>Convidar Tutor</Button>
                             <Button variant='primary' onClick={() => setIsEditing(true)}><Edit size={16}/>Editar Perfil</Button>
+                            </>
+                            
                         )}
                     </div>
                 </div>
@@ -418,6 +424,13 @@ export default function Perfil() {
                 </form>
 
             </main>
+
+            <ConvidarTutorModal
+                isOpen={isConviteModalOpen}
+                onClose={() => setIsConviteModalOpen(false)}
+                tutorId={tutorData.id_tutor}
+                pets={tutorData.pets || []}
+            />
 
         </div>
     );

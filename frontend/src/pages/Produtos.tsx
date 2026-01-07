@@ -12,7 +12,7 @@ import '../styles/Produtos.css';
 import { AdicionarProdutoModal } from '../components/AdicionarProdutoModal';
 import { EditarProdutoModal } from '../components/EditarProdutoModal';
 import StoreContext from '../components/store/Context';
-import { type NotificationItem } from '../components/store/Context';
+import { type Notificacao } from '../components/store/Context';
 
 interface Produto {
     id_compra: number;
@@ -129,7 +129,7 @@ export default function Produtos() {
     const [refreshData, setRefreshData] = useState(0);
 
     const store = useContext(StoreContext);
-    const setNotifications = store?.setNotifications;
+    const setNotifications = store?.setNotificacoes;
 
     const [isAdicionarProdutoModalOpen, setIsAdicionarProdutoModalOpen] = useState(false);
 
@@ -172,7 +172,7 @@ export default function Produtos() {
                 setAllProdutos(produtosTotais);
 
                 const previsaoComDetalhes = produtosTotais.map(calcularPrevisaoEStatus);
-                const productNotifications: NotificationItem[] = [];
+                const productNotifications: Notificacao[] = [];
 
                     previsaoComDetalhes.forEach(p => {
                         let title = '';
@@ -190,7 +190,14 @@ export default function Produtos() {
                         }
 
                         if (title) {
-                            productNotifications.push({ type: 'produto', title, subtitle });
+                            productNotifications.push({
+                                id: `prod-alert-${p.id_compra}`,
+                                tipo: 'produto', 
+                                titulo: title, 
+                                mensagem: subtitle,
+                                data: new Date().toISOString(),
+                                lida: false
+                            });
                         }
 
                     })
@@ -213,10 +220,12 @@ export default function Produtos() {
                 setRacaoTotalComDetalhes(racaoTotal);
                 setMedicamentosTotalComDetalhes(medicamentosTotal);
 
-                setNotifications(prev => {
-                    const existingProdutoNotifications = prev?.filter(n => n.type !== 'produto');
-                    return [...(existingProdutoNotifications || []), ...productNotifications];
-                })
+                if (setNotifications) {
+                    setNotifications(prev => {
+                        const existingProductNotifications = prev?.filter(n => n.tipo !== 'produto');
+                        return [...(existingProductNotifications || []), ...productNotifications];
+                    })
+                }
 
             } catch (error) {
                 console.error("Erro ao buscar dados de produtos: ", error);

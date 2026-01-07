@@ -678,54 +678,94 @@ def convidar_tutor_para_pet(id_tutor, id_pet):
     dados = request.json
     email_tutor_convidado = dados.get('email')
 
+    print(f"--- INICIANDO CONVITE PARA: {email_tutor_convidado} ---")
+
     if not email_tutor_convidado or not id_tutor:
         return jsonify({"error": "Email do tutor convidado e ID do tutor remetente sao obrigatorios."}), 400
 
-    tutor_convidado = consultar_db("SELECT * FROM tutores WHERE email = %s", (email_tutor_convidado,), one=True)
-    if not tutor_convidado:
-        return jsonify({"error": "Tutor com o email fornecido nao encontrado."}), 404
-    
-    pet = consultar_db("SELECT * FROM pets WHERE id_pet = %s", (id_pet), one=True)
-    if not pet:
-        return jsonify({"error": "Pet nao encontrado."}), 404
-    
     tutor_remetente = consultar_db("SELECT * FROM tutores WHERE id_tutor = %s", (id_tutor,), one=True)
     if not tutor_remetente:
         return jsonify({"error": "Tutor remetente não encontrado."}), 404
     
-    id_tutor_convidado = tutor_convidado['id_tutor']
-    query_assoc = "INSERT INTO tutor_pet (id_tutor, id_pet, nivel_permissao_1)" \
-    "              VALUES (%s, %s, %s)"
+    pet = consultar_db("SELECT * FROM pets WHERE id_pet = %s", (id_pet,), one=True)
+    if not pet:
+        return jsonify({"error": "Pet nao encontrado."}), 404
+
+    tutor_convidado = consultar_db("SELECT * FROM tutores WHERE email = %s", (email_tutor_convidado,), one=True)
+
+    is_novo_usuario = False
+    senha_temporaria = None
+    id_tutor_convidado = None
+
+    if not tutor_convidado:
+        print("--- USUARIO NAO ENCONTRADO. CRIANDO NOVA CONTA... ---")
+        is_novo_usuario = True
+        senha_temporaria = secrets.token_hex(4)
+        senha_hash = bcrypt.hashpw(senha_temporaria.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        nome_provisorio = email_tutor_convidado.split('@')[0]
+
+        query_novo = "INSERT INTO tutores (nome_completo, email, senha, created_at) VALUES (%s, %s, %s, %s) RETURNING id_tutor"
+        new_id, error = executar_db(query_novo, (nome_provisorio, email_tutor_convidado, senha_hash, created_at), return_id=True)
+
+        if error:
+            print(f"Erro ao criar tutor convidado: {error}")
+            return jsonify({"error": "Erro ao criar conta para o convidado."}), 500
+        
+        id_tutor_convidado = new_id
+        print(f"--- USUARIO CRIADO COM SUCESSO. ID: {id_tutor_convidado} ---")
+
+    else:
+        print(f"--- USUARIO JA EXISTE. ID: {tutor_convidado['id_tutor']} ---")
+        id_tutor_convidado = tutor_convidado['id_tutor']
+    
+    query_assoc = "INSERT INTO tutor_pet (id_tutor, id_pet, nivel_permissao_1) VALUES (%s, %s, %s)"
     _, error = executar_db(query_assoc, (id_tutor_convidado, id_pet, 'convidado'))
 
     if error:
-        if 'unique constraint' in error:
-            return jsonify({"error": "O tutor ja esta associado a este pet."}), 400
-        
-        return jsonify({"error": f"Erro ao associar tutor ao pet: {error}"}),
-
+        if 'unique constraint' in error or 'duplicate key' in error:
+            return jsonify({"error": "Este tutor já está associado a este pet."}), 400
+        return jsonify({"error": f"Erro ao associar tutor ao pet: {error}"}), 500
+    
     try:
         nome_pet = pet['nome_pet']
         nome_remetente = tutor_remetente['nome_completo']
         link_app = "http://localhost:5173/login"
 
-        msg = Message("Você foi convidado para cuidar de {nome_pet} no PetCare!", sender= app.config['MAIL_DEFAULT_SENDER'], recipients=[email_tutor_convidado])
+        assunto = f"Convite para cuidar de {nome_pet} no PetCare"
 
-        msg.html = f"""
-            <p>Olá,</p>
-            <p><strong>{nome_remetente}</strong> convidou você para ajudar a gerenciar o perfil de <strong>{nome_pet}</strong> no PetCare.</p>
-            <p>Acesse sua conta para ver as informações do pet e começar a colaborar.</p>
-            <p><a href="{link_app}">Acessar o PetCare</a></p>
-            <p>Atenciosamente,<br>Equipe PetCare</p>
-        """
-        
+        if is_novo_usuario:
+            print(f"--- ENVIANDO EMAIL DE BOAS VINDAS COM SENHA ---")
+            html_content = f"""
+                <p>Olá,<p/>
+                <p><strong>{nome_remetente}</strong> convidou você para ajudar a gerenciar o perfil de <strong>{nome_pet}</strong> no PetCare.</p>
+                <p>Como você ainda não tinha cadastro, criamos uma conta automática para você:</p>
+                <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p><strong>Login:</strong> {email_tutor_convidado}</p>
+                    <p><strong>Senha Temporária:</strong> {senha_temporaria}</p>
+                </div>
+                <p>Acesse o sistema e altere sua senha em "Meu Perfil".</p>
+                <p><a href="{link_app}" style="padding: 10px 15px; background-color: #4285F4; color: white; text-decoration: none; border-radius: 5px;">Acessar PetCare</a></p>
+                """
+        else:
+            html_content = f"""
+                <p>Olá,</p>
+                <p><strong>{nome_remetente}</strong> convidou você para ajudar a gerenciar o perfil de <strong>{nome_pet}</strong> no PetCare.</p>
+                <p>O pet já foi adicionado à sua conta existente.</p>
+                <p><a href="{link_app}">Clique aqui para acessar</a></p>
+            """
+
+        msg = Message(assunto, sender=app.config['MAIL_DEFAULT_SENDER'], recipients=[email_tutor_convidado])
+        msg.html = html_content
+
         mail.send(msg)
-
+        print("--- EMAIL ENVIADO COM SUCESSO ---")
+    
     except Exception as e:
-        return jsonify({"error": f"Erro ao enviar email de convite: {str(e)}"}), 500
-
-
-    return jsonify({"message": "Tutor convidado e associado ao pet com sucesso."}), 201
+        print(f"Erro ao enviar email: {e}")
+        return jsonify({"message": "Tutor associado, mas houve erro ao enviar o email."}), 201
+    
+    return jsonify({"message": "Convite enviado com sucesso!"}), 201
 
 
 # ------------------------------------------------ Rotas Vacinas ------------------------------------------------
