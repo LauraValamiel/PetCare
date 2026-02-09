@@ -24,10 +24,9 @@ def criar_tutor():
     if not all([nome_completo, email, senha]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
-    # Gerar o hash da senha
     senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
-    query = "INSERT INTO tutores (nome_completo, celular, email, cpf, data_nascimento, genero_tutor, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s) " \
+    query = "INSERT INTO tutores (nome_completo, celular, email, cpf, data_nascimento, genero_tutor, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) " \
     "        RETURNING id_tutor"
     _, error = executar_db(query, (nome_completo, celular, email, cpf, data_nascimento, genero_tutor, senha_hash, foto_perfil_tutor, created_at))
 
@@ -69,7 +68,7 @@ def atualizar_foto_tutor(id_tutor):
 
     filename = secure_filename(file.filename)
     unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
-    # Uso de current_app para pegar o caminho configurado
+    
     file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename))
 
     query = "UPDATE tutores SET foto_perfil_tutor = %s WHERE id_tutor = %s"
@@ -78,7 +77,6 @@ def atualizar_foto_tutor(id_tutor):
         return jsonify({"error": f"Erro ao salvar o nome da foto no banco: {error}"}), 500
     return jsonify({"message": "Foto atualizada.", "foto_perfil_tutor": unique_filename}), 200
 
-# Inclua: atualizar_tutor, listar_tutores, tutor_por_id, desassociar_pet, tutor_e_pets, relatorio_despesas (embora despesas seja serviço, está atrelado ao tutor)
 
 @tutores_bp.route('/api/tutores', methods=['GET'])
 def listar_tutores():
@@ -158,3 +156,19 @@ def relatorio_despesas(id_tutor):
     
     despesas = consultar_db(query, (id_tutor,))
     return jsonify(despesas), 200
+
+@tutores_bp.route('/api/tutores/<int:id_tutor>', methods=['DELETE'])
+def excluir_tutor(id_tutor):
+    query_check = "SELECT id_tutor FROM tutores WHERE id_tutor = %s"
+    tutor = consultar_db(query_check, (id_tutor,), one=True)
+    
+    if not tutor:
+        return jsonify({"error": "Tutor não encontrado."}), 404
+
+    query_delete = "DELETE FROM tutores WHERE id_tutor = %s"
+    _, error = executar_db(query_delete, (id_tutor,))
+
+    if error:
+        return jsonify({"error": f"Erro ao excluir do banco: {error}"}), 500
+
+    return jsonify({"message": "Conta excluída com sucesso."}), 200

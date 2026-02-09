@@ -3,7 +3,7 @@ import axios from 'axios'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/card'
 import { Button } from '../components/button'
 import { useNavigate } from 'react-router-dom'
-import { Heart, Shield, AlertTriangle, Calendar, Stethoscope, ShoppingBag, Plus, ArrowRight, UserCircle, Bell, Users, Syringe, CalendarPlus } from 'lucide-react'
+import { Heart, AlertTriangle, Stethoscope, ShoppingBag, Plus, ArrowRight, UserCircle, Bell, Users, Syringe, CalendarPlus } from 'lucide-react'
 import { Badge } from '../components/badge'
 import { Navbar } from '../components/navbar'
 import { VerPet } from '../components/VerPet'
@@ -62,7 +62,7 @@ interface Atividades {
     data: Date;
 }
 
-interface Compromisso { // Adicionado
+interface Compromisso {
     id_compromisso: number;
     titulo: string;
     descricao: string;
@@ -130,7 +130,6 @@ export default function Home() {
                 return;
             }
             try {
-                //Buscar dados do tutor e listar os pets
                 const tutorPets = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
                 const tutorData = tutorPets.data;
                 setTutor(tutorData);
@@ -147,7 +146,6 @@ export default function Home() {
                     const atividades: Atividades[] = [];
                     const petsProcessados: DetalhesPets[] = [];
 
-                    // Buscando dados de cada pet
                     await Promise.all(
                         tutorData.pets.map(async (pet: Pet) => {
                             const [vacinasRes, consultasRes, produtosRes, compromissosRes] = await Promise.all([
@@ -162,7 +160,6 @@ export default function Home() {
                             const produtos: Produto[] = produtosRes.data;
                             const compromissos: Compromisso[] = compromissosRes.data;
 
-                            // Dados para os cards de resumo
 
                             vacinas.forEach((vacina) => {
                                 const proximaDose = new Date(vacina.proxima_dose);
@@ -188,7 +185,6 @@ export default function Home() {
                                 }  
                             });
 
-                            // Dados para atividades recentes
                             atividades.push(
 
                                 ...vacinas.map((vacina) => ({
@@ -211,8 +207,6 @@ export default function Home() {
 
                                 }),
                             );
-
-                            // Status dos pets
 
                             const todosEventos = [
                                 ...vacinas.map(vacina => ({ date: new Date(vacina.proxima_dose), nome: vacina.nome_vacina })),
@@ -265,7 +259,6 @@ export default function Home() {
                         })
                         );
 
-                        // Atualiza estados
                         setCounts({
                             pets: tutorData.pets.length,
                             vacinas: vacinasVencendo,
@@ -273,7 +266,6 @@ export default function Home() {
                             produtos: produtosAcabando,
                         });
 
-                        // Ordena atividades por data e pega as 5 mais recentes
                         const atividadesFuturas = atividades.filter(atividade => atividade.data >= today);
                         atividadesFuturas.sort((a, b) => a.data.getTime() - b.data.getTime());
                         setAtividadesRecentes(atividadesFuturas.slice(0, 4));
@@ -307,14 +299,12 @@ export default function Home() {
         <main className='dashboard'>
             <div className='dashboard-header'>
                 <div>
-                    {/*<h2>Dashboard</h2>*/}
                     <p>Olá, {tutor?.nome_completo}! 🐾 </p>
                     <p>Aqui está um resumo dos seus pets!</p>
                 </div>
                 <Button variant='primary' onClick={() => setIsModalOpen(true)}> <Plus size={16} /> Adicionar Pet </Button>
             </div>
 
-            {/* Resumo */}
             <div className='summary-cards-home'>
                 <Card className='card-total-pets'>
                     <CardHeader>
@@ -387,7 +377,6 @@ export default function Home() {
                 </Card>
             </div>
 
-            {/* Atividades recentes */}
             <div className='main-content'>
                 <section className='atividades-recentes'>
                     <div className='section-header'>
@@ -412,7 +401,6 @@ export default function Home() {
                     </div>
             </ section>
 
-            {/* Meus Pets */}
             <section className='meus-pets'>
                 <div className='section-header'>
                     <h3><Heart size={20}/>Meus Pets 🐾</h3>
@@ -436,7 +424,6 @@ export default function Home() {
                                     <Badge variant={pet.statusVacina === 'Atrasada' ? 'danger' : pet.statusVacina === 'Vencendo' ? 'warning' : 'success'}>
                                         {pet.statusVacina}
                                     </Badge>
-                                    {/*<p><small>Próximo compromisso em {pet.next_event}</small></p>*/}
                                     <p><small>Próxima vacina em {pet.proximaVacina}</small></p>
 
                                     <Button
@@ -453,7 +440,6 @@ export default function Home() {
             </section>
             </div>
             
-            {/* Ações rápidas */}
             <section className='acoes-section'>
                 <h2> Ações rápidas </h2>
                 <div className='acoes-buttons'>
@@ -485,8 +471,8 @@ export default function Home() {
             <AdicionarVacina
                 isOpen={isAdicionarVacinaModalOpen}
                 onClose={() => setIsAdicionarVacinaModalOpen(false)}
-                onVacinaAdded={handleVacinaAdicionada} // Usa a função de callback
-                pets={tutor?.pets || []} // Passa a lista de pets do tutor
+                onVacinaAdded={handleVacinaAdicionada}
+                pets={tutor?.pets || []}
                 tutorId={tutorId}
                 />
             )}

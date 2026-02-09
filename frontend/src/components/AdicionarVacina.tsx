@@ -107,35 +107,35 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
                         <div className='form-grid'>
                             <div className='form-group'>
                                 <label htmlFor="nome_vacina">Nome da Vacina *</label>
-                                <input type="text" id='nome_vacina' name='nome_vacina' placeholder='Ex: V10, Antirrábica' value={formData.nome_vacina} onChange={handleChange}/>
+                                <input type="text" id='nome_vacina' name='nome_vacina' placeholder='Ex: V10, Antirrábica' value={formData.nome_vacina} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="data_vacinacao">Data da Aplicação *</label>
-                                <input type="date" id='data_vacinacao' name='data_vacinacao' value={formData.data_vacinacao} onChange={handleChange}/>
+                                <input type="date" id='data_vacinacao' name='data_vacinacao' value={formData.data_vacinacao} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="proxima_dose">Próxima Dose *</label>
-                                <input type="date" id='proxima_dose' name='proxima_dose' value={formData.proxima_dose} onChange={handleChange}/>
+                                <input type="date" id='proxima_dose' name='proxima_dose' value={formData.proxima_dose} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="lote">Lote *</label>
-                                <input type="text" id='lote' name='lote' placeholder='Ex: L123456' value={formData.lote} onChange={handleChange}/>
+                                <input type="text" id='lote' name='lote' placeholder='Ex: L123456' value={formData.lote} onChange={handleChange} autoComplete="off"/>
                             </div>
-                            <div className='form-group full=width'>
+                            <div className='form-group full-width'>
                                 <label htmlFor="nome_veterinario">Veterinário *</label>
-                                <input type="text" id='nome_veterinario' name='nome_veterinario' placeholder='Ex: Dra Tuane' value={formData.nome_veterinario} onChange={handleChange}/>
+                                <input type="text" id='nome_veterinario' name='nome_veterinario' placeholder='Ex: Dra Tuane' value={formData.nome_veterinario} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="local_aplicacao">Clínica Veterinária/Local da Aplicação *</label>
-                                <input type="text" id='local_aplicacao' name='local_aplicacao' placeholder='Ex: Clínica Vet' value={formData.local_aplicacao} onChange={handleChange}/>
+                                <input type="text" id='local_aplicacao' name='local_aplicacao' placeholder='Ex: Clínica Vet' value={formData.local_aplicacao} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="preco_vacina">Preço (R$) *</label>
-                                <input type="text" id='preco_vacina' name='preco_vacina' placeholder='Ex: 80,00' value={formData.preco_vacina} onChange={handleChange}/>
+                                <input type="text" id='preco_vacina' name='preco_vacina' placeholder='Ex: 80,00' value={formData.preco_vacina} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group full-width'>
                                 <label htmlFor="observacoes">Observações *</label>
-                                <textarea id='observacoes' name='observacoes' placeholder='Ex: Reações, recomendações especiais...' value={formData.observacoes} onChange={handleChange}/>
+                                <textarea id='observacoes' name='observacoes' placeholder='Ex: Reações, recomendações especiais...' value={formData.observacoes} onChange={handleChange} autoComplete="off"/>
                             </div>
                         </div>
                     </div>

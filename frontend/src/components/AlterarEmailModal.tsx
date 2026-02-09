@@ -64,11 +64,11 @@ export function AlterarEmailModal({ isOpen, onClose, tutorId, emailAtual }: Alte
                     
                         <div className="form-group">
                             <label>Novo Email</label>
-                            <input type="email" name="novo_email" value={formData.novo_email} onChange={handleChange} required />
+                            <input type="email" name="novo_email" value={formData.novo_email} onChange={handleChange} required autoComplete="off" />
                         </div>
                         <div className='form-group'>
                                 <label>Confirme sua Senha</label>
-                                <input type="password" name="senha_atual" value={formData.senha_atual} onChange={handleChange} required placeholder="Para sua segurança"/>
+                                <input type="password" name="senha_atual" value={formData.senha_atual} onChange={handleChange} required placeholder="Para sua segurança" autoComplete="off"/>
                         </div>
                     </div>
                     <div className='form-footer'>

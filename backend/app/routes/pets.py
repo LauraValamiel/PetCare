@@ -35,7 +35,7 @@ def criar_pet(id_tutor):
             filename = secure_filename(file.filename)
             unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
 
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+            file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename))
             foto_perfil_filename = unique_filename
 
     query_pet = """INSERT INTO pets (nome_pet, especie, raca, genero, data_nascimento, peso, foto_perfil, idade, castrado) 
@@ -78,7 +78,7 @@ def atualizar_pet(id_pet, id_tutor):
             if file and file.filename and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename))
                 foto_perfil_filename = unique_filename
 
         query = """UPDATE pets 
@@ -187,7 +187,7 @@ def convidar_tutor_para_pet(id_tutor, id_pet):
                 <p><a href="{link_app}">Clique aqui para acessar</a></p>
             """
 
-        msg = Message(assunto, sender=app.config['MAIL_DEFAULT_SENDER'], recipients=[email_tutor_convidado])
+        msg = Message(assunto, sender=current_app.config['MAIL_DEFAULT_SENDER'], recipients=[email_tutor_convidado])
         msg.html = html_content
 
         mail.send(msg)
@@ -228,7 +228,3 @@ def pets_por_id(id_pet, id_tutor):
                 p['data_nascimento'] = p['data_nascimento'].isoformat()
         return jsonify(pet), 200
     return jsonify({"error": "Pet não encontrado."}), 404
-
-
-
-# Inclua: get_pets_por_tutor, pets_por_id, atualizar_pet, deletar_pet, convidar_tutor_para_pet

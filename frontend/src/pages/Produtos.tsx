@@ -1,9 +1,9 @@
-import React, { use, useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardTitle } from '../components/card';
+import { Card, CardContent } from '../components/card';
 import { Button } from '../components/button';
-import { Plus, ShoppingBag, Heart, Activity, Calendar, AlertTriangle, XCircle, DollarSign, MapPin, CheckCircle, Library, Syringe, Edit, Trash2, ALargeSmall } from 'lucide-react';
+import { Plus, ShoppingBag, Heart, Activity, Calendar, DollarSign, MapPin, Syringe, Edit, Trash2 } from 'lucide-react';
 import { Badge } from '../components/badge';
 import { Navbar } from '../components/navbar';
 import { type Pet, type Tutor, primeiraLetraMaiuscula, formatDate } from './MeusPets';
@@ -66,7 +66,7 @@ const calcularPrevisaoEStatus = (produto: Produto): PrevisaoItem => {
     if (consumoPeriodo === 'semana') {
         consumoDiario = consumoMedioNumerico / 7;
     } else if (consumoPeriodo === 'mes') {
-        consumoDiario = consumoMedioNumerico / 30.4375; //(dias/mes)
+        consumoDiario = consumoMedioNumerico / 30.4375;
     } else if (consumoPeriodo === 'ano') {
         consumoDiario = consumoMedioNumerico / 365.25;
     }
@@ -99,9 +99,6 @@ const calcularPrevisaoEStatus = (produto: Produto): PrevisaoItem => {
     } else {
         status_prev = 'planejado';
     }
-
-    //const dataCompra = new Date(produto.data_compra);
-    //const previsaoTerminoDate = new Date(dataCompra.getTime() + (diasRestantes * 24 * 60 * 60 * 1000));
 
     return {
         ...produto,
@@ -259,13 +256,6 @@ export default function Produtos() {
         const hoje = new Date().getTime();
         const previsao = new Date(item.previsao_termino).getTime();
 
-       /* if (isNaN(previsao)) {
-            return { text: "Indefinido", variant: "default" };
-        }
-
-        if (previsao < hoje) return { text: "Atrasado", variant: "danger" };
-        if (previsao - hoje <= 7 * 24 * 60 * 60 * 1000) return { text: "Próximo", variant: "warning" };*/
-
         if (dias <= 3) return { text: "Crítico", variant: "danger" };
         if (dias <= 7) return { text: "Baixo", variant: "danger" };
         if (dias <= 14) return { text: "Atenção", variant: "warning" };
@@ -310,53 +300,6 @@ export default function Produtos() {
         }
         return <Badge variant='success'>OK</Badge>
     };
-
-    /*const getEstoqueBadge = (quantidade: number, consumoMedio: number) => {
-        const dias = Number(quantidade) / Number(consumoMedio);
-        if (dias <= 3) return <Badge variant='danger'>Crítico</Badge>;
-        if (dias <= 7) return <Badge variant='warning'>Baixo</Badge>;
-        return <Badge variant='success'>OK</Badge>
-    }*/
-
-   /* const renderProdutoSummaryItem = (p: PrevisaoItem) => {
-        const duracaoDias = p.dias_restantes < Infinity ? `${p.dias_restantes} dias` : 'Estoque alto';
-        const isRacao = p.categoria.toLowerCase().includes('ração');
-
-        let statusText;
-        let variant;
-
-        if (isRacao) {
-            statusText = 'OK';
-            variant = 'success';
-        } else {
-            const today = new Date().getTime();
-            const previsaoTime = new Date(p.previsao_termino).getTime();
-
-            if (p.nome_produto.toLowerCase().includes('antipulgas')) {
-                statusText = 'Ativo';
-                variant = 'primary';
-            } else if (p.previsao_termino !== 'N/A' && previsaoTime > today) {
-                statusText = 'Agendado';
-                variant = 'default';
-            } else {
-                statusText = 'Verificar';
-                variant = 'warning';
-            }
-
-        }
-
-        return (
-            <div key={p.id_compra} className='item-info produto-summary-item'>
-                <div className='item-info-top'>
-                    <span className='nome'>{p.nome_produto}</span>
-                    {isRacao && <small className='detalhe'>{Number(p.quantidade)}kg - Duração: {duracaoDias}</small>}
-                    {!isRacao && <small className='detalhe'>Próximo: {p.previsao_termino}</small>}
-                </div>
-                <Badge variant={variant as any}>{statusText}</Badge>
-            </div>
-        )
-
-    }*/ 
 
     return (
         <div className='produtos-page'>

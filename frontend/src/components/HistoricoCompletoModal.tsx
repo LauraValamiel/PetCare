@@ -4,6 +4,7 @@ import { Button } from './button';
 import { type VacinaDetalhada } from '../pages/CartaoVacina';
 import { formatDate, type Pet } from '../pages/MeusPets';
 import '../styles/HistoricoCompleto.css';
+import axios from 'axios';
 
 interface Compromisso {
     id_compromisso: number;
@@ -96,9 +97,6 @@ export function HistoricoCompletoModal ({
                     id: `comp-${compromisso.id_compromisso}`,
                     id_pet: petId,
                     tipo: isExame ? 'exame' : 'compromisso',
-                    // Data de compromisso pode incluir hora, então criamos um novo Date com a hora original
-                    // ou mantemos o objeto Date do compromisso (que contém hora e fuso) se for o caso.
-                    // Se o compromisso for apenas data (como no exemplo), usamos a lógica UTC:
                     data: new Date(dataCompromissoStr + 'T00:00:00Z'), 
                     titulo: compromisso.titulo,
                     petNome: compromisso.pet_nome || 'Pet',
@@ -141,15 +139,15 @@ export function HistoricoCompletoModal ({
             let url = '';
             if (item.tipo === 'vacina') {
                 url = `http://localhost:5000/api/pets/${item.id_pet}/deletar-vacina/${idReal}`;
-            } else if (item.tipo === 'compromisso') { // Compromissos passados
+            } else if (item.tipo === 'compromisso') { 
                 url = `http://localhost:5000/api/pets/${item.id_pet}/compromissos/${idReal}`;
-            } else { // Consultas e Exames (Histórico)
+            } else {
                 url = `http://localhost:5000/api/pets/${item.id_pet}/deletar-consulta/${idReal}`;
             }
 
             await axios.delete(url);
             alert('Item excluído com sucesso!');
-            onDataChanged(); // Atualiza a lista na tela principal
+            onDataChanged();
         } catch (error) {
             console.error('Erro ao excluir:', error);
             alert('Erro ao excluir item.');
@@ -184,20 +182,10 @@ export function HistoricoCompletoModal ({
                                         <span className='historico-item-pet'>{item.petNome}</span>
                                     </div>
                                     <div className='historico-item-actions'>
-                                      { /*{item.tipo === 'vacina' && (
-                                            <Button 
-                                                variant='link'
-                                                className='edit-hist-btn'
-                                                onClick={() => setVacinaEdit(item.dataOriginal as VacinaDetalhada)}
-                                                >
-                                                    <Edit size={16}/>
-                                            </Button>
-                                        )}*/}
                                         <Button 
                                             variant='link'
                                             className='edit-hist-btn'
                                             onClick={() => {
-                                                // Abre o modal correspondente no componente pai
                                                 if (item.tipo === 'vacina') setVacinaEdit(item.dataOriginal as VacinaDetalhada);
                                                 else if (item.tipo === 'compromisso') setCompromissoEdit(item.dataOriginal as Compromisso);
                                                 else setConsultaEdit(item.dataOriginal as Consulta);
@@ -208,7 +196,7 @@ export function HistoricoCompletoModal ({
                                         <Button 
                                             variant='link'
                                             className='delete-hist-btn'
-                                            onClick={() => handleDelete(item)} // Chama a exclusão direta
+                                            onClick={() => handleDelete(item)}
                                         >
                                             <Trash2 size={16}/>
                                         </Button>

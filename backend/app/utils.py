@@ -31,11 +31,14 @@ def criar_evento_e_enviar_alerta(id_pet, titulo, data_evento, hora_evento=None, 
         data_evento_obj = None
         if isinstance(data_evento, str):
             data_evento_obj = datetime.strptime(data_evento.split('T')[0], '%Y-%m-%d').date()
-        elif isinstance(data_evento, datetime.date): # Correção para verificar tipo datetime.date
+
+        elif isinstance(data_evento, datetime.date): 
             data_evento_obj = data_evento
-        # ... (restante da lógica de data igual ao original) ...
+
+        if data_evento_obj is None:
+            print(f"Formato de data inválido ou ausente: {data_evento}")
+            return
         
-        # Simplificando para brevidade, mas mantenha sua lógica de formatação de hora aqui:
         hora_evento_obj = None
         if hora_evento:
              if isinstance(hora_evento, str):

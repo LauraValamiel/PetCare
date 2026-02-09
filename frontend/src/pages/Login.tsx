@@ -4,15 +4,22 @@ import axios from 'axios';
 import { Heart, Mail, Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Button } from '../components/button';
 import StoreContext from '../components/store/Context';
-
-import DamaVagabundo from '../assets/login/DamaVagabundo.jpg';
-import cachorroFofo from '../assets/login/cachorro-fofo.jpg';
 import jade from '../assets/login/jade.jpg';
 import maya from '../assets/login/maya.jpg';
 import jademaya from '../assets/login/jademaya.jpg';
+import jademayanatal from '../assets/login/jademayanatal.jpg';
+import lola from '../assets/login/lola.jpg';
+import mel from '../assets/login/mel.jpg';
+import mia from '../assets/login/mia.jpg';
+import amy from '../assets/login/amy.jpg';
+import mimi from '../assets/login/mimi.jpg';
+import bob from '../assets/login/bob.jpg';
+import pitty from '../assets/login/pitty.jpg';
+import meg from '../assets/login/meg.jpg';
+import zeus from '../assets/login/zeus.jpg';
 import '../styles/Login.css';
 
-const imagens = [ DamaVagabundo, cachorroFofo, jade, maya, jademaya];
+const imagens = [ {image: jade}, {image:maya}, {image: jademaya}, {image: jademayanatal}, {image: lola}, {image: mel}, {image: mia}, {image: amy}, {image: mimi, posicao: 'center top'}, {image: bob}, {image: pitty}, {image: meg}, {image: zeus} ];
 
 declare global {
     interface Window { google: any; }
@@ -39,9 +46,9 @@ export default function Login() {
     useEffect(() => {
         const timer = setInterval(() => {
             setImagemAtual((prevImagemAtual) => (prevImagemAtual + 1) % imagens.length);
-        }, 5000); // Muda a imagem a cada 5 segundos
+        }, 5000); 
 
-        return () => clearInterval(timer); // Limpa o timer ao desmontar o componente
+        return () => clearInterval(timer); 
         
     }, []);
 
@@ -225,7 +232,7 @@ export default function Login() {
         <div className='login-container'>
             <div className='imagens-fundo'>
                 {imagens.map((img, index) => (
-                    <div key={index} className='slide-fotos' style={{ backgroundImage: `url(${img})`, opacity: index === imagemAtual ? 1 : 0 }}></div>
+                    <div key={index} className='slide-fotos' style={{ backgroundImage: `url(${img.image})`, opacity: index === imagemAtual ? 1 : 0, backgroundPosition: img.posicao || 'center center', backgroundSize: 'cover' }}></div>
                 ))}
             </div>
             <div className='login-content'>
@@ -257,11 +264,11 @@ export default function Login() {
                         <form onSubmit={login} className='form-login'>
                             <div className='input-group'>
                                 <Mail size={20} className='input-icon'/>
-                                <input type="email" name="email" placeholder='Email' required autoComplete='email'/>
+                                <input type="email" name="email" placeholder='Email' required autoComplete='off'/>
                             </div>
                             <div className='input-group'>
                                 <Lock size={20} className='input-icon'/>
-                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required autoComplete='current-password'/>
+                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required autoComplete='off'/>
                                 <div onClick={visibilidadeSenha} className='password-icon'>
                                     {mostrarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>
@@ -277,22 +284,22 @@ export default function Login() {
                         <form onSubmit={cadastro} className='form-login'>
                             <div className='input-group'>
                                 <User size={20} className='input-icon'/>
-                                <input type="text" name="nome_completo" placeholder='Nome Completo' required />
+                                <input type="text" name="nome_completo" placeholder='Nome Completo' required autoComplete="off"/>
                             </div>
                             <div className='input-group'>
                                 <Mail size={20} className='input-icon'/>
-                                <input type="email" name="email" placeholder='Email' required autoComplete='email'/>
+                                <input type="email" name="email" placeholder='Email' required autoComplete='off'/>
                             </div>
                             <div className='input-group'>
                                 <Lock size={20} className='input-icon'/>
-                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required autoComplete='new-password' />
+                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required autoComplete="off"/>
                                 <div onClick={visibilidadeSenha} className='password-icon'>
                                     {mostrarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>
                             </div>
                             <div className='input-group'>
                                 <Lock size={20} className='input-icon'/>
-                                <input type={mostrarSenha ? "text" : "password"} name="confirmarSenha" placeholder='Confirmar Senha' required autoComplete='new-password' />
+                                <input type={mostrarConfirmarSenha ? "text" : "password"} name="confirmarSenha" placeholder='Confirmar Senha' required autoComplete='off'/>
                                 <div onClick={visibilidadeConfirmarSenha} className='password-icon'>
                                     {mostrarConfirmarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>

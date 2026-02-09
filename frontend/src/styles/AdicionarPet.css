@@ -39,8 +39,8 @@
     overflow-y: auto;
     padding-right: 10px;
     margin-bottom: 1rem;
-    flex-grow: 1; /* Permite que o corpo ocupe o espaço disponível */
-    max-height: 500px; /* Adicionado um max-height em pixels como segurança */
+    flex-grow: 1;
+    max-height: 500px; 
     min-height: 0;
 }
 
@@ -154,12 +154,12 @@
 }
 
 .form-group input[type='text']:focus, 
-.form-group input[type='email']:focus, /* Adicionado */
-.form-group input[type='text']:invalid:focus, /* Adicionado */
-.form-group input[type='email']:invalid:focus { /* Adicionado */
+.form-group input[type='email']:focus,
+.form-group input[type='text']:invalid:focus, 
+.form-group input[type='email']:invalid:focus { 
     outline: none;
     box-shadow: none;
-    border-color: #5e35b1; /* Cor do foco igual aos outros */
+    border-color: #5e35b1; 
 }
 
 .form-footer {

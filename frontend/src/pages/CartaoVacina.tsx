@@ -1,10 +1,10 @@
 import React, { useEffect,useState } from 'react';
 import axios from 'axios';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/card';
+import { Card, CardContent, CardTitle } from '../components/card';
 import { Button } from '../components/button';
 import { Badge } from '../components/badge';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ShieldCheck, AlertTriangle, XCircle, Shield, CheckCircle, Edit, Trash2, ShieldAlert } from 'lucide-react';
+import { Plus, ShieldCheck, AlertTriangle, XCircle, Shield, Edit, Trash2, ShieldAlert } from 'lucide-react';
 import { Navbar } from '../components/navbar';
 import { type Pet,  type Tutor,  type Vacina, primeiraLetraMaiuscula, formatDate } from './MeusPets';
 import '../styles/CartaoVacina.css';
@@ -65,7 +65,7 @@ export default function CartaoVacina() {
     const tutorId = tutor?.id_tutor;
 
     useEffect(() =>{
-        let currentTutorId: number | null = tutor?.id_tutor || null;
+        const currentTutorId: number | null = tutor?.id_tutor || null;
 
         if (!currentTutorId) {
             setLoading(false);
@@ -132,7 +132,6 @@ export default function CartaoVacina() {
                                     emDiaCount++;
                                 }
                             } else {
-                                //nenhuma proxima dose definida
                                 emDiaCount++;
                             }
                         } catch (erro) {

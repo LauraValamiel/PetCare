@@ -19,23 +19,13 @@ const formatarDataParaInput = (data: string | null) => {
         return '';
     }
     try {
-        //const cleanDateString = data.split('T')[0];
-        
-        // 2. Cria a data forçando a leitura como UTC (T00:00:00Z)
-        //const dateObj = new Date(cleanDateString + 'T00:00:00Z');
         
         const dateObj = new Date(data);
 
         if (isNaN(dateObj.getTime())) {
             return '';
         }
-
-        // 3. Usa os métodos getUTC* para garantir o formato YYYY-MM-DD exato.
-        //const year = dateObj.getUTCFullYear();
-        //const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
-        //const day = String(dateObj.getUTCDate()).padStart(2, '0');
         
-        //return `${year}-${month}-${day}`;
         return dateObj.toISOString().split('T')[0];
     } catch (erro) {
         return '';

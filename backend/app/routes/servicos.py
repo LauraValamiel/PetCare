@@ -5,19 +5,34 @@ from app.utils import criar_evento_e_enviar_alerta
 
 servicos_bp = Blueprint('servicos', __name__)
 
-# --- CLÍNICAS ---
-# Inclua: listar_clinicas, criar_clinica, editar_clinica, deletar_clinica
+@servicos_bp.route('/api/fix-tabela', methods=['GET'])
+def fix_tabela():
+    # Comando SQL para criar a coluna id_tutor se ela não existir
+    query = """
+    ALTER TABLE clinicas_veterinarias
+    ADD COLUMN IF NOT EXISTS id_tutor INTEGER REFERENCES tutores(id_tutor);
+    """
+    _, error = executar_db(query)
+    
+    if error:
+        # Se der erro (ex: tabela não existe), avisa
+        return jsonify({"error": f"Erro ao corrigir tabela: {error}"}), 500
+    
+    return jsonify({"message": "Sucesso! Coluna id_tutor adicionada na tabela clinicas_veterinarias."}), 200
 
-@servicos_bp.route('/api/clinicas', methods=['GET'])
-def listar_clinicas():
+# -------- CLÍNICAS --------
+
+@servicos_bp.route('/api/tutores/<int:id_tutor>/clinicas', methods=['GET'])
+def listar_clinicas(id_tutor):
     query = "SELECT * " \
-    "        FROM clinicas_veterinarias"
-    clinicas = consultar_db(query)
+    "        FROM clinicas_veterinarias " \
+    "        WHERE id_tutor = %s"
+    clinicas = consultar_db(query, (id_tutor,))
     return jsonify(clinicas), 200
 
 
-@servicos_bp.route('/api/nova-clinica', methods=['POST'])
-def criar_clinica():
+@servicos_bp.route('/api/tutores/<int:id_tutor>/nova-clinica', methods=['POST'])
+def criar_clinica(id_tutor):
     dados = request.json
     nome_clinica = dados.get('nome_clinica')
     endereco = dados.get('endereco')
@@ -27,9 +42,9 @@ def criar_clinica():
     if not all([nome_clinica, endereco, telefone, email]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
-    query = """INSERT INTO clinicas_veterinarias (nome_clinica, endereco, telefone, email)
-               VALUES (%s, %s, %s, %s)"""
-    _, error = executar_db(query, (nome_clinica, endereco, telefone, email))
+    query = """INSERT INTO clinicas_veterinarias (id_tutor, nome_clinica, endereco, telefone, email)
+               VALUES (%s, %s, %s, %s, %s)"""
+    _, error = executar_db(query, (id_tutor, nome_clinica, endereco, telefone, email))
     if error:
         return jsonify({"error": f"Erro ao criar clinica: {error}"}), 500
     
@@ -76,8 +91,7 @@ def deletar_clinica(id_clinica):
     
     return jsonify({"message": "Clinica deletada com sucesso."}), 200
 
-# --- PRODUTOS ---
-# Inclua: produtos_por_pet, criar_produto_pet, editar_produto, registrar_consumo_produto, deletar_produto
+# -------- PRODUTOS --------
 
 @servicos_bp.route('/api/pets/<int:id_pet>/produtos', methods=['GET'])
 def produtos_por_pet(id_pet):
@@ -183,9 +197,6 @@ def editar_produto(id_compra, id_pet):
                 data_evento=data_recompra,
                 descricao=f"O estoque do produto {produto['nome_produto']} esta baixo, lembrete para comprar mais."
             )
-
-    
-    
     
     if enviar_notificacao and quantidade > 0 and consumo_medio > 0:
 
@@ -266,8 +277,7 @@ def deletar_produto(id_compra, id_pet):
     return jsonify({"message": "Produto deletado com sucesso."}), 200
 
 
-# --- COMPROMISSOS ---
-# Inclua: compromissos_por_pet, agendar_compromisso_pet, editar_compromisso_pet, deletar_compromisso_pet
+# -------- COMPROMISSOS --------
 
 @servicos_bp.route('/api/pets/<int:id_pet>/compromissos', methods=['GET'])
 def compromissos_por_pet(id_pet):

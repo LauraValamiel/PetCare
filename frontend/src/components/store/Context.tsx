@@ -21,8 +21,9 @@ interface StoreContextType {
   setNome: (nome: string) => void;
 
   notificacoes: Notificacao[];
-  setNotificacoes: (notificacoes: Notificacao[]) => void;
+  setNotificacoes: React.Dispatch<React.SetStateAction<Notificacao[]>>;
   carregarNotificacoes: () => void;
+  limparNotificacoes: () => void;
 
   isNotificationsOpen: boolean;
   setIsNotificationsOpen: (isOpen: boolean) => void;
@@ -51,6 +52,7 @@ const StoreContext = createContext<StoreContextType>({
     notificacoes: [],
     setNotificacoes: () => {},
     carregarNotificacoes: () => {},
+    limparNotificacoes: () => {},
 
     isNotificationsOpen: false,
     setIsNotificationsOpen: () => {},

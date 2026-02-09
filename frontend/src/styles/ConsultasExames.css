@@ -29,7 +29,6 @@
 }
 
 .card {
-    /*background-color: #fff*/
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -394,7 +393,6 @@
     margin-bottom: 1rem;
 }
 
-/* Adicione isso ao final de src/styles/ConsultasExames.css */
 .summary-card .card-actions .action-btn {
     width: 24px;
     height: 24px;
@@ -402,7 +400,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px; /* Opcional: bordas mais quadradas para botões pequenos */
+    border-radius: 4px; 
 }
 
 @media (max-width: 768px) {

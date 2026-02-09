@@ -91,7 +91,7 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
         return null;
     }
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLAreaElement>) => {
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = event.target;
         setFormData((prev: any) => ({...prev, [name]: value }));
     }

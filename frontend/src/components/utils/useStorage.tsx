@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import storageModule from './storage.tsx';
 
 export default function useStorage(key: string, p0: null) {
@@ -6,13 +6,6 @@ export default function useStorage(key: string, p0: null) {
     const storedValue = localStorage.getItem(key);
     return storedValue ? JSON.parse(storedValue) : "";
   });
-
-  /*useEffect(() => {
-    const storedValue = storageModule.get(key);
-    if (storedValue !== undefined && storedValue !== state) {
-      setState(storedValue);
-    }
-  }, [key]);*/
 
   const set = (newValue: any) => {
     localStorage.setItem(key, JSON.stringify(newValue));

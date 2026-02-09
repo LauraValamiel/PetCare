@@ -7,7 +7,7 @@ from app.utils import allowed_file, criar_evento_e_enviar_alerta
 
 saude_bp = Blueprint('saude', __name__)
 
-# --- VACINAS ---
+# -------- VACINAS --------
 @saude_bp.route('/api/pets/<int:id_pet>/vacinas', methods=['GET'])
 def get_vacinas_por_pet(id_pet):
     query = "SELECT * " \
@@ -24,7 +24,6 @@ def get_vacinas_por_pet(id_pet):
 
     return jsonify(vacinas), 200
 
-# Inclua: adicionar_vacina_por_pet, deletar_vacina, editar_vacina
 
 @saude_bp.route('/api/pets/<int:id_pet>/nova-vacina', methods=['POST'])
 def adicionar_vacina_por_pet(id_pet):
@@ -118,8 +117,7 @@ def editar_vacina(id_pet, id_vacina):
         return jsonify({"error": f"Erro ao atualizar vacina: {error}"}), 500
     return jsonify({"message": "Vacina atualizado com sucesso."}), 200
 
-# --- CONSULTAS ---
-# Inclua: consultas_pet, criar_consulta_pet, editar_consulta_pet, deletar_consulta, anexar_arquivo
+# -------- CONSULTAS --------
 
 @saude_bp.route('/api/pets/<int:id_pet>/consultas', methods=['GET'])
 def consultas_pet(id_pet):
@@ -248,9 +246,7 @@ def anexar_arquivo(id_consulta):
         return jsonify({"error": "Tipo de arquivo nao permitido."}), 400
     
 
-# --- REMÉDIOS ---
-# Inclua: remedios_por_pet, criar_remedio_pet, editar_remedio_pet, deletar_remedio_pet
-
+# -------- REMÉDIOS --------
 
 @saude_bp.route('/api/pets/<int:id_pet>/remedios', methods=['GET'])
 def remedios_por_pet(id_pet):
@@ -284,7 +280,7 @@ def criar_remedio_pet(id_pet):
         query_pet = """SELECT nome_pet 
                        FROM pets
                        WHERE id_pet = %s"""
-        pet = consultar_db(query_pet, (id_pet,), one=True) #fazer isso outros
+        pet = consultar_db(query_pet, (id_pet,), one=True)
         nome_pet = pet['nome_pet'] if pet else "seu pet"
 
         criar_evento_e_enviar_alerta(
@@ -336,7 +332,7 @@ def editar_remedio_pet(id_pet, id_remedio):
         query_pet = """SELECT nome_pet 
                        FROM pets
                        WHERE id_pet = %s"""
-        pet = consultar_db(query_pet, (id_pet,), one=True) #fazer isso outros
+        pet = consultar_db(query_pet, (id_pet,), one=True) 
         nome_pet = pet['nome_pet'] if pet else "seu pet"
 
         criar_evento_e_enviar_alerta(

@@ -1,5 +1,3 @@
-/* src/styles/Perfil.css */
-
 .perfil-page {
     width: 100%;
     min-height: 100vh;
@@ -38,8 +36,6 @@
     align-items: center;
 }
 
-/* --- 1. CARD DE RESUMO DO TUTOR --- */
-
 .tutor-summary-card {
     background-color: #7e57c2;
     color: #fff;
@@ -62,14 +58,14 @@
 
 .summary-avatar {
     position: relative;
-    width: 80px; /* Tamanho do círculo */
-    height: 80px; /* Tamanho do círculo */
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     background-color: #5e35b1;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden; /* CORREÇÃO CRÍTICA: Mascara a imagem para o círculo */
+    overflow: hidden;
     border: 4px solid #fff;
     flex-shrink: 0;
 }
@@ -77,17 +73,15 @@
 .summary-avatar .avatar-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* CORREÇÃO CRÍTICA: Garante que a imagem preenche o contêiner */
+    object-fit: cover;
 }
 
-/* Estilo para o ícone User dentro do avatar */
 .summary-avatar .avatar-user-icon {
     color: #fff;
     width: 50px;
     height: 50px;
 }
 
-/* A câmera de edição (mantida, apenas garantindo a posição) */
 .avatar-edit-icon {
     position: absolute;
     bottom: 0;
@@ -149,8 +143,6 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* --- 2 & 3. INFORMAÇÕES PESSOAIS & ENDEREÇO --- */
-
 .main-content-perfil {
     display: grid;
     gap: 20px;
@@ -160,13 +152,12 @@
 
 .info-card {
     padding: 25px;
-    /* Ajuste para alinhar os cards */
     display: flex;
     flex-direction: column; 
     
 }
 .stats-card {
-    grid-column: 1 / -1; /* Ocupa a largura total */
+    grid-column: 1 / -1;
 }
 
 
@@ -257,10 +248,8 @@
     color: #555;
 }
 
-/* --- 4. ESTATÍSTICAS --- */
-
 .stats-card {
-    grid-column: 1 / -1; /* Ocupa a largura total abaixo */
+    grid-column: 1 / -1;
     margin-bottom: 30px;
 }
 
@@ -309,9 +298,6 @@
 
 .stat-item.products { background-color: #fff3e0; color: #f57c00; }
 .stat-item.products svg { color: #f57c00; }
-
-
-/* --- 5. CONFIGURAÇÕES --- */
 
 .config-section {
     grid-column: 1 / -1;
@@ -381,13 +367,12 @@
     margin-bottom: 0;
 }
 
-/* SWITCH CSS (Toggle Button) */
 .switch {
     position: relative;
     display: inline-block;
     width: 50px;
     height: 24px;
-    justify-self: end; /* Alinha o switch à direita */
+    justify-self: end;
     flex-shrink: 0;
 }
 
@@ -412,7 +397,6 @@
     bottom: 0;
     background-color: #ccc;
     transition: .4s;
-    /* Ajuste para que o texto não se sobreponha se o grid for menor */
     width: 100%;
 }
 
@@ -443,7 +427,6 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
-/* THEME/LANGUAGE OPTIONS */
 .theme-options, .language-options {
     display: flex;
     gap: 15px;

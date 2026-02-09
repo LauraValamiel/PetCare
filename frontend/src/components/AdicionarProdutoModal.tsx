@@ -146,7 +146,7 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
                         <div className='form-grid'>
                             <div className='form-group'>
                                 <label htmlFor="nome_produto">Nome Produto *</label>
-                                <input type="text" id='nome_produto' name='nome_produto' placeholder='Ex: Ração, Shampoo' value={formData.nome_produto} onChange={handleChange} />
+                                <input type="text" id='nome_produto' name='nome_produto' placeholder='Ex: Ração, Shampoo' value={formData.nome_produto} onChange={handleChange} autoComplete="off"/>
                             </div>
 
                             <div className='form-group'>
@@ -163,13 +163,13 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
 
                             <div className='form-group'>
                                 <label htmlFor="quantidade">{getUnitLabel(formData.categoria, 'quantidade')}</label>
-                                <input type="text" id='quantidade' name='quantidade' placeholder={getPlaceholder(formData.categoria, 'quantidade')} value={formData.quantidade} onChange={handleChange} />
+                                <input type="text" id='quantidade' name='quantidade' placeholder={getPlaceholder(formData.categoria, 'quantidade')} value={formData.quantidade} onChange={handleChange} autoComplete="off" />
                             </div>
 
                             
                             <div className='form-group'>
                                     <label htmlFor="consumo_medio">{getUnitLabel(formData.categoria, 'consumo_medio')}</label>
-                                    <input type="text" id='consumo_medio' name='consumo_medio' placeholder={getPlaceholder(formData.categoria, 'consumo_medio')} value={formData.consumo_medio} onChange={handleChange} />
+                                    <input type="text" id='consumo_medio' name='consumo_medio' placeholder={getPlaceholder(formData.categoria, 'consumo_medio')} value={formData.consumo_medio} onChange={handleChange} autoComplete="off" />
                             </div>
                             
                             <div className='form-group'>
@@ -184,22 +184,22 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
 
                             <div className='form-group'>
                                 <label htmlFor="data_compra">Data da Compra *</label>
-                                <input type="date" id='data_compra' name='data_compra' value={formData.data_compra} onChange={handleChange} />
+                                <input type="date" id='data_compra' name='data_compra' value={formData.data_compra} onChange={handleChange} autoComplete="off" />
                             </div>
 
                             <div className='form-group'>
                                 <label htmlFor="preco_compra">Preço (R$) *</label>
-                                <input type="text" id='preco_compra' name='preco_compra' placeholder='Ex: 120,50' value={formData.preco_compra} onChange={handleChange} />
+                                <input type="text" id='preco_compra' name='preco_compra' placeholder='Ex: 120,50' value={formData.preco_compra} onChange={handleChange} autoComplete="off" />
                             </div>
 
                             <div className='form-group full-width'>
                                 <label htmlFor="loja">Local da Compra*</label>
-                                <input type="text" id='loja' name='loja' placeholder='Ex: Petz, Amazon' value={formData.loja} onChange={handleChange} />
+                                <input type="text" id='loja' name='loja' placeholder='Ex: Petz, Amazon' value={formData.loja} onChange={handleChange} autoComplete="off" />
                             </div>
 
                             <div className='form-group full-width'>
                                 <label htmlFor="observacoes">Observações</label>
-                                <textarea id='observacoes' name='observacoes' placeholder='Notas sobre o produto, validade...' value={formData.observacoes} onChange={handleChange} />
+                                <textarea id='observacoes' name='observacoes' placeholder='Notas sobre o produto, validade...' value={formData.observacoes} onChange={handleChange} autoComplete="off" />
                             </div>
                         </div>
                     </div>

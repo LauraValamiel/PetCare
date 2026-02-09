@@ -19,13 +19,6 @@ const formatarDataParaInput = (data: string | null) => {
     }
 
     try {
-       // const cleanDateString = data.split('T')[0];
-        
-        //if (cleanDateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
-          //  return cleanDateString;
-        //}
-
-         //return cleanDateString;
 
          const dateObj = new Date(data);
          if (isNaN(dateObj.getTime())) {
@@ -158,7 +151,6 @@ export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: Ed
                     <button onClick={onClose} className='form-close-btn'><X size={22}/></button>
                 </div>
                 <form onSubmit={handleSubmit}>
-                    {/* Preview da foto (igual ao AdicionarPet) */}
                     <div className='form-foto-perfil'>
                         <label htmlFor="foto-perfil" className='foto-perfil-label'>
                             {imagePreview ? (

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { X, Save, FileText } from 'lucide-react'; // Ícones usados
-import { Button } from './button'; // Seu botão existente
-import '../styles/AdicionarPet.css'; // Usa os mesmos estilos dos outros formulários
+import { X, Save, FileText } from 'lucide-react';
+import { Button } from './button';
+import '../styles/AdicionarPet.css';
 
-// --- Funções de Formatação ---
 const formatDateToInput = (dateString: string | Date | null): string => {
     if (!dateString) return '';
     try {
@@ -20,7 +19,7 @@ const formatTime = (timeString: string | null): string => {
     return String(timeString).substring(0, 5);
 };
 
-// --- Interfaces ---
+
 interface Consulta {
     id_consulta: number;
     data_consulta: string;
@@ -36,9 +35,9 @@ interface Consulta {
 interface EditarConsultaModalProps {
     isOpen: boolean;
     onClose: () => void;
-    consulta: Consulta | null; // Pode ser null se nada estiver selecionado
+    consulta: Consulta | null;
     idPet: string | number;
-    onSuccess?: () => void; // Callback para recarregar a lista
+    onSuccess?: () => void;
 }
 
 export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSuccess }: EditarConsultaModalProps) {
@@ -56,7 +55,7 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
     const [erro, setErro] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
-    // Preenche o formulário ao abrir
+    
     useEffect(() => {
         if (isOpen && consulta) {
             setFormData({
@@ -82,7 +81,6 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
         setErro('');
         setIsSaving(true);
 
-        // Validação simples
         if (!formData.data_consulta || !formData.motivo) {
             setErro('Data e Motivo são obrigatórios.');
             setIsSaving(false);
@@ -90,10 +88,9 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
         }
 
         try {
-            // Rota de edição
             const url = `http://localhost:5000/api/pets/${idPet}/editar-consulta/${consulta?.id_consulta}`;
             
-            // Tratamento do preço para float
+            
             const payload = {
                 ...formData,
                 preco_consulta: parseFloat(formData.preco_consulta.replace(',', '.')) || 0
@@ -103,7 +100,7 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
 
             if (response.status === 200) {
                 alert('Registro atualizado com sucesso!');
-                if (onSuccess) onSuccess(); // Atualiza a lista pai
+                if (onSuccess) onSuccess();
                 onClose();
             }
         } catch (error: any) {
@@ -116,7 +113,6 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
 
     if (!isOpen || !consulta) return null;
 
-    // Estrutura idêntica ao EditarVacina.tsx e AgendarCompromissoModal.tsx
     return (
         <div className='form' onClick={onClose}> 
             <div className='form-content' onClick={(event) => event.stopPropagation()}>
@@ -130,7 +126,6 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
                         {erro && <p className='form-error'>{erro}</p>}
 
                         <div className='form-grid'>
-                            {/* Data e Hora */}
                             <div className="form-group">
                                 <label htmlFor="data_consulta">Data *</label>
                                 <input
@@ -153,7 +148,6 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
                                 />
                             </div>
 
-                            {/* Motivo (Título) */}
                             <div className="form-group full-width">
                                 <label htmlFor="motivo">Motivo / Título *</label>
                                 <input
@@ -166,7 +160,6 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
                                 />
                             </div>
 
-                            {/* Local e Veterinário */}
                             <div className="form-group">
                                 <label htmlFor="nome_clinica">Clínica / Local</label>
                                 <input
@@ -188,7 +181,6 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
                                 />
                             </div>
 
-                            {/* Detalhes Médicos */}
                             <div className="form-group full-width">
                                 <label htmlFor="diagnostico">Diagnóstico</label>
                                 <textarea
@@ -210,7 +202,6 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
                                 />
                             </div>
 
-                            {/* Preço */}
                             <div className="form-group">
                                 <label htmlFor="preco_consulta">Custo (R$)</label>
                                 <input

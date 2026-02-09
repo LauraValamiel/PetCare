@@ -1,7 +1,5 @@
 import Cookies from 'js-cookie';
 
-// Safari in incognito has local storage, but size 0
-// This system falls back to cookies in that situation
 interface StorageHandler {
   set: (key: string, value: any) => void;
   get: (key: string) => any;

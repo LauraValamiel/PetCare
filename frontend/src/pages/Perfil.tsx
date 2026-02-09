@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useContext, use } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { Navbar } from '../components/navbar';
 import { Card } from '../components/card';
-import { User, MapPin, Settings, ShieldCheck, Mail, Phone, Calendar, Users, Edit, LogOut, Check, X, ShieldAlert, FileText, Globe, Volume2, Moon, Sun, Monitor, XCircle, Lock, ShoppingBag, Bell, UserCircle, Camera, UserPlus} from 'lucide-react';
+import { User, ShieldCheck, Calendar, Users, Edit, Check, X, FileText, ShoppingBag, UserCircle, Camera, UserPlus} from 'lucide-react';
 import { Button } from '../components/button';
 import { Badge } from '../components/badge';
 import StoreContext from '../components/store/Context';
@@ -363,15 +363,15 @@ export default function Perfil() {
                             <div className='form-grid-perfil'>
                                 <div className='form-group-perfil'>
                                     <label htmlFor="nome_completo">Nome Completo</label>
-                                    <input type="text" id='nome_completo' name="nome_completo" value={isEditing ? formData.nome_completo : tutorData.nome_completo} disabled={!isEditing} onChange={handleChange} />
+                                    <input type="text" id='nome_completo' name="nome_completo" value={isEditing ? formData.nome_completo : tutorData.nome_completo} disabled={!isEditing} onChange={handleChange} autoComplete="off" />
                                 </div>
                                 <div className='form-group-perfil'>
                                     <label htmlFor="email">Email</label>
-                                    <input type="email" id='email' name='email' value={isEditing ? formData.email : tutorData.email} disabled={!isEditing} onChange={handleChange} />
+                                    <input type="email" id='email' name='email' value={isEditing ? formData.email : tutorData.email} disabled={!isEditing} onChange={handleChange} autoComplete="off" />
                                 </div>
                                 <div className='form-group-perfil'>
                                     <label htmlFor="celular">Celular</label>
-                                    <input type="text" id='celular' name='celular' value={isEditing ? formData.celular : formatarCelular(tutorData.celular)} disabled={!isEditing} onChange={handleChange}/>
+                                    <input type="text" id='celular' name='celular' value={isEditing ? formData.celular : formatarCelular(tutorData.celular)} disabled={!isEditing} onChange={handleChange} autoComplete="off"/>
                                 </div>
                                 <div className='form-group-perfil'>
                                     <label htmlFor="data_nascimento">Data de Nascimento</label>
@@ -381,11 +381,12 @@ export default function Perfil() {
                                             value={isEditing ? formData.data_nascimento : formatDate(tutorData.data_nascimento)}
                                             disabled={!isEditing}
                                             onChange={handleChange}
+                                            autoComplete="off"
                                      />
                                 </div>
                                 <div className='form-group-perfil full-width'>
                                     <label htmlFor="cpf">CPF</label>
-                                    <input type="text" id='cpf' name='cpf' value={isEditing ? formData.cpf : formatarCPF(tutorData.cpf || '')} disabled={!isEditing} onChange={handleChange}/>
+                                    <input type="text" id='cpf' name='cpf' value={isEditing ? formData.cpf : formatarCPF(tutorData.cpf || '')} disabled={!isEditing} onChange={handleChange} autoComplete="off" />
                                 </div>
                             </div>
                         </Card>

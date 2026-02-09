@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Navbar } from '../components/navbar';
 import { Card } from '../components/card';
-import { XCircle, Lock, Mail, User, LogOut, Bell, ShieldAlert, Settings } from 'lucide-react';
+import { XCircle, Lock, Mail, User, LogOut, Bell, ShieldAlert } from 'lucide-react';
 import { Button } from '../components/button';
 import StoreContext from '../components/store/Context';
 import { useNavigate } from 'react-router-dom';
@@ -43,15 +43,44 @@ export default function Configuracoes() {
         }))
     }
 
-    const handleLogout = () => {
-        if (window.confirm("Tem certeza que deseja sair?")) {
-            localStorage.removeItem('tutor');
-            sessionStorage.removeItem('tutor');
-            store?.setToken('');
-            navigate('/login');
-            window.location.reload();
+    const handleExcluirConta = async () => {
+    if (!tutorId) {
+        alert("Erro: ID do tutor não encontrado.");
+        return;
+    }
+
+    const confirmacao = window.confirm(
+        "ATENÇÃO: Esta ação é irreversível! Todos os seus dados e de seus pets serão apagados. Deseja realmente excluir sua conta?"
+    );
+
+    if (confirmacao) {
+        try {
+            const response = await fetch(`http://localhost:5000/api/tutores/${tutorId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Se você usar autenticação JWT, adicione o token aqui:
+                    // 'Authorization': `Bearer ${store.token}`
+                }
+            });
+
+            if (response.ok) {
+                alert("Sua conta foi excluída com sucesso.");
+                // Limpa os dados locais
+                localStorage.removeItem('tutor');
+                sessionStorage.removeItem('tutor');
+                store?.setToken('');
+                navigate('/login');
+            } else {
+                const errorData = await response.json();
+                alert(`Erro ao excluir conta: ${errorData.error || 'Erro desconhecido'}`);
+            }
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+            alert("Não foi possível conectar ao servidor para excluir a conta.");
         }
-    };
+    }
+};
 
     return (
         <div className='perfil-page'>
@@ -132,7 +161,7 @@ export default function Configuracoes() {
                                 <small>Ações irreversíveis da conta</small>
                             </div>
                             </div>
-                        <Button className='delete-account-btn' onClick={handleLogout}><XCircle size={20}/>Excluir Conta</Button>
+                        <Button className='delete-account-btn' onClick={handleExcluirConta}><XCircle size={20}/>Excluir Conta</Button>
                         <p className='danger-message'>Esta ação não pode ser desfeita. Todos os seus dados serão permanentemente excluídos.</p>
                     </Card>
 
@@ -149,7 +178,7 @@ export default function Configuracoes() {
                 isOpen={isEmailModalOpen} 
                 onClose={() => setIsEmailModalOpen(false)} 
                 tutorId={tutorId}
-                emailAtual={emailAtual} 
+                emailAtual={emailAtual || undefined} 
             />
 
         </div>

@@ -9,20 +9,16 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    # Criar pasta de upload se não existir
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    
-    # Inicializar Extensões
+
     CORS(app, resources={r"/api/*": {"origins":"http://localhost:5173", "methods": ["GET", "POST", "PUT", "DELETE"], "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"]}})
     mail.init_app(app)
     
-    # Configurar Locale
     try:
         locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
     except:
         print("Aviso: Locale pt_BR.utf8 não encontrado, usando padrão.")
 
-    # Registrar Blueprints
     from app.routes.auth import auth_bp
     from app.routes.tutores import tutores_bp
     from app.routes.pets import pets_bp

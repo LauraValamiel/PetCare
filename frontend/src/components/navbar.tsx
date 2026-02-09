@@ -1,4 +1,4 @@
-import { Bell, Calendar, CheckCircle, Edit, LogOut, Settings, ShieldAlert, ShoppingBag, User, UserCircle, X } from "lucide-react";
+import { Bell, Calendar, CheckCircle, Edit, LogOut, Settings, ShieldAlert, ShoppingBag, Trash2, User, UserCircle, X } from "lucide-react";
 //import Bell from "lucide-react/dist/esm/icons/bell";
 //import UserCircle from "lucide-react/dist/esm/icons/user-circle";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -114,7 +114,7 @@ export function Navbar() {
 
     if (!store) return <header className="navbar">Erro ao carregar store.</header>;
 
-    const { notificacoes, isNotificationsOpen, setIsNotificationsOpen, isProfileOpen, setIsProfileOpen, fotoPerfilTutor } = store;
+    const { notificacoes, isNotificationsOpen, setIsNotificationsOpen, isProfileOpen, setIsProfileOpen, fotoPerfilTutor, limparNotificacoes } = store;
 
     const getButtonClass = (path: string) => {
         
@@ -133,7 +133,7 @@ export function Navbar() {
             <div className="navbar-left">
                 <h1 className="navbar-logo"> 🐾 PetCare </h1>
                 <nav>
-                    <button onClick={() => navigate("/")} className={getButtonClass("/")}>Página inicial</button>
+                    <button onClick={() => navigate("/")} className={getButtonClass("/")}>Página Inicial</button>
                     <button onClick={() => navigate("/pets")} className={getButtonClass("/pets")}>Meus Pets</button>
                     <button onClick={() => navigate("/vacinas")} className={getButtonClass("/vacinas")}>Cartão de Vacina</button>
                     <button onClick={() => navigate("/consultas-exames")} className={getButtonClass("/consultas-exames")}>Consultas/Exames</button>
@@ -186,16 +186,23 @@ export function Navbar() {
                         ))
                     )}
                 </div>
+
+                 {notificacoes && notificacoes.length > 0 && (
+                    <div className="sidebar-footer">
+                        <button className="clear-all-btn" onClick={limparNotificacoes}>
+                            <Trash2 size={16}/> Limpar tudo
+                        </button>
+                    </div>
+                )}
+        </div>   
+
+        <div
+                className={`notifications-overlay ${isNotificationsOpen ? 'open' : ''}`}
+                onClick={() => setIsNotificationsOpen(false)}>
         </div>
 
+        <ProfileSidebar store={store} navigate={navigate} />
 
-        <div 
-            className={`notifications-overlay ${isNotificationsOpen ? 'open' : ''}`} 
-            onClick={() => setIsNotificationsOpen(false)}>
-        </div>
-            
-            <ProfileSidebar store={store} navigate={navigate} />
-
-            </>
+        </>
     )
 }

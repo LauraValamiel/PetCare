@@ -1,7 +1,7 @@
-import React, { use, useEffect, useState } from 'react';
-import axios, { all } from 'axios';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Syringe, Stethoscope, FileText, CalendarPlus, Search, Phone, MapPin, Activity, Plus, Edit, Trash2 } from 'lucide-react';
+import { Syringe, Stethoscope, FileText, CalendarPlus, Search, Phone, MapPin, Plus, Edit, Trash2 } from 'lucide-react';
 import '../styles/ConsultasExames.css';
 import { Navbar } from '../components/navbar';
 import { type Pet, type Tutor, formatDate } from './MeusPets';
@@ -102,7 +102,7 @@ export function ConsultasExames() {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
-                const clinicasResponse = await axios.get(`http://localhost:5000/api/clinicas`);
+                const clinicasResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`);
                 setClinicas(clinicasResponse.data || []);
 
                 const petsResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
@@ -156,20 +156,8 @@ export function ConsultasExames() {
 
                 setProximasConsultas(consultasNormaisFuturas);
 
-                /*const consultasPassadas = consultasTotais
-                    .filter(c => new Date(c.data_consulta) < today && !c.motivo.toLowerCase().includes('exame'))
-                    .sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
-
-                setHistoricoItemMaisRecente(consultasPassadas.length > 0 ? {
-                    tipo: 'consulta',
-                    data: new Date(consultasPassadas[0].data_consulta),
-                    titulo: consultasPassadas[0].motivo,
-                    petNome: consultasPassadas[0].pet_nome || 'Pet'
-                } : null);*/
-
                 const examesFuturos = compromissosFuturos
                     .filter(c => c.titulo.toLowerCase().includes('exame'));
-                    //.sort((a, b) => new Date(a.data_compromisso).getTime() - new Date(b.data_compromisso).getTime());
                 
                 setProximosExames(examesFuturos);
 
@@ -263,7 +251,6 @@ export function ConsultasExames() {
     const handleDeleteCompromisso = async (compromisso: Compromisso) => {
         if (!window.confirm(`Tem certeza que deseja excluir "${compromisso.titulo}"?`)) return;
 
-        // Precisamos encontrar o ID do pet
         const pet = pets.find(p => p.nome_pet === compromisso.pet_nome);
         if (!pet) {
             alert('Erro: Pet não encontrado.');
@@ -273,17 +260,11 @@ export function ConsultasExames() {
         try {
             await axios.delete(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos/${compromisso.id_compromisso}`);
             alert('Compromisso excluído com sucesso!');
-            handleDataChanged(); // Recarrega a tela
+            handleDataChanged();
         } catch (error) {
             console.error('Erro ao excluir:', error);
             alert('Erro ao excluir compromisso.');
         }
-    };
-
-    const handleDeleteConsulta = async (consulta: Consulta) => { // Usado pelo HistoricoCompletoModal
-         // A lógica de exclusão do histórico será feita dentro do modal de histórico para simplificar,
-         // ou passada via prop como esta função. Vamos passar via prop.
-         // (Ver implementação no HistoricoCompletoModal abaixo)
     };
 
     return (
@@ -312,7 +293,6 @@ export function ConsultasExames() {
                                     {proximasConsultas.map((consulta, index) => (
                                         <div className='item-info' key={index} style={{ display: 'flex', flexDirection: 'column', padding: '8px 8px', borderBottom: '1px solid #f0f0f0', width:'94%' }}>
         
-                                        {/* LINHA 1: Título e Botões */}
                                         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '4px' }}>
                                             <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600', flex: 1, marginRight: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 <span style={{ color: '#4285F4' }}>{consulta.pet_nome}</span> - {consulta.titulo}
@@ -341,23 +321,22 @@ export function ConsultasExames() {
                                             </div>
                                         </div>
 
-                                        {/* LINHA 2: Local e Data (Lado a Lado) */}
                                         <div className='item-info-detalhes' style={{ 
                                             display: 'flex',
                                             flexDirection: 'row', 
-                                            justifyContent: 'space-between', // Separa Local (Esq) e Data (Dir)
+                                            justifyContent: 'space-between',
                                             alignItems: 'center',
                                             fontSize: '0.85rem', 
                                             color: '#666',
                                             width: '100%'
                                         }}>
-                                            {/* Coluna 1: Local */}
+                                            
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', maxWidth: '65%', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                                                 <MapPin size={13} style={{ color: '#999', flexShrink: 0 }}/> 
                                                 <span title={consulta.localizacao}>{consulta.localizacao}</span>
                                             </div>
 
-                                            {/* Coluna 2: Data e Hora */}
+                                            
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                                                 <CalendarPlus size={13} style={{ color: '#999', flexShrink: 0 }}/> 
                                                 <span className='item-info-data'>{formatDate(consulta.data_compromisso)} às {consulta.hora}</span>
@@ -416,7 +395,6 @@ export function ConsultasExames() {
                                     {proximosExames.map((exame, index) => (
                                         <><div className='item-info' key={index} style={{ display: 'flex', flexDirection: 'column', padding: '8px 8px', borderBottom: '1px solid #f0f0f0', width: '94%' }}>
         
-                                            {/* LINHA 1 */}
                                             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '4px' }}>
                                                 <div style={{ margin: 0, fontSize: '1rem', color: '#2c3e50', fontWeight: '600', flex: 1, marginRight: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                     <span style={{ color: '#4285F4' }}>{exame.pet_nome}</span> - {exame.titulo}
@@ -445,7 +423,6 @@ export function ConsultasExames() {
                                                 </div>
                                             </div>
 
-                                            {/* LINHA 2 */}
                                             <div className='item-info-detalhes' style={{ 
                                                 display: 'flex', 
                                                 flexDirection: 'row',
@@ -455,13 +432,12 @@ export function ConsultasExames() {
                                                 color: '#666',
                                                 width: '100%'
                                             }}>
-                                                {/* Local */}
+                                                
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', maxWidth: '60%', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                                                     <MapPin size={13} style={{ color: '#999', flexShrink: 0 }}/> 
                                                     <span title={exame.localizacao}>{exame.localizacao}</span>
                                                 </div>
 
-                                                {/* Data */}
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                     <CalendarPlus size={13} style={{ color: '#999', flexShrink: 0 }}/> 
                                                     <span className='item-info-data'>{formatDate(exame.data_compromisso)} às {exame.hora}</span>
@@ -553,7 +529,7 @@ export function ConsultasExames() {
                     setCompromissoEdit(compromisso);
                     setIsEditarCompromissoModalOpen(true);
                 }}
-                pets={pets} // Necessário para exclusão
+                pets={pets}
                 onDataChanged={handleDataChanged}
             />
 
@@ -596,6 +572,7 @@ export function ConsultasExames() {
                 isOpen={isAdicionarClinicaModalOpen}
                 onClose={() => setIsAdicionarClinicaModalOpen(false)}
                 onClinicaAdded={handleDataChanged}
+                tutorId={tutorId}
             />
 
             {clinicaEdit && (
@@ -623,7 +600,6 @@ export function ConsultasExames() {
                 />
             )}
 
-            {/* Edição de Compromisso (Futuro) */}
             {compromissoEdit && (
                 <EditarCompromissoModal
                     isOpen={isEditarCompromissoModalOpen}

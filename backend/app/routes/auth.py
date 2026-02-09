@@ -84,12 +84,10 @@ def auth_google():
         tutor = consultar_db("SELECT * FROM tutores WHERE email = %s", (email,), one=True)
 
         if not tutor:
-            # Se o tutor não existe, cria um novo
             created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             senha_placeholder = secrets.token_hex(16)
             senha_hash = bcrypt.hashpw(senha_placeholder.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
-            # Ajuste para inserir apenas os campos necessários, assumindo que outros são nulos/padrão
             new_tutor_id, error = executar_db(
                 "INSERT INTO tutores (nome_completo, email, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s) RETURNING id_tutor",
                 (nome, email, senha_hash, picture, created_at),
@@ -103,10 +101,8 @@ def auth_google():
                 print(f"Erro ao criar tutor pelo google: {error}")
                 return jsonify({'error': f'Erro ao criar novo usuário'}), 500
             
-            # Busca o tutor recém-criado para retornar os dados completos
             tutor = consultar_db("SELECT * FROM tutores WHERE id_tutor = %s", (new_tutor_id,), one=True)
 
-        # Se, por algum motivo, o tutor ainda for nulo, retorna um erro
         if not tutor:
             return jsonify({'error': 'Falha ao recuperar os dados do usuário após o login.'}), 500
 
@@ -118,12 +114,10 @@ def auth_google():
 
         for pet in pets:
             if 'data_nascimento' in pet and pet['data_nascimento']:
-                pet['data_nascimento'] = pet[data_nascimento].isoformat()
+                pet['data_nascimento'] = pet['data_nascimento'].isoformat()
 
         tutor['pets'] = pets if pets else []
 
-        # Remover campos sensíveis antes de enviar a resposta
-        # A verificação 'in' garante que não haverá erro se a chave não existir
         if 'senha' in tutor:
             del tutor['senha']
         if 'reset_token' in tutor:
@@ -137,7 +131,7 @@ def auth_google():
         print("Token inválido:", e)
         return jsonify({'error': 'Token do Google inválido.'}), 400
     except Exception as e:
-        print("Erro interno google auth:", e) # A mensagem de erro que você viu
+        print("Erro interno google auth:", e)
         return jsonify({'error': 'Erro interno do servidor ao autenticar com Google.'}), 500
 
 
@@ -169,7 +163,7 @@ def esqueci_senha():
 
             msg = Message(
                 "Redefinição de Senha - PetCare",
-                sender=app.config['MAIL_USERNAME'],
+                sender=current_app.config['MAIL_USERNAME'],
                 recipients=[email]
             )
 
@@ -185,7 +179,7 @@ def esqueci_senha():
             mail.send(msg)
         except Exception as e:
             print(f"Erro ao enviar email: {str(e)}")
-            #return jsonify({"error": f"Erro ao enviar email de redefinicao: {str(e)}"}), 500
+            return jsonify({"error": f"Erro ao enviar email de redefinicao: {str(e)}"}), 500
         pass
         
     return jsonify({"message": "Se o email estiver cadastrado, um link de redefinicao foi enviado."}), 200
@@ -228,28 +222,22 @@ def alterar_senha(id_tutor):
     if not senha_atual or not nova_senha:
         return jsonify({"error": "Senha atual e nova senha são obrigatórias"}), 400
 
-    # 1. Buscar a senha criptografada no banco (Corrigido '?' para '%s')
     query_busca = "SELECT senha FROM tutores WHERE id_tutor = %s"
     tutor = consultar_db(query_busca, (id_tutor,), one=True)
     
     if not tutor:
         return jsonify({"error": "Tutor não encontrado"}), 404
     
-    # 2. Verificar se a 'Senha Atual' está correta usando BCRYPT
     senha_hash_banco = tutor['senha']
 
-    # Garante que o hash do banco esteja em bytes
     if isinstance(senha_hash_banco, str):
         senha_hash_banco = senha_hash_banco.encode('utf-8')
 
-    # Verifica a senha fornecida (convertida para bytes) contra o hash
     if not bcrypt.checkpw(senha_atual.encode('utf-8'), senha_hash_banco):
         return jsonify({"error": "A senha atual está incorreta."}), 401
 
-    # 3. Gerar o hash da nova senha com BCRYPT
     nova_senha_hash = bcrypt.hashpw(nova_senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
-    # 4. Atualizar no banco (Corrigido '?' para '%s')
     query_update = "UPDATE tutores SET senha = %s WHERE id_tutor = %s"
     _, error = executar_db(query_update, (nova_senha_hash, id_tutor))
 
@@ -263,12 +251,11 @@ def alterar_senha(id_tutor):
 def alterar_email(id_tutor):
     dados = request.json
     novo_email = dados.get('novo_email')
-    senha_atual = dados.get('senha_atual') # Pedir senha para confirmar é boa prática
+    senha_atual = dados.get('senha_atual')
 
     if not novo_email or not senha_atual:
         return jsonify({"error": "Novo email e senha atual são obrigatórios"}), 400
 
-    # 1. Verificar senha
     query = "SELECT senha FROM tutores WHERE id_tutor = %s"
     tutor = consultar_db(query, (id_tutor,), one=True)
 

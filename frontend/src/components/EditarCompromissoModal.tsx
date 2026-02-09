@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from './button';
 import { Calendar, X, Save } from 'lucide-react';
-import '../styles/AdicionarPet.css'; // Reutiliza os estilos
+import '../styles/AdicionarPet.css';
 import { type Pet } from '../pages/MeusPets';
 
-// Interface do objeto Compromisso (Baseado no que o backend retorna)
 interface Compromisso {
     id_compromisso: number;
     id_pet: number;
@@ -20,16 +19,14 @@ interface Compromisso {
 interface EditarCompromissoModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCompromissoUpdated: () => void; // Renomeado de onCompromissoAdded
+    onCompromissoUpdated: () => void;
     pets: Pet[];
-    compromisso: Compromisso | null; // Recebe o compromisso a ser editado
+    compromisso: Compromisso | null;
 }
 
-// Funções auxiliares para formatar data e hora vindas do banco
 const formatDateToInput = (dateString: string): string => {
     if (!dateString) return '';
     try {
-        // Pega apenas a parte da data YYYY-MM-DD
         return dateString.split('T')[0];
     } catch {
         return '';
@@ -38,7 +35,6 @@ const formatDateToInput = (dateString: string): string => {
 
 const formatTimeToInput = (timeString: string): string => {
     if (!timeString) return '';
-    // Garante formato HH:MM (remove segundos se houver)
     return timeString.substring(0, 5);
 };
 
@@ -50,7 +46,6 @@ export function EditarCompromissoModal({
     compromisso
 }: EditarCompromissoModalProps) {
 
-    // Estado inicial vazio, será preenchido pelo useEffect
     const [formData, setFormData] = useState({
         id_pet: '',
         titulo: '',
@@ -62,15 +57,11 @@ export function EditarCompromissoModal({
     });
     const [erro, setErro] = useState('');
 
-    // Determina o tipo visualmente baseado no título (opcional, apenas para UI)
     const isExame = compromisso?.titulo.toLowerCase().includes('exame');
     const modalTitle = isExame ? 'Editar Exame' : 'Editar Consulta/Compromisso';
 
-    // PREENCHE O FORMULÁRIO QUANDO O MODAL ABRE
     useEffect(() => {
         if (isOpen && compromisso) {
-            // Encontra o ID do pet com base no nome, se necessário, ou usa o que veio no objeto
-            // Se o objeto compromisso não tiver id_pet direto, buscamos pelo nome
             let petId = compromisso.id_pet?.toString();
             if (!petId && compromisso.pet_nome) {
                 const petEncontrado = pets.find(p => p.nome_pet === compromisso.pet_nome);
@@ -109,15 +100,13 @@ export function EditarCompromissoModal({
         }
 
         try {
-            // MUDANÇA PRINCIPAL: Rota PUT com ID do compromisso
-            // Rota: /api/pets/<id_pet>/compromissos/<id_compromisso>
             const response = await axios.put(`http://localhost:5000/api/pets/${formData.id_pet}/compromissos/${compromisso.id_compromisso}`, {
                 ...formData,
                 lembrete: true
             });
 
             if (response.status === 200) {
-                onCompromissoUpdated(); // Atualiza a lista pai
+                onCompromissoUpdated();
                 onClose();
             }
  
@@ -141,7 +130,6 @@ export function EditarCompromissoModal({
 
                         <div className='form-group full-width'>
                             <label htmlFor="id_pet">Pet</label>
-                            {/* O Pet fica desabilitado na edição para não quebrar a rota de ID */}
                             <select 
                                 name="id_pet" 
                                 id="id_pet" 

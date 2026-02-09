@@ -8,6 +8,7 @@ interface AdicionarClinicaModalProps {
     isOpen: boolean;
     onClose: () => void;
     onClinicaAdded: () => void;
+    tutorId: number;
 }
 
 const estadoInicial = {
@@ -17,7 +18,7 @@ const estadoInicial = {
     email: '',
 };
 
-export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded }: AdicionarClinicaModalProps) {
+export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId }: AdicionarClinicaModalProps) {
     const [formData, setFormData] = useState(estadoInicial);
     const [erro, setErro] = useState('');
 
@@ -47,7 +48,7 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded }: Adici
         }
 
         try {
-            const response = await axios.post(`http://localhost:5000/api/nova-clinica`, formData);
+            const response = await axios.post(`http://localhost:5000/api/tutores/${tutorId}/nova-clinica`, formData);
 
             if (response.status === 201) {
                 onClinicaAdded();
@@ -75,19 +76,19 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded }: Adici
                         <div className='form-grid'>
                             <div className='form-group full-width'>
                                 <label htmlFor="nome_clinica">Nome da Clínica *</label>
-                                <input type="text" id='nome_clinica' name='nome_clinica' placeholder='Ex: Clínica Vida Animal' value={formData.nome_clinica} onChange={handleChange} />
+                                <input type="text" id='nome_clinica' name='nome_clinica' placeholder='Ex: Clínica Vida Animal' value={formData.nome_clinica} onChange={handleChange} autoComplete="off" />
                             </div>
                             <div className='form-group full-width'>
                                 <label htmlFor="endereco">Endereço *</label>
-                                <input type="text" id='endereco' name='endereco' placeholder='Ex: Rua Exemplo, 123' value={formData.endereco} onChange={handleChange} />
+                                <input type="text" id='endereco' name='endereco' placeholder='Ex: Rua Exemplo, 123' value={formData.endereco} onChange={handleChange} autoComplete="off" />
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="telefone">Telefone *</label>
-                                <input type="text" id='telefone' name='telefone' placeholder='Ex: (99) 99999-9999' value={formData.telefone} onChange={handleChange} />
+                                <input type="text" id='telefone' name='telefone' placeholder='Ex: (99) 99999-9999' value={formData.telefone} onChange={handleChange} autoComplete="off" />
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="email">E-mail *</label>
-                                <input type="email" id='email' name='email' placeholder='EX: contato@clinica.com' value={formData.email} onChange={handleChange} />
+                                <input type="email" id='email' name='email' placeholder='EX: contato@clinica.com' value={formData.email} onChange={handleChange} autoComplete="off" />
                             </div>
                         </div>
                     </div>

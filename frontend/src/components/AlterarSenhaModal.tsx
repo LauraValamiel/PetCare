@@ -39,7 +39,7 @@ export function AlterarSenhaModal({ isOpen, onClose, tutorId}: AlterarSenhaModal
                 try {
                     const parsed = JSON.parse(stored);
                     parsedId = parsed?.id_tutor;
-                } catch {}
+                } catch { /* empty */ }
             }
 
             if (!parsedId) {
@@ -88,15 +88,15 @@ export function AlterarSenhaModal({ isOpen, onClose, tutorId}: AlterarSenhaModal
 
                         <div className="form-group">
                             <label>Senha Atual</label>
-                            <input type="password" name="senha_atual" value={formData.senha_atual} onChange={handleChange} required/>
+                            <input type="password" name="senha_atual" value={formData.senha_atual} onChange={handleChange} required autoComplete="off"/>
                         </div>
                         <div className="form-group">
                             <label>Nova Senha</label>
-                            <input type="password" name="nova_senha" value={formData.nova_senha} onChange={handleChange} required />
+                            <input type="password" name="nova_senha" value={formData.nova_senha} onChange={handleChange} required autoComplete="off"/>
                         </div>
                         <div className="form-group">
                             <label>Confirmar Nova Senha</label>
-                            <input type="passoword" name="confirmar_senha" value={formData.confirmar_senha} onChange={handleChange} required />
+                            <input type="password" name="confirmar_senha" value={formData.confirmar_senha} onChange={handleChange} required autoComplete="off" />
                         </div>
                         <div className="form-footer">
                             <Button variant="outline" type="button" onClick={onClose}>Cancelar</Button>

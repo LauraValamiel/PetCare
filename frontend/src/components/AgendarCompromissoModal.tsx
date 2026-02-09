@@ -132,6 +132,7 @@ export function AgendarCompromissoModal({
                                     placeholder={tituloPlaceholder}
                                     value={formData.titulo}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                     />
                             </div>
 
@@ -144,6 +145,7 @@ export function AgendarCompromissoModal({
                                     placeholder='Ex: Clínica Vet, Pet Center'
                                     value={formData.localizacao}
                                     onChange={handleChange} 
+                                    autoComplete="off"
                                     />
                             </div>
 
@@ -155,6 +157,7 @@ export function AgendarCompromissoModal({
                                     name='data_compromisso'
                                     value={formData.data_compromisso}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                     />
                             </div>
 
@@ -166,6 +169,7 @@ export function AgendarCompromissoModal({
                                     name='hora'
                                     value={formData.hora}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                  />
                             </div>
 
@@ -177,6 +181,7 @@ export function AgendarCompromissoModal({
                                     placeholder='Alguma observação? Ex: Pet deve estar em jejum.'
                                     value={formData.descricao}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                     />
                             </div>
                         </div>

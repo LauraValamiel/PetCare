@@ -156,7 +156,7 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
                         <div className='form-grid'>
                             <div className='form-group'>
                                 <label htmlFor="nome_pet">Nome *</label>
-                                <input type="text" id='nome_pet' name='nome_pet' placeholder='Ex: Luna' value={formData.nome_pet} onChange={handleChange}/>
+                                <input type="text" id='nome_pet' name='nome_pet' placeholder='Ex: Luna' value={formData.nome_pet} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="especie">Tipo *</label>
@@ -172,7 +172,7 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
 
                             <div className='form-group'>
                                 <label htmlFor="raca">Raça *</label>
-                                <input type="text" id='raca' name='raca' placeholder='Ex: Shih-tzu' value={formData.raca} onChange={handleChange} />
+                                <input type="text" id='raca' name='raca' placeholder='Ex: Shih-tzu' value={formData.raca} onChange={handleChange} autoComplete="off" />
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="genero">Genero *</label>
@@ -185,7 +185,7 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
 
                             <div className='form-group'>
                                 <label htmlFor="data_nascimento">Data de Nascimento *</label>
-                                <input type="date" id='data_nascimento' name='data_nascimento' placeholder='dd/mm/aaaa' value={formData.data_nascimento} onChange={handleChange} />
+                                <input type="date" id='data_nascimento' name='data_nascimento' placeholder='dd/mm/aaaa' value={formData.data_nascimento} onChange={handleChange} autoComplete="off" />
                             </div>
 
                             <div className='form-group'>
@@ -199,7 +199,7 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
 
                             <div className="form-group">
                                 <label htmlFor="peso">Peso *</label>
-                                <input type="text" id="peso" name="peso" placeholder="Ex: 4.2 kg" value={formData.peso} onChange={handleChange} />
+                                <input type="text" id="peso" name="peso" placeholder="Ex: 4.2 kg" value={formData.peso} onChange={handleChange} autoComplete="off" />
                             </div>
                         </div>
                     </div>
