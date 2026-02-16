@@ -28,6 +28,7 @@ const estadoInicial = {
 export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}: AdicionarVacinaModal) {
     const [formData, setFormData] = useState(estadoInicial);
     const [erro, setErro] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!isOpen) {
@@ -47,6 +48,8 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (loading) return;
+        setLoading(true);
         setErro('');
 
         if (!formData.id_pet || !formData.nome_vacina || !formData.data_vacinacao || !formData.proxima_dose || !formData.lote || !formData.nome_veterinario || !formData.local_aplicacao || !formData.preco_vacina) {
@@ -78,6 +81,9 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
         } catch (erro: any) {
             console.error("Erro ao adicionar vacina: ", erro);
             setErro(erro.response?.data?.error || 'Erro ao salvar vacina. Tente novamente.');
+            
+        } finally {
+            setLoading(false);
         }
 
     };
@@ -141,7 +147,7 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
                     </div>
                     <div className='form-footer'>
                         <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                        <Button variant='primary' type='submit'>Adicionar Vacina</Button>
+                        <Button variant='primary' type='submit' disabled={loading}>{loading ? 'Salvando...' : 'Adicionar Vacina'}</Button>
                     </div>
                 </form>
             </div>

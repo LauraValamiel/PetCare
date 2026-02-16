@@ -38,7 +38,6 @@ interface Clinica {
     nome_clinica: string;
     endereco: string;
     telefone: string;
-    email: string;
 }
 
 type HistoricoItemSumario = {
@@ -88,6 +87,22 @@ export function ConsultasExames() {
     const [isEditarCompromissoModalOpen, setIsEditarCompromissoModalOpen] = useState(false);
 
     const tutorId = tutor?.id_tutor;
+
+    const formatarCelular = (celular: string) => {
+        if (!celular) return 'N/A';
+        
+        const cleanCelular = celular.replace(/\D/g, '');
+        
+        if (cleanCelular.length === 11) {
+            return cleanCelular.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+        }
+        
+        if (cleanCelular.length === 10) {
+            return cleanCelular.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+        }
+
+        return cleanCelular; 
+    };
 
     useEffect(() => {
         if (!tutorId) {
@@ -486,10 +501,9 @@ export function ConsultasExames() {
                                             </Button>
                                         </div>
                                     </div>
-                                    <p>{clinica.email}</p>
                                     <div className='contato-clinica'>
                                         <p><MapPin size={16}/>{clinica.endereco}</p>
-                                        <p><Phone size={16}/>{clinica.telefone}</p>
+                                        <p><Phone size={16}/>{formatarCelular(clinica.telefone)}</p>
                                     </div>
                                     
                                     

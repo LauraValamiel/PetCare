@@ -47,7 +47,11 @@ const NotificationPanelItem: React.FC<any> = ({ notification }) => {
 const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, navigate }) => {
 
     const fotoPerfilTutor = store.fotoPerfilTutor;
-    const profileImageUrl = fotoPerfilTutor ? `http://localhost:5000/api/uploads/${fotoPerfilTutor}` : null;
+    const profileImageUrl = fotoPerfilTutor 
+        ? (fotoPerfilTutor.trim().startsWith('http') 
+            ? fotoPerfilTutor.trim() 
+            : `http://localhost:5000/api/uploads/${fotoPerfilTutor}`) 
+        : null;
 
     const handleLogout = () => {
         if (window.confirm("Tem certeza que deseja sair?")) {
@@ -66,6 +70,7 @@ const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, naviga
         store.setIsProfileOpen(false);
         navigate(path);
     }
+    
 
     return (
         <>
@@ -125,7 +130,11 @@ export function Navbar() {
 
     }
 
-    const profileImageUrl = fotoPerfilTutor ? `http://localhost:5000/api/uploads/${fotoPerfilTutor}` : null;
+    const profileImageUrl = fotoPerfilTutor 
+        ? (fotoPerfilTutor.trim().startsWith('http') 
+            ? fotoPerfilTutor.trim() 
+            : `http://localhost:5000/api/uploads/${fotoPerfilTutor}`) 
+        : null;
 
     return (
         <>

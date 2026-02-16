@@ -89,7 +89,7 @@ def auth_google():
             senha_hash = bcrypt.hashpw(senha_placeholder.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
             new_tutor_id, error = executar_db(
-                "INSERT INTO tutores (nome_completo, email, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s) RETURNING id_tutor",
+                "INSERT INTO tutores (nome_completo, email, senha, foto_perfil_tutor, created_at, notif_geral, notif_vacinas, notif_consultas, notif_produtos) VALUES (%s, %s, %s, %s, %s, TRUE, TRUE, TRUE, TRUE) RETURNING id_tutor",
                 (nome, email, senha_hash, picture, created_at),
                 return_id=True
             )

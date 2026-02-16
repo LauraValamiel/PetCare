@@ -127,6 +127,9 @@ def tutor_e_pets(id_tutor):
     if 'data_nascimento' in tutor and tutor['data_nascimento']:
         tutor['data_nascimento'] = tutor['data_nascimento'].isoformat()
     
+    if 'receber_notificacoes' not in tutor:
+        tutor['receber_notificacoes'] = True
+
     query_pet = """SELECT p.*
                    FROM pets p
                    JOIN tutor_pet tp ON p.id_pet = tp.id_pet
@@ -172,3 +175,37 @@ def excluir_tutor(id_tutor):
         return jsonify({"error": f"Erro ao excluir do banco: {error}"}), 500
 
     return jsonify({"message": "Conta excluída com sucesso."}), 200
+
+@tutores_bp.route('/api/tutores/<int:id_tutor>/notificacoes', methods=['PUT'])
+def atualizar_notificacao_tutor(id_tutor):
+    dados = request.get_json()
+    
+    campos_sql = []
+    valores_sql = []
+
+    mapa_campos = {
+        'notif_geral': dados.get('notif_geral'),
+        'notif_vacinas': dados.get('notif_vacinas'),
+        'notif_consultas': dados.get('notif_consultas'),
+        'notif_produtos': dados.get('notif_produtos')
+    }
+
+    for campo, valor in mapa_campos.items():
+        if valor is not None:
+            campos_sql.append(f"{campo} = %s")
+            valores_sql.append(bool(valor))
+
+    if not campos_sql:
+        return jsonify({"message": "Nenhuma alteração enviada."}), 200
+
+    valores_sql.append(id_tutor)
+    
+    query = f"UPDATE tutores SET {', '.join(campos_sql)} WHERE id_tutor = %s"
+    
+    row_count, error = executar_db(query, tuple(valores_sql))
+
+    if error:
+        print(f"Erro no DB: {error}")
+        return jsonify({"error": f"Erro ao salvar: {error}"}), 500
+    
+    return jsonify({"message": "Preferências atualizadas com sucesso!"}), 200

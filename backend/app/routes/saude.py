@@ -72,13 +72,14 @@ def deletar_vacina(id_pet, id_vacina):
     
     query = """DELETE FROM vacinas
                 WHERE id_pet = %s AND id_vacina = %s"""
+    
     rows_affected, error = executar_db(query, (id_pet, id_vacina))
         
     if error:
         return jsonify({"error": f"Erro ao deletar vacina: {error}"}), 500
     
     if rows_affected == 0:
-        return jsonify({"message": "Nenhuma vacina encontrada"})
+        return jsonify({"message": "Nenhuma vacina encontrada"}),
     
 
     return jsonify({"message": "Vacina deletada com sucesso."}), 200

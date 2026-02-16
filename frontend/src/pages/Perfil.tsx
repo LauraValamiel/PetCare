@@ -62,6 +62,32 @@ const formatarDataParaInput = (data: string) => {
     }
 }
 
+const maskPhone = (value: string) => {
+    const digits = value.replace(/\D/g, ""); // Remove tudo que não é número
+    if (digits.length <= 2) return digits; 
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+}
+
+const maskCPF = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9, 11)}`;
+}
+
+const processarUrlFoto = (foto: string | null) => {
+    if (!foto) return null;
+    // Remove espaços e aspas indesejadas que possam vir do banco
+    const limpa = foto.trim().replace(/['"]/g, '');
+    
+    if (limpa.startsWith('http') || limpa.startsWith('https')) {
+        return limpa;
+    }
+    return `http://localhost:5000/api/uploads/${limpa}`;
+};
+
 export default function Perfil() {
     const store = useContext(StoreContext);
     const navigate = useNavigate();
@@ -121,7 +147,7 @@ export default function Perfil() {
 
                 await Promise.all(petPromises);
 
-                const fotoUrl = data.foto_perfil_tutor ? `http://localhost:5000/api/uploads/${data.foto_perfil_tutor}` : null;
+                const fotoUrl = processarUrlFoto(data.foto_perfil_tutor);
                 setImagePreview(fotoUrl);
 
                 setTutorData(data);
@@ -171,7 +197,7 @@ export default function Perfil() {
             setImagePreview(URL.createObjectURL(file));
         } else {
             setSelectedFile(null);
-            const fotoUrl = tutorData?.foto_perfil_tutor ? `http://localhost:5000/api/uploads/${tutorData.foto_perfil_tutor}` : null;
+            const fotoUrl = processarUrlFoto(tutorData?.foto_perfil_tutor || null);
             setImagePreview(fotoUrl);
         }
     }
@@ -220,24 +246,31 @@ export default function Perfil() {
 
             }
 
-            const response = await axios.put(`http://localhost:5000/api/tutores/${tutorId}`, { ...formData, celular: formData.celular.replace(/\D/g, ''), cpf: formData.cpf.replace(/\D/g, ''), foto_perfil_tutor: finalPhotoFilename, });
+            const payload = { 
+                ...formData, 
+                celular: formData.celular.replace(/\D/g, ''), 
+                cpf: formData.cpf.replace(/\D/g, ''), 
+                foto_perfil_tutor: finalPhotoFilename 
+           };
+
+            const response = await axios.put(`http://localhost:5000/api/tutores/${tutorId}`, payload);
 
             if (response.status === 200) {
                 const updatedDataResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
                 const updatedData: TutorData = updatedDataResponse.data;
-                const newFotoUrl = updatedData.foto_perfil_tutor ? `http://localhost:5000/api/uploads/${updatedData.foto_perfil_tutor}` : null;
+                const newFotoUrl = processarUrlFoto(updatedData.foto_perfil_tutor);
+                setImagePreview(newFotoUrl);
 
                 setTutorData(updatedData);
-                setImagePreview(newFotoUrl);
+                setIsEditing(false); // <--- FECHA A EDIÇÃO AUTOMATICAMENTE
                 setSelectedFile(null);
 
-                if (store && store.setNome && store.setFotoPerfilTutor) {
+                if (store) {
                     store.setNome(updatedData.nome_completo);
-                    store.setCpf(updatedData.cpf || '' );
-                    store.setFotoPerfilTutor(foto_perfil_tutor || null);
+                    store.setCpf(updatedData.cpf || '');
+                    store.setFotoPerfilTutor(updatedData.foto_perfil_tutor);
                 }
 
-                setIsEditing(false);
                 alert('Dados atualizados com sucesso!');
             }
         } catch (erro: any) {
@@ -257,9 +290,37 @@ export default function Perfil() {
         setIsEditing(false);
         setFormData({});
         setError('');
-        const fotoUrl = tutorData?.foto_perfil_tutor ? `http://localhost:5000/api/uploads/${tutorData.foto_perfil_tutor}` : null;
+        const fotoUrl = processarUrlFoto(tutorData?.foto_perfil_tutor || null);
         setImagePreview(fotoUrl);
         setSelectedFile(null);
+    };
+
+    const handleSalvarPerfil = async () => {
+        try {
+            // Removemos a formatação antes de enviar para o backend (Flask prefere apenas números)
+            const dadosParaEnviar = {
+                nome_completo: nome,
+                email: email,
+                telefone: telefone.replace(/\D/g, ""), 
+                cpf: cpf.replace(/\D/g, ""),
+            };
+
+            const response = await axios.put(`http://localhost:5000/api/tutores/${tutorId}`, dadosParaEnviar);
+
+            if (response.status === 200) {
+                // 1. Fecha o modo de edição automaticamente
+                setIsEditing(false); 
+                
+                // 2. Atualiza os dados na tela (shared context/store)
+                if (store?.setNome) store.setNome(nome);
+                if (store?.setCpf) store.setCpf(cpf);
+
+                alert("Perfil atualizado com sucesso!");
+            }
+        } catch (error) {
+            console.error("Erro ao salvar perfil:", error);
+            alert("Não foi possível salvar as alterações.");
+        }
     };
 
     const handleLogout = () => {
@@ -363,15 +424,38 @@ export default function Perfil() {
                             <div className='form-grid-perfil'>
                                 <div className='form-group-perfil'>
                                     <label htmlFor="nome_completo">Nome Completo</label>
-                                    <input type="text" id='nome_completo' name="nome_completo" value={isEditing ? formData.nome_completo : tutorData.nome_completo} disabled={!isEditing} onChange={handleChange} autoComplete="off" />
+                                    <input 
+                                        type="text" 
+                                        id='nome_completo' 
+                                        name="nome_completo" 
+                                        value={isEditing ? formData.nome_completo : tutorData.nome_completo} 
+                                        disabled={!isEditing} 
+                                        onChange={handleChange} 
+                                        autoComplete="off" />
                                 </div>
                                 <div className='form-group-perfil'>
                                     <label htmlFor="email">Email</label>
-                                    <input type="email" id='email' name='email' value={isEditing ? formData.email : tutorData.email} disabled={!isEditing} onChange={handleChange} autoComplete="off" />
+                                    <input 
+                                        type="email" 
+                                        id='email' 
+                                        name='email' 
+                                        value={isEditing ? formData.email : tutorData.email} 
+                                        disabled={!isEditing} 
+                                        onChange={handleChange} 
+                                        autoComplete="off" />
                                 </div>
                                 <div className='form-group-perfil'>
                                     <label htmlFor="celular">Celular</label>
-                                    <input type="text" id='celular' name='celular' value={isEditing ? formData.celular : formatarCelular(tutorData.celular)} disabled={!isEditing} onChange={handleChange} autoComplete="off"/>
+                                    <input 
+                                        type="text" 
+                                        id='celular' 
+                                        name='celular' 
+                                        value={isEditing ? formData.celular : formatarCelular(tutorData.celular)} 
+                                        disabled={!isEditing} 
+                                        onChange={(e) => setFormData({...formData, celular: maskPhone(e.target.value)})} 
+                                        placeholder="(00) 00000-0000"
+                                        maxLength={15}
+                                        autoComplete="off"/>
                                 </div>
                                 <div className='form-group-perfil'>
                                     <label htmlFor="data_nascimento">Data de Nascimento</label>
@@ -386,7 +470,16 @@ export default function Perfil() {
                                 </div>
                                 <div className='form-group-perfil full-width'>
                                     <label htmlFor="cpf">CPF</label>
-                                    <input type="text" id='cpf' name='cpf' value={isEditing ? formData.cpf : formatarCPF(tutorData.cpf || '')} disabled={!isEditing} onChange={handleChange} autoComplete="off" />
+                                    <input 
+                                        type="text" 
+                                        id='cpf' 
+                                        name='cpf' 
+                                        value={isEditing ? formData.cpf : formatarCPF(tutorData.cpf || '')} 
+                                        disabled={!isEditing} 
+                                        onChange={(e) => setFormData({...formData, cpf: maskCPF(e.target.value)})} 
+                                        placeholder="000.000.000-00"
+                                        maxLength={14}
+                                        autoComplete="off" />
                                 </div>
                             </div>
                         </Card>

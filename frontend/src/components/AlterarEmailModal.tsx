@@ -21,6 +21,7 @@ export function AlterarEmailModal({ isOpen, onClose, tutorId, emailAtual }: Alte
     const [erro, setErro] = useState('');
     const [sucesso, setSucesso] = useState('');
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     if (!isOpen) return null;
 
@@ -30,6 +31,8 @@ export function AlterarEmailModal({ isOpen, onClose, tutorId, emailAtual }: Alte
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (loading) return;
+        setLoading(true);
         setErro('');
 
         try {
@@ -44,6 +47,7 @@ export function AlterarEmailModal({ isOpen, onClose, tutorId, emailAtual }: Alte
             }, 2000);
         } catch (error: any) {
             setErro(error.response?.data?.error || "Erro ao alterar email.");
+            setLoading(false);
         }
     };
 
@@ -73,7 +77,7 @@ export function AlterarEmailModal({ isOpen, onClose, tutorId, emailAtual }: Alte
                     </div>
                     <div className='form-footer'>
                         <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                        <Button variant='primary' type='submit'>Salvar</Button>
+                        <Button variant='primary' type='submit' disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
                     </div>
                     
                 </form>

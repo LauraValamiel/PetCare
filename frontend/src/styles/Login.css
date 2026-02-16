@@ -250,6 +250,11 @@
     filter: brightness(1.07);
 }
 
+.submit-btn.btn-active {
+    background-color: #6c05b6; /* Cor mais escura/vibrante */
+    opacity: 1;
+}
+
 .social-login {
     width: 100%;
     margin-top: 24px;

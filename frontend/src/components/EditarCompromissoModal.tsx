@@ -87,6 +87,11 @@ export function EditarCompromissoModal({
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = event.target;
+        if (name === 'titulo' && isExame) {
+            const textoSemPrefixo = value.replace(/^Exame\s*/i, '');
+            setFormData(prev => ({...prev, [name]: `Exame ${textoSemPrefixo}`}));
+            return;
+        }
         setFormData(prev => ({...prev, [name]: value}));
     }
 

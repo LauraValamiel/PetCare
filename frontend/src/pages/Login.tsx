@@ -41,6 +41,21 @@ export default function Login() {
     const setFotoPerfilTutor = store?.setFotoPerfilTutor;
     const setTutor = store?.setTutor;
 
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginSenha, setLoginSenha] = useState('');
+    const [cadNomeCompleto, setCadNomeCompleto] = useState('');
+    const [cadEmail, setCadEmail] = useState('');
+    const [cadSenha, setCadSenha] = useState('');
+    const [cadConfirmarSenha, setCadConfirmarSenha] = useState('');
+
+    const isLoginValid = loginEmail.trim() !== '' && loginSenha.trim() !== '';
+
+    const isCadastroValid = 
+        cadNomeCompleto.trim() !== '' && 
+        cadEmail.trim() !== '' && 
+        cadSenha.trim() !== '' && 
+        cadConfirmarSenha.trim() !== '';
+
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_CLIENT_ID';
 
     useEffect(() => {
@@ -86,6 +101,15 @@ export default function Login() {
         };
     }, []);
 
+    useEffect(() => {
+        setErro('');
+        setNotification('');
+        const form = document.querySelector('form');
+        if (form) {
+            form.reset();
+        }
+    }, [isLoginView]);
+
 
     const handleGoogleClick = () => {
         if (window.google && window.google.accounts && window.google.accounts.id) {
@@ -100,6 +124,7 @@ export default function Login() {
     }
 
     const handleGoogleCredentialResponse = async (response: any) => {
+        const setTutor = store?.setTutor;
         const setFotoPerfilTutor = store?.setFotoPerfilTutor;
         try {
             const res = await axios.post('http://localhost:5000/api/auth/google', {
@@ -114,6 +139,8 @@ export default function Login() {
                     setNome(res.data.nome_completo);
                     setCpf(res.data.cpf || '');
                     setFotoPerfilTutor(res.data.foto_perfil_tutor || null);
+
+                    if (setTutor) setTutor(res.data);
                 }
                 navigate('/home');
             }
@@ -261,14 +288,26 @@ export default function Login() {
                     {notification && <p className='mensagem-notificacao'>{notification}</p>}
 
                     {isLoginView ? (
-                        <form onSubmit={login} className='form-login'>
+                        <form key='login-form' onSubmit={login} className='form-login'>
                             <div className='input-group'>
                                 <Mail size={20} className='input-icon'/>
-                                <input type="email" name="email" placeholder='Email' required autoComplete='off'/>
+                                <input 
+                                    type="email" 
+                                    name="email" 
+                                    placeholder='Email'
+                                    value={loginEmail}
+                                    onChange={(e) => setLoginEmail(e.target.value)}
+                                    required autoComplete='off'/>
                             </div>
                             <div className='input-group'>
                                 <Lock size={20} className='input-icon'/>
-                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required autoComplete='off'/>
+                                <input 
+                                    type={mostrarSenha ? "text" : "password"} 
+                                    name="senha" 
+                                    placeholder='Senha'
+                                    value={loginSenha}
+                                    onChange={(e) => setLoginSenha(e.target.value)} 
+                                    required autoComplete='off'/>
                                 <div onClick={visibilidadeSenha} className='password-icon'>
                                     {mostrarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>
@@ -278,33 +317,57 @@ export default function Login() {
                                 <label><input type="checkbox" name='remember'/>Lembrar-me</label>
                                 <a href="#" onClick={esqueceuSenha}>Esqueceu a senha?</a>
                             </div>
-                            <Button type="submit" variant="primary" className='submit-btn'> Entrar <ArrowRight size={16}/></Button>
+                            <Button type="submit" variant="primary" className={`submit-btn ${isLoginValid ? 'btn-active' : ''}`}> Entrar <ArrowRight size={16}/></Button>
                         </form>
                     ) : (
-                        <form onSubmit={cadastro} className='form-login'>
+                        <form key='register-form' onSubmit={cadastro} className='form-login'>
                             <div className='input-group'>
                                 <User size={20} className='input-icon'/>
-                                <input type="text" name="nome_completo" placeholder='Nome Completo' required autoComplete="off"/>
+                                <input 
+                                    type="text" 
+                                    name="nome_completo" 
+                                    placeholder='Nome Completo'
+                                    value={cadNomeCompleto}
+                                    onChange={(e) => setCadNomeCompleto(e.target.value)} 
+                                    required autoComplete="off"/>
                             </div>
                             <div className='input-group'>
                                 <Mail size={20} className='input-icon'/>
-                                <input type="email" name="email" placeholder='Email' required autoComplete='off'/>
+                                <input 
+                                    type="email"   
+                                    name="email" 
+                                    placeholder='Email'
+                                    value={cadEmail}
+                                    onChange={(e) => setCadEmail(e.target.value)} 
+                                    required autoComplete='off'/>
                             </div>
                             <div className='input-group'>
                                 <Lock size={20} className='input-icon'/>
-                                <input type={mostrarSenha ? "text" : "password"} name="senha" placeholder='Senha' required autoComplete="off"/>
+                                <input 
+                                    type={mostrarSenha ? "text" : "password"} 
+                                    name="senha" 
+                                    placeholder='Senha'
+                                    value={cadSenha}
+                                    onChange={(e) => setCadSenha(e.target.value)} 
+                                    required autoComplete="off"/>
                                 <div onClick={visibilidadeSenha} className='password-icon'>
                                     {mostrarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>
                             </div>
                             <div className='input-group'>
                                 <Lock size={20} className='input-icon'/>
-                                <input type={mostrarConfirmarSenha ? "text" : "password"} name="confirmarSenha" placeholder='Confirmar Senha' required autoComplete='off'/>
+                                <input 
+                                    type={mostrarConfirmarSenha ? "text" : "password"} 
+                                    name="confirmarSenha" 
+                                    placeholder='Confirmar Senha'
+                                    value={cadConfirmarSenha}
+                                    onChange={(e) => setCadConfirmarSenha(e.target.value)} 
+                                    required autoComplete='off'/>
                                 <div onClick={visibilidadeConfirmarSenha} className='password-icon'>
                                     {mostrarConfirmarSenha ? <Eye size={20}/> : <EyeOff size={20}/>}
                                 </div>
                             </div>
-                            <Button type='submit' variant='primary' className='submit-btn'>Criar Conta <ArrowRight size={16}/></Button>
+                            <Button type='submit' variant='primary' className={`submit-btn ${isCadastroValid ? 'btn-active' : ''}`}>Criar Conta <ArrowRight size={16}/></Button>
                             <p className='texto-privacidade'>Ao criar uma conta, você concorda com os nossos <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a></p>
                         </form>
                     )}

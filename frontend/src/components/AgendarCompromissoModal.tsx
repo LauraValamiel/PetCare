@@ -40,6 +40,7 @@ export function AgendarCompromissoModal({
     const tituloLabel = tipo === 'consulta' ? 'Motivo da Consulta *' : 'Nome do Exame*';
     const tituloPlaceholder = tipo === 'consulta' ? 'Ex: Check-up anual, vacina' : 'Ex: Exame de sangue, raio-x';
     const localLabel = tipo === 'consulta' ? 'Clínica/Veterinário *' : 'Laboratório/Clínica *';
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -54,11 +55,18 @@ export function AgendarCompromissoModal({
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = event.target;
+        if (name === 'titulo' && tipo === 'exame') {
+            const textoSemPrefixo = value.replace(/^Exame\s*/i, '');
+            setFormData(prev => ({...prev, [name]: `Exame ${textoSemPrefixo}`}));
+            return;
+        }
         setFormData(prev => ({...prev, [name]: value}));
     }
 
     const handleSubmit = async (event: React.FocusEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (loading) return;
+        setLoading(true);
         setErro('');
 
         if (!formData.id_pet || !formData.titulo || !formData.data_compromisso || !formData.hora || !formData.localizacao) {
@@ -96,6 +104,9 @@ export function AgendarCompromissoModal({
         } catch(erro: any) {
             console.error("Erro ao agendar compromisso:", erro);
             setErro(erro.response?.data?.error || 'Erro ao salvar compromisso. Tente novamente.');
+            
+        } finally {
+            setLoading(false);
         }
 
     };
@@ -187,7 +198,7 @@ export function AgendarCompromissoModal({
                         </div>
                         <div className='form-footer'>
                             <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                            <Button variant='primary' type='submit'>Agendar</Button>
+                            <Button variant='primary' type='submit' disabled={loading}>{loading ? 'Agendando...' : 'Agendar'}</Button>
                         </div>
                     </div>
                 </form>

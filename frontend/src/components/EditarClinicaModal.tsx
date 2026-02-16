@@ -9,7 +9,6 @@ interface Clinica {
     nome_clinica: string;
     endereco: string;
     telefone: string;
-    email: string;
 }
 
 interface EditarClinicaModalProps {
@@ -28,8 +27,7 @@ export function EditarClinicaModal({ isOpen, onClose, onClinicaUpdated, clinica}
             setFormData({
                 nome_clinica: clinica.nome_clinica,
                 endereco: clinica.endereco,
-                telefone: clinica.telefone,
-                email: clinica.email,
+                telefone: clinica.telefone
             });
             setErro('');
         }
@@ -48,7 +46,7 @@ export function EditarClinicaModal({ isOpen, onClose, onClinicaUpdated, clinica}
         event.preventDefault();
         setErro('');
 
-        if (!formData.nome_clinica || !formData.endereco || !formData.telefone ||!formData.email) {
+        if (!formData.nome_clinica || !formData.endereco || !formData.telefone) {
             setErro('Por favor, preencha todos os campos obrigatórios (*).');
             return;
         }
@@ -90,10 +88,6 @@ export function EditarClinicaModal({ isOpen, onClose, onClinicaUpdated, clinica}
                             <div className='form-group'>
                                 <label htmlFor="telefone">Telefone *</label>
                                 <input type="text" id='telefone' name='telefone' value={formData.telefone || ''} onChange={handleChange} />
-                            </div>
-                            <div className='form-group'>
-                                <label htmlFor="email">E-mail *</label>
-                                <input type="email" id='email' name='email' value={formData.email || ''} onChange={handleChange} />
                             </div>
                         </div>
                     </div>

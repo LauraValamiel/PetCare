@@ -19,6 +19,7 @@ export function AlterarSenhaModal({ isOpen, onClose, tutorId}: AlterarSenhaModal
 
     const [erro, setErro] = useState('');
     const [sucesso, setSucesso] = useState('');
+    const [loading, setLoading] = useState(false);
 
     if (!isOpen) return null;
 
@@ -28,6 +29,8 @@ export function AlterarSenhaModal({ isOpen, onClose, tutorId}: AlterarSenhaModal
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (loading) return;
+        setLoading(true);
         setErro('');
         setSucesso('');
 
@@ -70,6 +73,7 @@ export function AlterarSenhaModal({ isOpen, onClose, tutorId}: AlterarSenhaModal
             }, 2000);
         } catch (error: any) {
             setErro(error.response?.data?.error || "Erro ao alterar senha.");
+            setLoading(false);
         }
 
     };
@@ -100,7 +104,7 @@ export function AlterarSenhaModal({ isOpen, onClose, tutorId}: AlterarSenhaModal
                         </div>
                         <div className="form-footer">
                             <Button variant="outline" type="button" onClick={onClose}>Cancelar</Button>
-                            <Button variant="primary" type="submit">Salvar</Button>
+                            <Button variant="primary" type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
                         </div>
 
                     </div>

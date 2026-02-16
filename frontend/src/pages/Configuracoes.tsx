@@ -8,6 +8,14 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/Perfil.css';
 import { AlterarSenhaModal } from '../components/AlterarSenhaModal';
 import { AlterarEmailModal } from '../components/AlterarEmailModal';
+import axios from 'axios';
+
+interface Preferencias {
+    notif_geral: boolean;
+    notif_vacinas: boolean;
+    notif_consultas: boolean;
+    notif_produtos: boolean;
+}
 
 export default function Configuracoes() {
     const store = useContext(StoreContext);
@@ -15,72 +23,101 @@ export default function Configuracoes() {
     const tutorId = store?.tutor?.id_tutor;
     const emailAtual = store?.tutor?.email;
 
+    const [preferencias, setPreferencias] = useState<Preferencias>({
+        notif_geral: true,
+        notif_vacinas: true,
+        notif_consultas: true,
+        notif_produtos: true
+    });    
+    const [loading, setLoading] = useState(true);
+
     const [isSenhaModalOpen, setIsSenhaModalOpen] = useState(false);
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
-    const [configuracoes, setConfiguracoes] = useState(() => {
-        const salvo = localStorage.getItem('user_prefs_config');
-        if (salvo) {
-            return JSON.parse(salvo);
-        }
-        return {
-            notificacoesEmail: true,
-            alertasVacinas: true,
-            lembreteConsultas: true,
-            alertasProdutos: true
-        };
-    });
-
     useEffect(() => {
-        localStorage.setItem('user_prefs_config', JSON.stringify(configuracoes));
-    }, [configuracoes]);
+        const carregarPreferencia = async () => {
+            if (!tutorId) return;
+            try {
+                const response = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
+                const dados = response.data;
+                
+                setPreferencias({
+                    notif_geral: (dados.notif_geral === false) ? false : true,
+                    notif_vacinas: (dados.notif_vacinas === false) ? false : true,
+                    notif_consultas: (dados.notif_consultas === false) ? false : true,
+                    notif_produtos: (dados.notif_produtos === false) ? false : true,
+                });
 
-    const handleToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, checked } = e.target;
-        setConfiguracoes(prev => ({
-            ...prev,
-            [name]: checked
-        }))
-    }
+            } catch (error) {
+                console.error("Erro ao carregar preferências:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        carregarPreferencia();
+    }, [tutorId]);
 
-    const handleExcluirConta = async () => {
-    if (!tutorId) {
-        alert("Erro: ID do tutor não encontrado.");
-        return;
-    }
+    const handleToggleNotificacoes = async (campo: keyof Preferencias, valor: boolean) => {
+        if (!tutorId) return;
 
-    const confirmacao = window.confirm(
-        "ATENÇÃO: Esta ação é irreversível! Todos os seus dados e de seus pets serão apagados. Deseja realmente excluir sua conta?"
-    );
+        // Atualização Otimista: Atualiza a tela instantaneamente
+        const estadoAnterior = { ...preferencias };
+        const novasPreferencias = { ...preferencias, [campo]: valor };
+        setPreferencias(novasPreferencias);
 
-    if (confirmacao) {
         try {
-            const response = await fetch(`http://localhost:5000/api/tutores/${tutorId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Se você usar autenticação JWT, adicione o token aqui:
-                    // 'Authorization': `Bearer ${store.token}`
-                }
+            await axios.put(`http://localhost:5000/api/tutores/${tutorId}/notificacoes`, {
+                [campo]: valor
             });
 
-            if (response.ok) {
-                alert("Sua conta foi excluída com sucesso.");
-                // Limpa os dados locais
-                localStorage.removeItem('tutor');
-                sessionStorage.removeItem('tutor');
-                store?.setToken('');
-                navigate('/login');
-            } else {
-                const errorData = await response.json();
-                alert(`Erro ao excluir conta: ${errorData.error || 'Erro desconhecido'}`);
+            if (store?.setTutor && store.tutor) {
+                const tutorAtualizado = { ...store.tutor, ...novasPreferencias };
+                store.setTutor(tutorAtualizado);
+                localStorage.setItem('tutor', JSON.stringify(tutorAtualizado));
             }
+
         } catch (error) {
-            console.error("Erro na requisição:", error);
-            alert("Não foi possível conectar ao servidor para excluir a conta.");
+            console.error("Erro ao salvar configuração:", error);
+            setPreferencias(estadoAnterior);
+            alert("Erro ao salvar. Verifique sua conexão.");
         }
-    }
-};
+    };
+
+    const handleExcluirConta = async () => {
+        if (!tutorId) {
+            alert("Erro: ID do tutor não encontrado.");
+            return;
+        }
+
+        const confirmacao = window.confirm(
+            "ATENÇÃO: Esta ação é irreversível! Todos os seus dados e de seus pets serão apagados. Deseja realmente excluir sua conta?"
+        );
+
+        if (confirmacao) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/tutores/${tutorId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    alert("Sua conta foi excluída com sucesso.");
+                    localStorage.removeItem('tutor');
+                    sessionStorage.removeItem('tutor');
+                    store?.setToken('');
+                    navigate('/login');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Erro ao excluir conta: ${errorData.error || 'Erro desconhecido'}`);
+                }
+            } catch (error) {
+                console.error("Erro na requisição:", error);
+                alert("Não foi possível conectar ao servidor para excluir a conta.");
+            }
+        }
+    };
 
     return (
         <div className='perfil-page'>
@@ -106,10 +143,17 @@ export default function Configuracoes() {
                         <div className='config-group'>
                             <div className='config-item'>
                                 <div className='config-item-details'>
-                                    <label>Notificações por email</label>
-                                    <small>Receba atualizações importantes por email</small>
+                                    <label>Notificações Gerais por email</label>
+                                    <small>Receba lembretes automáticos do sistema</small>
                                 </div>
-                                <label className="switch"><input type="checkbox" name="notificacoesEmail" checked={configuracoes.notificacoesEmail} onChange={handleToggle} /><span className='slider round'></span></label>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferencias.notif_geral} 
+                                        onChange={(e) => handleToggleNotificacoes('notif_geral', e.target.checked)} 
+                                    />
+                                    <span className='slider round'></span>
+                                </label>
                             </div>
 
                             <div className='config-item'>
@@ -117,7 +161,14 @@ export default function Configuracoes() {
                                     <label>Alertas de vacinas</label>
                                     <small>Notificações sobre vacinas vencendo</small>
                                 </div>
-                                <label className="switch"><input type="checkbox" name='alertasVacinas' checked={configuracoes.alertasVacinas} onChange={handleToggle} /><span className='slider round'></span></label>                       
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferencias.notif_vacinas} 
+                                        onChange={(e) => handleToggleNotificacoes('notif_vacinas', e.target.checked)} 
+                                    />
+                                    <span className='slider round'></span>
+                                </label>
                             </div>
 
                             <div className='config-item'>
@@ -125,14 +176,29 @@ export default function Configuracoes() {
                                     <label>Lembrete de Consultas</label>
                                     <small>Lembretes de consultas agendadas</small>
                                 </div>
-                                <label className="switch"><input type="checkbox" name='lembreteConsultas' checked={configuracoes.lembreteConsultas} onChange={handleToggle} /><span className='slider round'></span></label>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferencias.notif_consultas} 
+                                        onChange={(e) => handleToggleNotificacoes('notif_consultas', e.target.checked)} 
+                                    />
+                                    <span className='slider round'></span>
+                                </label>
                             </div>
+
                             <div className='config-item'>
                                 <div className='config-item-details'>
                                     <label>Alertas de produtos</label>
                                     <small>Notificações sobre produtos acabando</small>
                                 </div>
-                                    <label className="switch"><input type="checkbox" name='alertasProdutos' checked={configuracoes.alertasProdutos} onChange={handleToggle} /><span className='slider round'></span></label>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferencias.notif_produtos} 
+                                        onChange={(e) => handleToggleNotificacoes('notif_produtos', e.target.checked)} 
+                                    />
+                                    <span className='slider round'></span>
+                                </label>
                             </div>
                         </div>
                     </Card>

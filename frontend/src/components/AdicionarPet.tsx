@@ -48,6 +48,7 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!isOpen) {
@@ -88,6 +89,8 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (loading) return;
+        setLoading(true);
         setErro('');
 
         if (!formData.nome_pet || !formData.especie || !formData.raca || !formData.genero || !formData.data_nascimento || !formData.peso || formData.castrado === '') {
@@ -124,6 +127,7 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
         } catch (erro: any) {
             console.error("Erro ao adicionar pet:", erro);
             setErro(erro.response?.data?.error || 'Erro ao salvar pet. Tente novamente.');
+            setLoading(false);
         }
     };
 
@@ -206,7 +210,7 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
 
                     <div className='form-footer'>
                         <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                        <Button variant='primary' type='submit'>Adicionar Pet</Button>
+                        <Button variant='primary' type='submit' disabled={loading}>{loading ? 'Salvando...' : 'Adicionar Pet'}</Button>
 
                     </div>
 

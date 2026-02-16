@@ -7,19 +7,23 @@ servicos_bp = Blueprint('servicos', __name__)
 
 @servicos_bp.route('/api/fix-tabela', methods=['GET'])
 def fix_tabela():
-    # Comando SQL para criar a coluna id_tutor se ela não existir
-    query = """
-    ALTER TABLE clinicas_veterinarias
-    ADD COLUMN IF NOT EXISTS id_tutor INTEGER REFERENCES tutores(id_tutor);
-    """
-    _, error = executar_db(query)
-    
-    if error:
-        # Se der erro (ex: tabela não existe), avisa
-        return jsonify({"error": f"Erro ao corrigir tabela: {error}"}), 500
-    
-    return jsonify({"message": "Sucesso! Coluna id_tutor adicionada na tabela clinicas_veterinarias."}), 200
+    comandos = [
+        "ALTER TABLE clinicas_veterinarias DROP COLUMN email CASCADE"
+    ]
 
+    erros = []
+    
+    for query in comandos:
+        # Executa cada comando individualmente
+        _, error = executar_db(query)
+        if error:
+            print(f"Erro ao executar: {query} -> {error}")
+            erros.append(f"Erro no comando '{query}': {error}")
+            
+    if erros:
+        return jsonify({"error": "Houve erros ao atualizar a tabela", "detalhes": erros}), 500
+        
+    return jsonify({"message": "Sucesso! Tabelas atualizadas com as colunas de relacionamento e notificações."}), 200
 # -------- CLÍNICAS --------
 
 @servicos_bp.route('/api/tutores/<int:id_tutor>/clinicas', methods=['GET'])
@@ -37,14 +41,13 @@ def criar_clinica(id_tutor):
     nome_clinica = dados.get('nome_clinica')
     endereco = dados.get('endereco')
     telefone = dados.get('telefone')
-    email = dados.get('email')
 
-    if not all([nome_clinica, endereco, telefone, email]):
+    if not all([nome_clinica, endereco, telefone]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
-    query = """INSERT INTO clinicas_veterinarias (id_tutor, nome_clinica, endereco, telefone, email)
-               VALUES (%s, %s, %s, %s, %s)"""
-    _, error = executar_db(query, (id_tutor, nome_clinica, endereco, telefone, email))
+    query = """INSERT INTO clinicas_veterinarias (id_tutor, nome_clinica, endereco, telefone)
+               VALUES (%s, %s, %s, %s)"""
+    _, error = executar_db(query, (id_tutor, nome_clinica, endereco, telefone))
     if error:
         return jsonify({"error": f"Erro ao criar clinica: {error}"}), 500
     
@@ -57,15 +60,14 @@ def editar_clinica(id_clinica):
     nome_clinica = dados.get('nome_clinica')
     endereco = dados.get('endereco')
     telefone = dados.get('telefone')
-    email = dados.get('email')
 
-    if not all([nome_clinica, endereco, telefone, email]):
+    if not all([nome_clinica, endereco, telefone]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
     query = """UPDATE clinicas_veterinarias 
-               SET nome_clinica = %s, endereco = %s, telefone = %s, email = %s
+               SET nome_clinica = %s, endereco = %s, telefone = %s
                WHERE id_clinica = %s"""
-    _, error = executar_db(query, (nome_clinica, endereco, telefone, email, id_clinica))
+    _, error = executar_db(query, (nome_clinica, endereco, telefone, id_clinica))
 
     if error:
         return jsonify({"error": f"Erro ao atualizar clinica: {error}"}),500

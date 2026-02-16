@@ -21,7 +21,7 @@ services:
 
   # Serviço do pgAdmin
   pgadmin:
-    image: dpage/pgadmin4:9.3.0
+    image: dpage/pgadmin4:latest
     container_name: petcare_pgadmin
     ports:
       - "8123:80"
@@ -30,6 +30,8 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=admin
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - backend
   
 volumes:
   postgres_data:

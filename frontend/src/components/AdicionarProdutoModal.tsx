@@ -36,6 +36,7 @@ const parseCommaFloat = (value: string): number => {
 export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, tutorId }: AdicionarProdutoModalProps) {
     const [formData, setFormData] = useState(estadoInicial);
     const [erro, setErro] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!isOpen) {
@@ -85,6 +86,8 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (loading) return;
+        setLoading(true);
         setErro('');
 
         if (!formData.id_pet || !formData.nome_produto || !formData.categoria || !formData.quantidade || !formData.consumo_medio || !formData.data_compra || !formData.preco_compra || !formData.loja) {
@@ -118,6 +121,7 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
         } catch (erro: any) {
             console.error("Erro ao adicionar produto: ", erro);
             setErro(erro.response?.data?.error || 'Erro ao salvar o produto. Tente novamente.');
+            setLoading(false);
         }
     };
 
@@ -205,13 +209,13 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
                     </div>
                     <div className='form-footer'>
                         <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                        <Button variant='primary' type='submit'>Adicionar Produto</Button>
+                        <Button variant='primary' type='submit' disabled={loading}>{loading ? 'Salvando...' : 'Adicionar Produto'}</Button>
                     </div>
                 </form>
 
             </div>
 
         </div>
-    )
+    );
 
 }

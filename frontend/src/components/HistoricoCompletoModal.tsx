@@ -8,6 +8,7 @@ import axios from 'axios';
 
 interface Compromisso {
     id_compromisso: number;
+    id_pet: number;
     titulo: string;
     data_compromisso: string;
     pet_nome: string;
@@ -15,6 +16,7 @@ interface Compromisso {
 
 interface Consulta {
     id_consulta: number;
+    id_pet: number;
     motivo: string;
     data_consulta: string;
     pet_nome?: string;
@@ -63,6 +65,7 @@ export function HistoricoCompletoModal ({
             if (vacina.data_vacinacao){
                 listaUnificada.push({
                     id: `v-${vacina.id_vacina}`,
+                    id_pet: vacina.id_pet,
                     tipo: 'vacina',
                     data: new Date(vacina.data_vacinacao.split('T')[0] + 'T00:00:00Z'),
                     titulo: vacina.nome_vacina,
@@ -74,7 +77,8 @@ export function HistoricoCompletoModal ({
 
         consultas.forEach(consulta => {
             const isExame = consulta.motivo.toLowerCase().includes('exames');
-            const petId = pets.find(p => p.nome_pet === consulta.pet_nome)?.id_pet || 0;
+            const petId = consulta.id_pet;
+            const nomePet = pets.find(p => p.id_pet === petId)?.nome_pet || 'Pet';
 
             listaUnificada.push({
                 id: `c-${consulta.id_consulta}`,
@@ -82,7 +86,7 @@ export function HistoricoCompletoModal ({
                 tipo: isExame ? 'exame' : 'consulta',
                 data: new Date(consulta.data_consulta.split('T')[0] + 'T00:00:00Z'),
                 titulo: consulta.motivo,
-                petNome: consulta.pet_nome || 'Pet',
+                petNome: nomePet,
                 dataOriginal: consulta,
             });
         });
@@ -90,7 +94,8 @@ export function HistoricoCompletoModal ({
         compromissos.forEach(compromisso => {
             const isExame = compromisso.titulo.toLowerCase().includes('exame');
             const dataCompromissoStr = compromisso.data_compromisso.split('T')[0];
-            const petId = pets.find(p => p.nome_pet === compromisso.pet_nome)?.id_pet || 0;
+            const petId = compromisso.id_pet;
+            const nomePet = pets.find(p => p.id_pet === petId)?.nome_pet || 'Pet';
 
             if (new Date(dataCompromissoStr + 'T00:00:00Z') < new Date()) { 
                 listaUnificada.push({
@@ -99,7 +104,7 @@ export function HistoricoCompletoModal ({
                     tipo: isExame ? 'exame' : 'compromisso',
                     data: new Date(dataCompromissoStr + 'T00:00:00Z'), 
                     titulo: compromisso.titulo,
-                    petNome: compromisso.pet_nome || 'Pet',
+                    petNome: nomePet,
                     dataOriginal: compromisso,
                 });
             }
@@ -137,11 +142,11 @@ export function HistoricoCompletoModal ({
         
         try {
             let url = '';
-            if (item.tipo === 'vacina') {
+            if (prefixo === 'v') {
                 url = `http://localhost:5000/api/pets/${item.id_pet}/deletar-vacina/${idReal}`;
-            } else if (item.tipo === 'compromisso') { 
+            } else if (prefixo === 'comp') { 
                 url = `http://localhost:5000/api/pets/${item.id_pet}/compromissos/${idReal}`;
-            } else {
+            } else if (prefixo === 'c') {
                 url = `http://localhost:5000/api/pets/${item.id_pet}/deletar-consulta/${idReal}`;
             }
 

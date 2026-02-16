@@ -15,12 +15,19 @@ const estadoInicial = {
     nome_clinica: '',
     endereco: '',
     telefone: '',
-    email: '',
+};
+
+const maskPhone = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 2) return digits; 
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
 };
 
 export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId }: AdicionarClinicaModalProps) {
     const [formData, setFormData] = useState(estadoInicial);
     const [erro, setErro] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!isOpen) {
@@ -38,27 +45,36 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId 
         setFormData(prev => ({...prev, [name]: value }));
     }
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (loading) return;
+        setLoading(true);
         setErro('');
-        
-        if (!formData.nome_clinica || !formData.endereco || !formData.telefone || !formData.email) {
-            setErro('Por favor, preencha todos os campos obrigatórios (*).');
+
+        if (!formData.nome_clinica || !formData.endereco || !formData.telefone) {
+            setErro('Por favor, preencha todos os campos obrigatórios.');
             return;
         }
-
+        
         try {
-            const response = await axios.post(`http://localhost:5000/api/tutores/${tutorId}/nova-clinica`, formData);
+            const dadosParaEnviar = {
+                ...formData,
+                telefone: formData.telefone.replace(/\D/g, '')
+            };
 
+            const response = await axios.post(`http://localhost:5000/api/tutores/${tutorId}/nova-clinica`, dadosParaEnviar);
+            
             if (response.status === 201) {
-                onClinicaAdded();
+                onClinicaAdded(); 
                 onClose();
             }
-        } catch (erro: any) {
-            console.error("Erro ao adicionar a clínica: ", erro);
-            setErro(erro.response?.data?.error || 'Erro ao salvar clínica. Tente novamente.')
+        } catch (error) {
+            console.error("Erro ao adicionar clínica", error);
+            setErro(error.response?.data?.error || 'Erro ao conectar ao servidor.')
+            
+        } finally {
+            setLoading(false);
         }
-
     };
 
     return (
@@ -76,25 +92,43 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId 
                         <div className='form-grid'>
                             <div className='form-group full-width'>
                                 <label htmlFor="nome_clinica">Nome da Clínica *</label>
-                                <input type="text" id='nome_clinica' name='nome_clinica' placeholder='Ex: Clínica Vida Animal' value={formData.nome_clinica} onChange={handleChange} autoComplete="off" />
+                                <input 
+                                    type="text" 
+                                    id='nome_clinica' 
+                                    name='nome_clinica' 
+                                    placeholder='Ex: Clínica Vida Animal' 
+                                    value={formData.nome_clinica} 
+                                    onChange={handleChange} 
+                                    autoComplete="off" />
                             </div>
                             <div className='form-group full-width'>
                                 <label htmlFor="endereco">Endereço *</label>
-                                <input type="text" id='endereco' name='endereco' placeholder='Ex: Rua Exemplo, 123' value={formData.endereco} onChange={handleChange} autoComplete="off" />
+                                <input 
+                                    type="text" 
+                                    id='endereco' 
+                                    name='endereco' 
+                                    placeholder='Ex: Rua Exemplo, 123' 
+                                    value={formData.endereco} 
+                                    onChange={handleChange} 
+                                    autoComplete="off" />
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="telefone">Telefone *</label>
-                                <input type="text" id='telefone' name='telefone' placeholder='Ex: (99) 99999-9999' value={formData.telefone} onChange={handleChange} autoComplete="off" />
-                            </div>
-                            <div className='form-group'>
-                                <label htmlFor="email">E-mail *</label>
-                                <input type="email" id='email' name='email' placeholder='EX: contato@clinica.com' value={formData.email} onChange={handleChange} autoComplete="off" />
+                                <input 
+                                    type="text" 
+                                    id='telefone' 
+                                    name='telefone' 
+                                    placeholder='Ex: (99) 99999-9999' 
+                                    value={formData.telefone} 
+                                    onChange={(e) => setFormData({...formData, telefone: maskPhone(e.target.value)})} 
+                                    maxLength={15}
+                                    autoComplete="off" />
                             </div>
                         </div>
                     </div>
                     <div className='form-footer'>
                         <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                        <Button variant='primary' type='submit'><Plus size={16}/>Adicionar Clínica</Button>
+                        <Button variant='primary' type='submit' disabled={loading}><Plus size={16}/>{loading ? 'Salvando...' : 'Adicionar Clínica'}</Button>
                     </div>
                 </form>
             </div>

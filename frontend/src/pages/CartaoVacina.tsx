@@ -64,6 +64,30 @@ export default function CartaoVacina() {
 
     const tutorId = tutor?.id_tutor;
 
+    const get_ultima_dose_por_vacina = (vacinas: VacinaDetalhada[]) => {
+        const mapa = new Map<string, VacinaDetalhada>();
+
+        vacinas.forEach(vacina => {
+            const chave = `${vacina.id_pet}-${vacina.nome_vacina}`;
+
+            const vacinaExistente = mapa.get(chave);
+
+            if (!vacinaExistente) {
+                mapa.set(chave, vacina);
+            } else {
+                const dataAtual = new Date(vacina.data_vacinacao).getTime();
+                const dataExistente = new Date(vacinaExistente.data_vacinacao).getTime();
+
+                if (dataAtual > dataExistente) {
+                    mapa.set(chave, vacina);
+                }
+            }
+        });
+
+        return Array.from(mapa.values());
+    };
+
+
     useEffect(() =>{
         const currentTutorId: number | null = tutor?.id_tutor || null;
 
@@ -112,8 +136,9 @@ export default function CartaoVacina() {
                     let vencendoCount = 0;
                     let atrasadasCount = 0;
                     const atrasadasComPet: VacinaDetalhada[] = [];
+                    const ultimaDose= get_ultima_dose_por_vacina(allVacinas);
 
-                    allVacinas.forEach(v => {
+                    ultimaDose.forEach(v => {
                         try {
                             if (v.proxima_dose && typeof v.proxima_dose === 'string') {
                                 const proximaDose = new Date(v.proxima_dose);
@@ -143,7 +168,7 @@ export default function CartaoVacina() {
                         em_dia: emDiaCount,
                         vencendo: vencendoCount,
                         atrasadas: atrasadasCount,
-                        total: allVacinas.length
+                        total: ultimaDose.length
                     });
 
                     setVacinasAtrasadasComPet(atrasadasComPet);
@@ -179,7 +204,7 @@ export default function CartaoVacina() {
         }
     }, [pets, loading, selectedPetId]);
 
-    const vacinasDoPetSelecionado = todasVacinas.filter(v => v.id_pet === selectedPetId)
+    const vacinasDoPetSelecionado = get_ultima_dose_por_vacina(todasVacinas.filter(v => v.id_pet === selectedPetId))
                                                 .sort((a, b) => {
                                                     const dateA = a.data_vacinacao ? new Date(a.data_vacinacao).getTime() : 0;
                                                     const dateB = b.data_vacinacao ? new Date(b.data_vacinacao).getTime() : 0;
@@ -247,6 +272,7 @@ export default function CartaoVacina() {
             
     };
 
+    
     return (
         <div className='cartao-vacina-page'>
             <Navbar/>
