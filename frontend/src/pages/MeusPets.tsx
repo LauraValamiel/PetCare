@@ -55,25 +55,22 @@ export const formatDate = (dateString: string | undefined | null) : string => {
     if (!dateString) return '--/--/----';
     try{
 
-        let dateToProcess = dateString;
-
-        if (!dateString.includes('T')) {
-            dateToProcess = dateString;
-        } else {
-            dateToProcess = dateString.split('T')[0] + 'T00:00:00Z';
-        }
-
-        const dateObj = new Date(dateToProcess); 
-
-        if (isNaN(dateObj.getTime())) {
-            return '--/--/----';
-        }
-
-        const day = String(dateObj.getUTCDate()).padStart(2, '0');
-        const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
-        const year = dateObj.getUTCFullYear();
+        const parts = dateString.split('T')[0].split('-');
         
-        return `${day}/${month}/${year}`;
+        if (parts.length === 3) {
+            const [year, month, day] = parts;
+            return `${day}/${month}/${year}`;
+        }
+
+        // Caso venha em outro formato, tenta o método padrão
+        const dateObj = new Date(dateString);
+        if (isNaN(dateObj.getTime())) return '--/--/----';
+
+        const d = String(dateObj.getUTCDate()).padStart(2, '0');
+        const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+        const y = dateObj.getUTCFullYear();
+        
+        return `${d}/${m}/${y}`;
 
     } catch (erro) {
         return '--/--/----';
@@ -148,11 +145,13 @@ export default function MeusPets() {
                             const consultas: Consulta[] = consultasResponse.data;
 
                             const vacinasOrdenadas = vacinas.sort((a, b) => new Date(a.proxima_dose).getTime() - new Date(b.proxima_dose).getTime());
-                            const consultasOrdenadas = consultas.sort((a, b) => new Date(a.data_consulta).getTime() - new Date(b.data_consulta).getTime());
+                            const consultasOrdenadas = consultas.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
 
                             const vacinasFuturas = vacinasOrdenadas.filter(v => new Date(v.proxima_dose) >= today);
                             const vacinasPassadas = vacinasOrdenadas.filter(v => new Date(v.proxima_dose) < today);
-                            const consultasPassadas = consultasOrdenadas.filter(c => new Date(c.data_consulta) <= today).sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
+                            const consultasPassadas = consultasOrdenadas.filter(c => new Date(c.data_consulta) <= today)
+                                                        .sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
+                            
                             const vacinacoesPassadas = vacinas.filter(v => new Date(v.data_vacinacao) <= today).sort((a, b) => new Date(b.data_vacinacao).getTime() - new Date(a.data_vacinacao).getTime());
 
                             let statusVacina: DetalhesPets['statusVacina'] = 'Em dia';

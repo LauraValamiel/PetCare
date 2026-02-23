@@ -222,9 +222,11 @@ def pets_por_id(id_pet, id_tutor):
                 JOIN tutor_pet tp ON p.id_pet = tp.id_pet
                 WHERE p.id_pet = %s AND tp.id_tutor = %s"""
     pet = consultar_db(query, (id_pet, id_tutor), one=False)
+
     if pet:
-        for p in pet:
-            if 'data_nascimento' in p and p['data_nascimento']:
-                p['data_nascimento'] = p['data_nascimento'].isoformat()
+        if pet.get('data_nascimento'):
+            pet['data_nascimento'] = pet['data_nascimento'].isoformat()
+        
         return jsonify(pet), 200
-    return jsonify({"error": "Pet não encontrado."}), 404
+    
+    return jsonify({"error": "Pet nao encontrado para este tutor."}), 404

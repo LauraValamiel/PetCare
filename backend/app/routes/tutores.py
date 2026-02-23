@@ -16,7 +16,6 @@ def criar_tutor():
     email = dados.get('email')
     cpf = dados.get('cpf')
     data_nascimento = dados.get('data_nascimento')
-    genero_tutor = dados.get('genero_tutor')
     senha = dados.get('senha')
     foto_perfil_tutor = dados.get('foto_perfil_tutor')
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -26,9 +25,9 @@ def criar_tutor():
     
     senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
-    query = "INSERT INTO tutores (nome_completo, celular, email, cpf, data_nascimento, genero_tutor, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) " \
+    query = "INSERT INTO tutores (nome_completo, celular, email, cpf, data_nascimento, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) " \
     "        RETURNING id_tutor"
-    _, error = executar_db(query, (nome_completo, celular, email, cpf, data_nascimento, genero_tutor, senha_hash, foto_perfil_tutor, created_at))
+    _, error = executar_db(query, (nome_completo, celular, email, cpf, data_nascimento, senha_hash, foto_perfil_tutor, created_at))
 
     if error:
         return jsonify({"error": f"Erro ao criar tutor: {error}"}), 500
@@ -44,7 +43,6 @@ def atualizar_tutor(id_tutor):
     email = dados.get('email')
     cpf = dados.get('cpf')
     data_nascimento = dados.get('data_nascimento')
-    genero_tutor = dados.get('genero_tutor')
     senha = dados.get('senha')
     foto_perfil_tutor = dados.get('foto_perfil_tutor')
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

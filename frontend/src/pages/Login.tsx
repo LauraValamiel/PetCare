@@ -225,8 +225,37 @@ export default function Login() {
             });
 
             if (response.status === 201) {
-                setNotification('Cadastro realizado com sucesso! Faça login para continuar.');
-                setIsLoginView(true);
+                setNotification('Cadastro realizado com sucesso!');
+                try {
+                    const loginResponse = await axios.post('http://localhost:5000/api/login', {
+                        email: email.value,
+                        senha: senha.value
+                    });
+
+                    if (loginResponse.status === 200) {
+                        const user = loginResponse.data;
+
+                        localStorage.removeItem('tutor');
+                        sessionStorage.removeItem('tutor');
+
+                        sessionStorage.setItem('tutor', JSON.stringify(user));
+
+                        if (setToken && setNome && setCpf && setFotoPerfilTutor) {
+                            setToken(user);
+                            setNome(user.nome_completo);
+                            setCpf(user.cpf || '');
+                            setFotoPerfilTutor(user.foto_perfil_tutor || null);
+                            if (setTutor) setTutor(user);
+                        }
+
+                        navigate('/home');
+                    }
+                } catch (erro: any) {
+                    // Se houver alguma falha inesperada apenas no momento do login automático, 
+                    // cai para a tela de login normal para o usuário tentar manualmente
+                    setNotification('Cadastro realizado com sucesso! Por favor, faça login para continuar.');
+                    setIsLoginView(true);
+                }
             }
         } catch (erro: any) {
             if (erro.response && erro.response.data && erro.response.data.error) {

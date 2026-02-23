@@ -49,6 +49,8 @@ def adicionar_vacina_por_pet(id_pet):
     if error:
         return jsonify({"error": f"Erro ao adicionar vacina: {error}"}), 500    
 
+    print(f"Proxima dose recebida: {proxima_dose}, enviar_notificacao: {enviar_notificacao}")
+
     if proxima_dose and enviar_notificacao:
         criar_evento_e_enviar_alerta(
             id_pet=id_pet,
@@ -128,6 +130,8 @@ def consultas_pet(id_pet):
     consultas = consultar_db(query, (id_pet,))
 
     for consulta in consultas:
+        if 'data_consulta' in consulta and consulta['data_consulta'] is not None:
+            consulta['data_consulta'] = consulta['data_consulta'].isoformat()
         if 'hora' in consulta and consulta['hora'] is not None:
             consulta['hora'] = consulta['hora'].strftime('%H:%M:%S')
 
@@ -140,22 +144,26 @@ def criar_consulta_pet(id_pet):
     data_consulta = dados.get('data_consulta')
     hora = dados.get('hora')
     motivo = dados.get('motivo')
-    diagnostico = dados.get('diagnostico')
-    tratamento = dados.get('tratamento')
     nome_clinica = dados.get('nome_clinica')
-    nome_veterinario = dados.get('nome_veterinario')
-    preco_consulta = dados.get('preco_consulta')
 
-    if not all([data_consulta, hora, motivo, diagnostico, tratamento, nome_clinica, nome_veterinario, preco_consulta]):
+    if not all([data_consulta, hora, motivo, nome_clinica]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400  
     
-    query = """INSERT INTO consultas (id_pet, data_consulta, hora, motivo, diagnostico, tratamento, nome_clinica, nome_veterinario, preco_consulta) 
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    _, error = executar_db(query, (id_pet, data_consulta, hora, motivo, diagnostico, tratamento, nome_clinica, nome_veterinario, preco_consulta))   
+    query = """INSERT INTO consultas (id_pet, data_consulta, hora, motivo, nome_clinica) 
+               VALUES (%s, %s, %s, %s, %s)"""
+    _, error = executar_db(query, (id_pet, data_consulta, hora, motivo, nome_clinica))   
 
     if error:
         return jsonify({"error": f"Erro ao criar consulta: {error}"}), 500
     
+    criar_evento_e_enviar_alerta(
+        id_pet=id_pet,
+        titulo=f"Consulta agendada: {motivo}",
+        data_evento=data_consulta,
+        hora_evento=hora,
+        descricao=f"Lembrete para a consulta de {motivo} no dia {data_consulta} às {hora} na clínica {nome_clinica}."
+    )
+
     return jsonify({"message": "Consulta criada com sucesso."}), 201
 
 
@@ -165,16 +173,12 @@ def editar_consulta_pet(id_pet, id_consulta):
     data_consulta = dados.get('data_consulta')
     hora = dados.get('hora')
     motivo = dados.get('motivo')
-    diagnostico = dados.get('diagnostico')
-    tratamento = dados.get('tratamento')
     nome_clinica = dados.get('nome_clinica')
-    nome_veterinario = dados.get('nome_veterinario')
-    preco_consulta = dados.get('preco_consulta')
 
     query = """UPDATE consultas 
-               SET data_consulta = %s, hora = %s, motivo = %s, diagnostico = %s, tratamento = %s, nome_clinica = %s, nome_veterinario = %s, preco_consulta = %s
+               SET data_consulta = %s, hora = %s, motivo = %s, nome_clinica = %s
                WHERE id_pet = %s  AND id_consulta = %s"""
-    _, error = executar_db(query, (data_consulta, hora, motivo, diagnostico, tratamento, nome_clinica, nome_veterinario, preco_consulta, id_pet, id_consulta))   
+    _, error = executar_db(query, (data_consulta, hora, motivo, nome_clinica, id_pet, id_consulta))   
 
     if error:
         return jsonify({"error": f"Erro ao editar consulta: {error}"}), 500

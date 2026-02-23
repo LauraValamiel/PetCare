@@ -90,11 +90,27 @@ export function AgendarCompromissoModal({
         }
 
         try {
-            const response = await axios.post(`http://localhost:5000/api/pets/${formData.id_pet}/agendar-compromissos`, {
-                ...formData,
+
+            const url = tipo === 'consulta' 
+                ? `http://localhost:5000/api/pets/${formData.id_pet}/nova-consulta`
+                : `http://localhost:5000/api/pets/${formData.id_pet}/agendar-compromissos`;
+
+            
+            const dataToSend = tipo === 'consulta'
+                ? {
+                    data_consulta: formData.data_compromisso,
+                    hora: formData.hora,
+                    motivo: formData.titulo,
+                    nome_clinica: formData.localizacao
+                }
+                : {
+                    ...formData,
                 lembrete: true,
                 enviar_notificacao: permitirEmail
-            });
+                }
+
+            const response = await axios.post(url, dataToSend);
+                
 
             if (response.status === 201) {
                 onCompromissoAdded();

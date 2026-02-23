@@ -136,7 +136,7 @@ export default function Perfil() {
                     const [vacinasRes, consultasRes, produtosRes] = await Promise.all([
                         axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
                         axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/consultas`).catch(() => ({ data: [] })),
-                        axios.get(`http://localhost: 5000/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] })),
+                        axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] })),
                     ]);
 
                     vacinasCount += vacinasRes.data.length || 0;

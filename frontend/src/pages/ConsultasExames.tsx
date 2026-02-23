@@ -29,6 +29,7 @@ interface Consulta {
     id_consulta: number;
     motivo: string;
     data_consulta: string;
+    hora: string;
     nome_clinica: string;
     pet_nome?: string;
 }
@@ -161,60 +162,67 @@ export function ConsultasExames() {
                 setAllConsultas(consultasTotais);
                 setAllVacinas(vacinasTotais);
 
-                const compromissosFuturos = compromissosTotais
-                    .filter(c => new Date(c.data_compromisso.split('T')[0] + 'T00:00:00Z') >= today)
-                    .sort((a, b) => new Date(a.data_compromisso).getTime() - new Date(b.data_compromisso).getTime());
-
-                const consultasNormaisFuturas = compromissosFuturos
-                    .filter(c => !c.titulo.toLowerCase().includes('exame'))
-                    .sort((a, b) => new Date(a.data_compromisso).getTime() - new Date(b.data_compromisso).getTime());
-
-                setProximasConsultas(consultasNormaisFuturas);
-
-                const examesFuturos = compromissosFuturos
-                    .filter(c => c.titulo.toLowerCase().includes('exame'));
-                
-                setProximosExames(examesFuturos);
+                // Força as datas a ignorarem o fuso horário (evita que caiam no histórico 1 dia antes)
+                const parseDateLocal = (dateString: string) => {
+                    if (!dateString) return new Date(0);
+                    const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+                    return new Date(year, month - 1, day);
+                };
 
                 const historicoUnificado: HistoricoItemSumario[] = [];
+                const eventosFuturos: any[] = []; // Lista mista para os cards
 
                 vacinasTotais.forEach(vacina => {
-                    const dataVacinacao = vacina.data_vacinacao.split('T')[0];
-                    if (vacina.data_vacinacao && new Date(dataVacinacao + 'T00:00:00Z') < today) {
+                    if (vacina.data_vacinacao && parseDateLocal(vacina.data_vacinacao) < today) {
                         historicoUnificado.push({
-                            tipo: 'vacina',
-                            data: new Date(dataVacinacao + 'T00:00:00Z'),
-                            titulo: vacina.nome_vacina,
-                            petNome: vacina.nome_pet || 'Pet',
+                            tipo: 'vacina', data: parseDateLocal(vacina.data_vacinacao),
+                            titulo: vacina.nome_vacina, petNome: vacina.nome_pet || 'Pet',
                         });
                     }
                 });
 
                 consultasTotais.forEach(consulta => {
-                    if (new Date(consulta.data_consulta) < today) {
+                    const dataObj = parseDateLocal(consulta.data_consulta);
+                    if (dataObj < today) {
                         historicoUnificado.push({
                             tipo: consulta.motivo.toLowerCase().includes('exame') ? 'exame' : 'consulta',
-                            data: new Date(consulta.data_consulta),
-                            titulo: consulta.motivo,
-                            petNome: consulta.pet_nome|| 'Pet',
+                            data: dataObj, titulo: consulta.motivo, petNome: consulta.pet_nome || 'Pet',
+                        });
+                    } else {
+                        // Se for futuro, vai para os cards
+                        eventosFuturos.push({
+                            isConsulta: true, originalData: consulta,
+                            titulo: consulta.motivo, data_compromisso: consulta.data_consulta,
+                            hora: consulta.hora || '00:00', localizacao: consulta.nome_clinica, pet_nome: consulta.pet_nome
                         });
                     }
                 });
 
-                compromissosTotais.forEach(compromisso => {
-                    if (new Date(compromisso.data_compromisso) < today) {
-                        historicoUnificado.push({
-                            tipo: compromisso.titulo.toLowerCase().includes('exame') ? 'exame' : 'consulta',
-                            data: new Date(compromisso.data_compromisso),
-                            titulo: compromisso.titulo,
-                            petNome: compromisso.pet_nome|| 'Pet',
-                        });
-                    }
-                });
+            compromissosTotais.forEach(compromisso => {
+                const dataObj = parseDateLocal(compromisso.data_compromisso);
+                if (dataObj < today) {
+                    historicoUnificado.push({
+                        tipo: compromisso.titulo.toLowerCase().includes('exame') ? 'exame' : 'consulta',
+                        data: dataObj, titulo: compromisso.titulo, petNome: compromisso.pet_nome || 'Pet',
+                    });
+                } else {
+                    // Se for futuro, vai para os cards
+                    eventosFuturos.push({
+                        isConsulta: false, originalData: compromisso,
+                        titulo: compromisso.titulo, data_compromisso: compromisso.data_compromisso,
+                        hora: compromisso.hora, localizacao: compromisso.localizacao, pet_nome: compromisso.pet_nome
+                    });
+                }
+            });
 
-                historicoUnificado.sort((a, b) => b.data.getTime() - a.data.getTime());
-                setHistoricoItemMaisRecente(historicoUnificado);
+            historicoUnificado.sort((a, b) => b.data.getTime() - a.data.getTime());
+            setHistoricoItemMaisRecente(historicoUnificado);
 
+            // Ordena os próximos eventos pela data e hora mais próxima
+            eventosFuturos.sort((a, b) => new Date(`${a.data_compromisso.split('T')[0]}T${a.hora}`).getTime() - new Date(`${b.data_compromisso.split('T')[0]}T${b.hora}`).getTime());
+
+            setProximasConsultas(eventosFuturos.filter(e => !e.titulo.toLowerCase().includes('exame')));
+            setProximosExames(eventosFuturos.filter(e => e.titulo.toLowerCase().includes('exame')));
 
         } catch (error) {
             console.error("Erro ao buscar dados de consultas e exames: ", error);
