@@ -293,9 +293,21 @@ export default function Login() {
 
     const esqueceuSenha = async (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
-        const email = prompt("Digite o email cadastrado para redefinir sua senha: ");
+        const email = await Swal.fire({
+            title: 'Esqueci minha senha',
+            text: 'Digite o email cadastrado para receber as instruções de redefinição de senha.',
+            input: 'email',
+            inputPlaceholder: 'Digite seu email',
+            showCancelButton: true,
+            confirmButtonText: 'Enviar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#b942f4',
+        });
         if (!email) {
             return
+        }
+        if (email.dismiss === Swal.DismissReason.cancel) {
+            return;
         }
 
         try {
