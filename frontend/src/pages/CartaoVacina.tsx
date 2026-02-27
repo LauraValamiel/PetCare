@@ -10,6 +10,7 @@ import { type Pet,  type Tutor,  type Vacina, primeiraLetraMaiuscula, formatDate
 import '../styles/CartaoVacina.css';
 import { AdicionarVacina } from '../components/AdicionarVacina';
 import { EditarVacina } from '../components/EditarVacina';
+import Swal from 'sweetalert2';
 
 export interface VacinaDetalhada extends Vacina {
     id_vacina: number;
@@ -256,17 +257,41 @@ export default function CartaoVacina() {
     };
 
     const handleExcluirVacina = async (vacina: VacinaDetalhada) => {
-        if (window.confirm(`Tem certeza que deseja excluir a vacina "${vacina.nome_vacina}" do pet "${vacina.nome_pet}"`)) {
+
+        const result = await Swal.fire({
+            title: 'Confirmação',
+            text: `Tem certeza que deseja excluir a vacina "${vacina.nome_vacina}" do pet "${vacina.nome_pet}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
             try {
                 const response = await axios.delete(`http://localhost:5000/api/pets/${vacina.id_pet}/deletar-vacina/${vacina.id_vacina}`);
 
                 if (response.status === 200) {
-                    alert('Vacina excluída com sucesso.');
+                    Swal.fire({
+                        title: 'Sucesso!',
+                        text: 'Vacina excluída com sucesso!',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#b942f4'
+                    });
                     handleVacinaDataChanged();
                 }
             } catch (erro: any) {
                 console.error("Erro ao excluir vacina:", erro);
-                alert(erro.response?.data?.error || 'Erro ao excluir vacina.')
+                Swal.fire({
+                    title: 'Erro',
+                    text: erro.response?.data?.error || 'Erro ao excluir vacina.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
             }
         }
             

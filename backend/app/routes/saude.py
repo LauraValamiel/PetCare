@@ -40,6 +40,9 @@ def adicionar_vacina_por_pet(id_pet):
     if not all([nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
+    if proxima_dose < data_vacinacao:
+        return jsonify({"error": "A data da próxima dose deve ser posterior à data de vacinação."}), 400
+
     enviar_notificacao = dados.get('enviar_notificacao', True)
 
     query = """INSERT INTO vacinas (id_pet, nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes) 
@@ -101,6 +104,9 @@ def editar_vacina(id_pet, id_vacina):
     observacoes = dados.get('observacoes')
 
     enviar_notificacao = dados.get('enviar_notificacao', True)
+
+    if proxima_dose and proxima_dose < data_vacinacao:
+        return jsonify({"error": "A data da próxima dose deve ser posterior à data de vacinação."}), 400
 
     query = """UPDATE vacinas 
                SET nome_vacina = %s, lote = %s, data_vacinacao = %s, nome_veterinario = %s, proxima_dose = %s, preco_vacina = %s, local_aplicacao = %s, observacoes = %s 

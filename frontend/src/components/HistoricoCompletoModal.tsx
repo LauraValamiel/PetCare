@@ -5,6 +5,7 @@ import { type VacinaDetalhada } from '../pages/CartaoVacina';
 import { formatDate, type Pet } from '../pages/MeusPets';
 import '../styles/HistoricoCompleto.css';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 interface Compromisso {
     id_compromisso: number;
@@ -76,7 +77,7 @@ export function HistoricoCompletoModal ({
         });
 
         consultas.forEach(consulta => {
-            const isExame = consulta.motivo.toLowerCase().includes('exames');
+            const isExame = consulta.motivo.toLowerCase().includes('exame');
             const petId = consulta.id_pet;
             const nomePet = pets.find(p => p.id_pet === petId)?.nome_pet || 'Pet';
 
@@ -96,6 +97,9 @@ export function HistoricoCompletoModal ({
             const dataCompromissoStr = compromisso.data_compromisso.split('T')[0];
             const petId = compromisso.id_pet;
             const nomePet = pets.find(p => p.id_pet === petId)?.nome_pet || 'Pet';
+
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
 
             if (new Date(dataCompromissoStr + 'T00:00:00Z') < new Date()) { 
                 listaUnificada.push({
@@ -136,7 +140,19 @@ export function HistoricoCompletoModal ({
     };
 
     const handleDelete = async (item: HistoricoItem) => {
-        if (!confirm(`Tem certeza que deseja excluir: ${item.titulo}?`)) return;
+        
+        const result = await Swal.fire({
+            title: 'Confirmação',
+            text: `Tem certeza que deseja excluir: ${item.titulo}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d'
+        });
+
+        if (!result.isConfirmed) return;
         
         const [prefixo, idReal] = item.id.split('-');
         
@@ -151,11 +167,24 @@ export function HistoricoCompletoModal ({
             }
 
             await axios.delete(url);
-            alert('Item excluído com sucesso!');
+            Swal.fire({
+                title: 'Sucesso!',
+                text: 'Item excluído com sucesso!',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
             onDataChanged();
         } catch (error) {
             console.error('Erro ao excluir:', error);
-            alert('Erro ao excluir item.');
+            Swal.fire({
+                title: 'Erro',
+                text: 'Não foi possível excluir o item. Tente novamente.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
+
         }
     };
 

@@ -14,6 +14,7 @@ import { EditarClinicaModal } from '../components/EditarClinicaModal';
 import { Button } from '../components/button';
 import { EditarConsultaModal } from '../components/EditarConsultaModal';
 import { EditarCompromissoModal } from '../components/EditarCompromissoModal';
+import Swal from 'sweetalert2';
 
 interface Compromisso {
     id_compromisso: number;
@@ -256,37 +257,90 @@ export function ConsultasExames() {
     }
 
     const handleExcluirClinica = async (clinica: Clinica) => {
-        if (window.confirm(`Tem certeza que deseja excluir a clínica "${clinica.nome_clinica}"? Esta ação não pode ser desfeita.`)) {
+
+        const result = await Swal.fire({
+            title: 'Confirmação',
+            text: `Tem certeza que deseja excluir a clínica "${clinica.nome_clinica}"? Esta ação não pode ser desfeita.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
             try {
                 const response = await axios.delete(`http://localhost:5000/api/clinica/${clinica.id_clinica}`);
 
                 if (response.status === 200) {
-                    alert('Clínica excluída com sucesso.');
+                    Swal.fire({
+                        title: 'Sucesso!',
+                        text: 'Clínica excluída com sucesso!',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#b942f4'
+                    });
                     handleDataChanged();
                 }
             } catch (erro: any) {
                 console.error("Erro ao excluir clínica:", erro);
-                alert(erro.response?.data?.error || 'Erro ao excluir clínica.')
+                Swal.fire({
+                    title: 'Erro',
+                    text: erro.response?.data?.error || 'Erro ao excluir clínica.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
             }
         }
     }
 
     const handleDeleteCompromisso = async (compromisso: Compromisso) => {
-        if (!window.confirm(`Tem certeza que deseja excluir "${compromisso.titulo}"?`)) return;
+        const result = await Swal.fire({
+            title: 'Confirmação',
+            text: `Tem certeza que deseja excluir "${compromisso.titulo}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
 
         const pet = pets.find(p => p.nome_pet === compromisso.pet_nome);
         if (!pet) {
-            alert('Erro: Pet não encontrado.');
+            Swal.fire({
+                title: 'Erro',
+                text: 'Pet associado ao compromisso não encontrado.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
             return;
         }
 
         try {
             await axios.delete(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos/${compromisso.id_compromisso}`);
-            alert('Compromisso excluído com sucesso!');
+            Swal.fire({
+                title: 'Compromisso Excluído',
+                text: 'Compromisso excluído com sucesso!',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
             handleDataChanged();
         } catch (error) {
             console.error('Erro ao excluir:', error);
-            alert('Erro ao excluir compromisso.');
+            Swal.fire({
+                title: 'Erro',
+                text: 'Erro ao excluir compromisso.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
         }
     };
 

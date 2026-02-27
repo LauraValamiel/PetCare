@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from 'axios';
 import { Button } from "./button";
 import { Lock, X } from "lucide-react";
-import '../styles/AdicionarPet.css'
+import '../styles/AdicionarPet.css';
 
 interface AlterarSenhaModalProps {
     isOpen: boolean;

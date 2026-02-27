@@ -9,6 +9,7 @@ import '../styles/Perfil.css';
 import { AlterarSenhaModal } from '../components/AlterarSenhaModal';
 import { AlterarEmailModal } from '../components/AlterarEmailModal';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 interface Preferencias {
     notif_geral: boolean;
@@ -79,21 +80,40 @@ export default function Configuracoes() {
         } catch (error) {
             console.error("Erro ao salvar configuração:", error);
             setPreferencias(estadoAnterior);
-            alert("Erro ao salvar. Verifique sua conexão.");
+            Swal.fire({
+                title: 'Erro',
+                text: 'Não foi possível salvar a configuração. Tente novamente.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
         }
     };
 
     const handleExcluirConta = async () => {
         if (!tutorId) {
-            alert("Erro: ID do tutor não encontrado.");
+            Swal.fire({
+                title: 'Erro',
+                text: 'ID do usuário não identificado. Faça login novamente.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
             return;
         }
 
-        const confirmacao = window.confirm(
-            "ATENÇÃO: Esta ação é irreversível! Todos os seus dados e de seus pets serão apagados. Deseja realmente excluir sua conta?"
-        );
+        const confirmacao = await Swal.fire({
+            title: 'Confirmação de Exclusão',
+            text: 'Tem certeza que deseja excluir sua conta? Esta ação é irreversível.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar'
+        });
 
-        if (confirmacao) {
+        if (confirmacao.isConfirmed) {
             try {
                 const response = await fetch(`http://localhost:5000/api/tutores/${tutorId}`, {
                     method: 'DELETE',
@@ -103,18 +123,36 @@ export default function Configuracoes() {
                 });
 
                 if (response.ok) {
-                    alert("Sua conta foi excluída com sucesso.");
+                    Swal.fire({
+                        title: 'Conta Excluída',
+                        text: 'Sua conta foi excluída com sucesso.',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#b942f4'
+                    });
                     localStorage.removeItem('tutor');
                     sessionStorage.removeItem('tutor');
                     store?.setToken('');
                     navigate('/login');
                 } else {
                     const errorData = await response.json();
-                    alert(`Erro ao excluir conta: ${errorData.error || 'Erro desconhecido'}`);
+                    Swal.fire({
+                        title: 'Erro',
+                        text: errorData.error || 'Não foi possível excluir a conta.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#b942f4'
+                    });
                 }
             } catch (error) {
                 console.error("Erro na requisição:", error);
-                alert("Não foi possível conectar ao servidor para excluir a conta.");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Não foi possível conectar ao servidor para excluir a conta.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
             }
         }
     };

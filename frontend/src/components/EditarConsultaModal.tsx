@@ -3,6 +3,7 @@ import axios from 'axios';
 import { X, Save, FileText } from 'lucide-react';
 import { Button } from './button';
 import '../styles/AdicionarPet.css';
+import Swal from 'sweetalert2';
 
 const formatDateToInput = (dateString: string | Date | null): string => {
     if (!dateString) return '';
@@ -99,7 +100,13 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
             const response = await axios.put(url, payload);
 
             if (response.status === 200) {
-                alert('Registro atualizado com sucesso!');
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Consulta atualizada com sucesso!',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
                 if (onSuccess) onSuccess();
                 onClose();
             }

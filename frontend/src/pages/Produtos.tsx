@@ -13,6 +13,7 @@ import { AdicionarProdutoModal } from '../components/AdicionarProdutoModal';
 import { EditarProdutoModal } from '../components/EditarProdutoModal';
 import StoreContext from '../components/store/Context';
 import { type Notificacao } from '../components/store/Context';
+import Swal from 'sweetalert2';
 
 interface Produto {
     id_compra: number;
@@ -273,17 +274,41 @@ export default function Produtos() {
     const medicamentosTotal = allProdutos.filter(p => p.categoria.toLowerCase().includes('medicamento'));
 
     const handleExcluirProduto = async (produto: Produto) => {
-        if (window.confirm(`Tem certeza que deseja excluir o produto "${produto.nome_produto}"?`)) {
+
+        const result = await Swal.fire({
+            title: 'Confirmação',
+            text: `Tem certeza que deseja excluir o produto "${produto.nome_produto}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d'
+        });
+
+        if (result.isConfirmed) {
             try{
                 const response = await axios.delete(`http://localhost:5000/api/pets/${produto.id_pet}/produtos/${produto.id_compra}`);
 
                 if (response.status === 200) {
-                    alert('Produto excluído com sucesso.');
+                    Swal.fire({
+                        title: 'Sucesso',
+                        text: 'Produto excluído com sucesso!',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#b942f4'
+                    });
                     handleDataChanged();
                 }
             } catch (erro: any) {
                 console.error("Erro ao excluir produto: ", erro);
-                alert(erro.response?.data?.error || 'Erro ao excluir produto.')
+                Swal.fire({
+                    title: 'Erro',
+                    text: erro.response?.data?.error || 'Erro ao excluir produto.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
             }
         }
     }

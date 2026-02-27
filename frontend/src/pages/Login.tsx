@@ -18,6 +18,7 @@ import pitty from '../assets/login/pitty.jpg';
 import meg from '../assets/login/meg.jpg';
 import zeus from '../assets/login/zeus.jpg';
 import '../styles/Login.css';
+import Swal from 'sweetalert2';
 
 const imagens = [ {image: jade}, {image:maya}, {image: jademaya}, {image: jademayanatal}, {image: lola}, {image: mel}, {image: mia}, {image: amy}, {image: mimi, posicao: 'center top'}, {image: bob}, {image: pitty}, {image: meg}, {image: zeus} ];
 
@@ -115,13 +116,25 @@ export default function Login() {
         if (window.google && window.google.accounts && window.google.accounts.id) {
             window.google.accounts.id.prompt((notification: any) => {
                 if (notification.isNotDisplayed()) {
-                    alert('Não foi possível abrir o seletor do Google. Tente novamente.')
+                    Swal.fire({
+                        title: 'Erro',
+                        text: 'O prompt de login do Google não pode ser exibido. Verifique se os bloqueadores de pop-up estão desativados e tente novamente.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#b942f4'
+                    });
                 }
             });
         } else {
-            alert('Google Identity Service não foi carregado ainda.')
+            Swal.fire({
+                title: 'Erro',
+                text: 'A biblioteca de login do Google não foi carregada corretamente. Tente novamente mais tarde.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
         }
-    }
+    };
 
     const handleGoogleCredentialResponse = async (response: any) => {
         const setTutor = store?.setTutor;
@@ -145,6 +158,17 @@ export default function Login() {
                 navigate('/home');
             }
         } catch (erro: any){
+            if (erro.response?.status === 404){
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Parece que esta conta do Google ainda não está associada a um perfil no PetCare. Vamos criar uma nova conta para você!',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
+
+                setIsLoginView(false);
+            }
             console.error("Erro no login com o google", erro);
             setErro('Erro no login com o Google, tente novamente.')
         }
@@ -276,10 +300,22 @@ export default function Login() {
 
         try {
             const response = await axios.post('http://localhost:5000/api/tutores/esqueci-senha', { email });
-            alert(response.data.message || 'Se o email estiver cadastrado, um link de redefinição foi enviado.');
+            Swal.fire({
+                title: 'Sucesso',
+                text: response.data.message || 'Se o email estiver cadastrado, um link de redefinição foi enviado.',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
         } catch (erro) {
             console.log("Erro:", erro)
-            alert('Erro ao enviar solicitação.Tente novamente.')
+            Swal.fire({
+                title: 'Erro',
+                text: 'Erro ao enviar solicitação. Tente novamente.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
         }
     };
     
@@ -405,6 +441,11 @@ export default function Login() {
                         <div className='divisor'>ou continue com</div>
                         <div id="google-button-manual" className='social-buttons'>
                         </div>
+                        {isLoginView && (
+                            <p style={{ fontSize: '13px', color: '#666', marginTop: '10px', textAlign: 'center' }}>
+                                * Primeiro acesso? Vá para a aba <strong>Cadastro</strong> para criar sua conta com o Google.
+                            </p>
+                        )}
                     </div>
 
                 </div>

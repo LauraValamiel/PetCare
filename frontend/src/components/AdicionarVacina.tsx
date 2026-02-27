@@ -57,6 +57,12 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
             return;
         }
 
+        if (formData.proxima_dose < formData.data_vacinacao) {
+            setErro('A data da próxima dose não deve ser anterior à data de vacinação.');
+            setLoading(false);
+            return;
+        }
+
         try {
             const response = await axios.post(`http://localhost:5000/api/pets/${formData.id_pet}/nova-vacina`, {
                 ...formData,
@@ -110,7 +116,7 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="proxima_dose">Próxima Dose *</label>
-                                <input type="date" id='proxima_dose' name='proxima_dose' value={formData.proxima_dose} onChange={handleChange} autoComplete="off"/>
+                                <input type="date" id='proxima_dose' name='proxima_dose' value={formData.proxima_dose} min={formData.data_vacinacao} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="lote">Lote *</label>

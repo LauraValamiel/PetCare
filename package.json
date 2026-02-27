@@ -2,7 +2,8 @@
   "dependencies": {
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.544.0",
-    "react-router-dom": "^7.9.3"
+    "react-router-dom": "^7.9.3",
+    "sweetalert2": "^11.26.20"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6"

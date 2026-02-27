@@ -4,6 +4,7 @@ import { X, Heart, Edit } from 'lucide-react';
 import { type DetalhesPets, primeiraLetraMaiuscula, formatDate } from '../pages/MeusPets';
 import '../styles/VerPet.css';
 
+
 interface VerPetModal {
     isOpen: boolean;
     onClose: () => void;

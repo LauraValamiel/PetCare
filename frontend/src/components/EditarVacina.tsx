@@ -66,6 +66,11 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setErro('');
+        
+        if (formData.proxima_dose < formData.data_vacinacao) {
+            setErro('A data da próxima dose não deve ser anterior à data de vacinação.');
+            return;
+        }
 
         try {
             const response = await axios.put(`http://localhost:5000/api/pets/${vacina.id_pet}/editar-vacina/${vacina?.id_vacina}`, {
@@ -114,7 +119,7 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="proxima_dose">Próxima Dose *</label>
-                                <input type="date" id='proxima_dose' name='proxima_dose' value={formData.proxima_dose} onChange={handleChange}/>
+                                <input type="date" id='proxima_dose' name='proxima_dose' value={formData.proxima_dose} min={formData.data_vacinacao} onChange={handleChange}/>
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="lote">Lote *</label>

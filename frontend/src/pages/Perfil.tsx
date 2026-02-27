@@ -10,6 +10,7 @@ import { formatDate } from './MeusPets';
 import '../styles/Perfil.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ConvidarTutorModal } from '../components/ConvidarTutorModal'; 
+import Swal from 'sweetalert2';
 
 interface TutorData {
     id_tutor: number;
@@ -271,7 +272,13 @@ export default function Perfil() {
                     store.setFotoPerfilTutor(updatedData.foto_perfil_tutor);
                 }
 
-                alert('Dados atualizados com sucesso!');
+                Swal.fire({
+                    title: 'Sucesso',
+                    text: 'Perfil atualizado com sucesso!',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                    });
             }
         } catch (erro: any) {
             console.error('Erro ao atualizar dados do tutor:', erro);
@@ -315,21 +322,42 @@ export default function Perfil() {
                 if (store?.setNome) store.setNome(nome);
                 if (store?.setCpf) store.setCpf(cpf);
 
-                alert("Perfil atualizado com sucesso!");
+                Swal.fire({
+                    title: 'Sucesso',
+                    text: 'Perfil atualizado com sucesso!',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
             }
         } catch (error) {
             console.error("Erro ao salvar perfil:", error);
-            alert("Não foi possível salvar as alterações.");
+            Swal.fire({
+                title: 'Erro',
+                text: 'Não foi possível salvar as alterações.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#b942f4'
+            });
         }
     };
 
-    const handleLogout = () => {
-        if (window.confirm("Tem certeza que deseja sair?")) {
+    const handleLogout = async () => {
+        const result = await Swal.fire({
+            title: 'Confirmação',
+            text: 'Tem certeza que deseja sair?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, sair',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d'
+        });
+        if (result.isConfirmed) {
             localStorage.removeItem('tutor');
             sessionStorage.removeItem('tutor');
             store?.setToken('');
             navigate('/login');
-            window.location.reload(); 
         }
     };
 

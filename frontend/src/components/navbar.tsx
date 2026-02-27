@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import '../styles/NavBar.css';
 import { useContext } from "react";
 import StoreContext, { type Notificacao } from "./store/Context";
+import Swal from 'sweetalert2';
 
 const NotificationPanelItem: React.FC<any> = ({ notification }) => {
     let IconComponent;
@@ -53,15 +54,26 @@ const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, naviga
             : `http://localhost:5000/api/uploads/${fotoPerfilTutor}`) 
         : null;
 
-    const handleLogout = () => {
-        if (window.confirm("Tem certeza que deseja sair?")) {
+    const handleLogout = async () => {
+        
+        const result = await Swal.fire({
+            title: 'Confirmação de Logout',
+            text: 'Tem certeza que deseja sair?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, sair',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
             localStorage.removeItem('token');
             localStorage.removeItem('tutor');
             sessionStorage.removeItem('tutor');
             store.setToken(null);
             store.setTutor(null);   
             navigate('/login');
-            window.location.reload();
             
         }
     };
