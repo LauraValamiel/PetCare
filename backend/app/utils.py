@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, time as time_obj
+import datetime as dt
 from urllib.parse import quote_plus
 from flask import jsonify
 from flask_mail import Message
@@ -47,50 +47,67 @@ def criar_evento_e_enviar_alerta(id_pet, titulo, data_evento, hora_evento=None, 
     titulo_completo = f"Alerta para {nome_pet}: {titulo}"
 
     try:
-        data_evento_obj = None
-        if isinstance(data_evento, str):
-            data_evento_obj = datetime.strptime(data_evento.split('T')[0], '%Y-%m-%d').date()
+        print("data_evento recebida:", data_evento, type(data_evento))
 
-        elif isinstance(data_evento, datetime.date): 
+        if isinstance(data_evento, str):
+            try:
+                # Se vier datetime completo
+                if "T" in data_evento:
+                    data_evento_obj = dt.datetime.fromisoformat(data_evento.replace("Z", ""))
+                else:
+                    # Se vier só data (YYYY-MM-DD)
+                    data_evento_obj = dt.datetime.strptime(data_evento, "%Y-%m-%d")
+            except Exception as e:
+                print("Erro ao converter data_evento:", e)
+                return
+
+        elif isinstance(data_evento, dt.datetime):
             data_evento_obj = data_evento
 
-        if data_evento_obj is None:
-            print(f"Formato de data inválido ou ausente: {data_evento}")
+        elif isinstance(data_evento, dt.date):
+            data_evento_obj = dt.datetime.combine(data_evento, dt.time.min)
+        else:
+            print("Formato de data inválido")
             return
-            
-        hora_evento_obj = None
+        
+        
+       
         if hora_evento:
             if isinstance(hora_evento, str):
-                hora_limpa = hora_evento.split('.')[0].upper().replace('Z', '')
-                for fmt in ('%H:%M:%S', '%H:%M'):
-                    try:
-                        hora_evento_obj = datetime.strptime(hora_limpa, fmt).time()
-                        break
-                    except ValueError: 
-                        continue
-            elif isinstance(hora_evento, time_obj):
-                hora_evento_obj = hora_evento
+                hora_obj = dt.datetime.strptime(hora_evento[:5], "%H:%M").time()
+            elif isinstance(hora_evento, dt.time):
+                hora_obj = hora_evento
+            else:
+                hora_obj = None
 
-        if hora_evento_obj:
-            data_inicio = datetime.combine(data_evento_obj, hora_evento_obj)
-            data_fim = data_inicio + timedelta(hours=1)
-            datas_formatadas = f"{data_inicio.strftime('%Y%m%dT%H%M%S')}/{data_fim.strftime('%Y%m%dT%H%M%S')}"
-            data_email_formatada = data_inicio.strftime('%d/%m/%Y às %H:%M')
-        else:
-            data_inicio = data_evento_obj
-            data_fim = data_evento_obj + timedelta(days=1)
-            datas_formatadas = f"{data_inicio.strftime('%Y%m%d')}/{data_fim.strftime('%Y%m%d')}"
-            data_email_formatada = data_inicio.strftime('%d/%m/%Y')
+            if hora_obj:
+                data_evento_obj = data_evento_obj.replace(
+                    hour=hora_obj.hour,
+                    minute=hora_obj.minute
+                )
 
+        print("data_evento_obj final:", data_evento_obj)
+
+        print("ANTES DO STRFTIME:", data_evento_obj)
+        data_email_formatada = data_evento_obj.strftime("%d/%m/%Y - %H:%M")
+        print("DEPOIS DO STRFTIME:", data_email_formatada)
+
+        data_inicio = data_evento_obj
+        data_fim = data_inicio + dt.timedelta(hours=1)
+        datas_formatadas = f"{data_inicio.strftime('%Y%m%dT%H%M%S')}/{data_fim.strftime('%Y%m%dT%H%M%S')}"
+
+        print(f"Data final formatada: {data_email_formatada}")
+        print(f"Datas para link do Google Agenda: {datas_formatadas}")
+        
         base_url = "https://www.google.com/calendar/render?action=TEMPLATE"
-        link_agenda = f"{base_url}&text={quote_plus(titulo_completo)}&dates={datas_formatadas}&details={quote_plus(descricao)}"
-
-        msg = Message(subject=f"Lembrete PetCare: {titulo_completo}", recipients=destinatarios)
+        link_agenda = f"{base_url}&text={quote_plus(titulo_completo)}&dates={datas_formatadas}&details={quote_plus(descricao)}&ctz=America/Sao_Paulo"      
+        assunto = f"Lembrete PetCare: {titulo_completo} - {data_email_formatada}"
+        msg = Message(subject=assunto, recipients=destinatarios)
         msg.html = f"""
             <p>Olá,</p>
             <p>Este é um lembrete sobre um compromisso importante para <strong>{nome_pet}</strong>:</p>
-            <p><strong>Evento:</strong> {titulo}</p>
-            <p><strong>Data:</strong> {data_email_formatada}</p>
+            <p><strong>📌 Evento:</strong> {titulo}</p>
+            <p><strong>📅 Data e Hora:</strong> {data_email_formatada}</p>
             <p><a href="{link_agenda}">Adicionar à Agenda Google</a></p>
             <p>Atenciosamente,<br>Equipe PetCare</p>
         """

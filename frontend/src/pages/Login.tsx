@@ -311,7 +311,7 @@ export default function Login() {
         }
 
         try {
-            const response = await axios.post('http://localhost:5000/api/tutores/esqueci-senha', { email });
+            const response = await axios.post('http://localhost:5000/api/tutores/esqueci-senha', { email: email.value });
             Swal.fire({
                 title: 'Sucesso',
                 text: response.data.message || 'Se o email estiver cadastrado, um link de redefinição foi enviado.',

@@ -305,14 +305,14 @@ def compromissos_por_pet(id_pet):
 def agendar_compromisso_pet(id_pet):
     dados = request.json
     titulo = dados.get('titulo')
-    descricao = dados.get('descricao')
+    descricao = dados.get('descricao', '')
     data_compromisso = dados.get('data_compromisso')
     hora = dados.get('hora')
     localizacao = dados.get('localizacao')
     lembrete = dados.get('lembrete', False)
     criado_em = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    if not all([titulo, descricao, data_compromisso, hora, localizacao, lembrete]):
+    if not all([titulo, data_compromisso, hora, localizacao]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
 
     enviar_notificacao = dados.get('enviar_notificacao', True)
@@ -323,14 +323,20 @@ def agendar_compromisso_pet(id_pet):
     if error:
         return jsonify({"error": f"Erro ao agendar compromisso: {error}"}), 500
     
+    print(f"Compromisso a ser agendado: {titulo} em {data_compromisso} às {hora} para o pet {id_pet}. Lembrete: {lembrete}, Enviar Notificação: {enviar_notificacao}")
+
     if lembrete and data_compromisso and enviar_notificacao:
+        texto_descricao = descricao if descricao else f"Lembrete para {titulo} no dia {data_compromisso} às {hora} em {localizacao}."
+        print(f"Criando evento para compromisso: {titulo} em {data_compromisso} às {hora} para o pet {id_pet}.")
         criar_evento_e_enviar_alerta(
             id_pet=id_pet,
             titulo=dados.get('titulo'),
             data_evento=data_compromisso,
             hora_evento=hora,
-            descricao=dados.get('descricao', '')
+            descricao=texto_descricao
         )
+    
+    print(f"Compromisso agendado com sucesso para o pet {id_pet}. Enviar Notificação: {enviar_notificacao}")
 
     return jsonify({"message": "Compromisso agendado com sucesso."}), 201
 
@@ -369,12 +375,13 @@ def editar_compromisso_pet(id_pet, id_compromisso):
     hora_nova = datetime.strptime(hora, '%H:%M').time() if hora else None
 
     if lembrete and (data_original != data_nova or hora_original != hora_nova) and enviar_notificacao:
+        texto_descricao = descricao if descricao else f"Lembrete para {titulo} no dia {data_compromisso} às {hora} em {localizacao}."
         criar_evento_e_enviar_alerta(
             id_pet=id_pet,
             titulo=f"Compromisso atualizado: {titulo}",
             data_evento=data_compromisso,
             hora_evento=hora,
-            descricao=descricao
+            descricao=texto_descricao
         )
 
     return jsonify({"message": "Compromisso atualizado com sucesso."}), 200

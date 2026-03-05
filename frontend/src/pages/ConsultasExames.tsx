@@ -164,11 +164,14 @@ export function ConsultasExames() {
                 setAllVacinas(vacinasTotais);
 
                 // Força as datas a ignorarem o fuso horário (evita que caiam no histórico 1 dia antes)
-                const parseDateLocal = (dateString: string) => {
+                const parseDateLocal = (dateString: string, timeString?: string) => {
                     if (!dateString) return new Date(0);
                     const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
-                    return new Date(year, month - 1, day);
+                    const [hours, minutes] = (timeString || "00:00").split(':').map(Number);
+                    return new Date(year, month - 1, day, hours, minutes);
                 };
+
+                const now = new Date();
 
                 const historicoUnificado: HistoricoItemSumario[] = [];
                 const eventosFuturos: any[] = []; // Lista mista para os cards
@@ -183,7 +186,7 @@ export function ConsultasExames() {
                 });
 
                 consultasTotais.forEach(consulta => {
-                    const dataObj = parseDateLocal(consulta.data_consulta);
+                    const dataObj = parseDateLocal(consulta.data_consulta, consulta.hora);
                     if (dataObj < today) {
                         historicoUnificado.push({
                             tipo: consulta.motivo.toLowerCase().includes('exame') ? 'exame' : 'consulta',
@@ -193,6 +196,7 @@ export function ConsultasExames() {
                         // Se for futuro, vai para os cards
                         eventosFuturos.push({
                             isConsulta: true, originalData: consulta,
+                            id_consulta: consulta.id_consulta,
                             titulo: consulta.motivo, data_compromisso: consulta.data_consulta,
                             hora: consulta.hora || '00:00', localizacao: consulta.nome_clinica, pet_nome: consulta.pet_nome
                         });
@@ -200,7 +204,7 @@ export function ConsultasExames() {
                 });
 
             compromissosTotais.forEach(compromisso => {
-                const dataObj = parseDateLocal(compromisso.data_compromisso);
+                const dataObj = parseDateLocal(compromisso.data_compromisso, compromisso.hora);
                 if (dataObj < today) {
                     historicoUnificado.push({
                         tipo: compromisso.titulo.toLowerCase().includes('exame') ? 'exame' : 'consulta',
@@ -210,6 +214,7 @@ export function ConsultasExames() {
                     // Se for futuro, vai para os cards
                     eventosFuturos.push({
                         isConsulta: false, originalData: compromisso,
+                        id_compromisso: compromisso.id_compromisso,
                         titulo: compromisso.titulo, data_compromisso: compromisso.data_compromisso,
                         hora: compromisso.hora, localizacao: compromisso.localizacao, pet_nome: compromisso.pet_nome
                     });
@@ -296,10 +301,10 @@ export function ConsultasExames() {
         }
     }
 
-    const handleDeleteCompromisso = async (compromisso: Compromisso) => {
+    const handleDeleteCompromisso = async (item: any) => {
         const result = await Swal.fire({
             title: 'Confirmação',
-            text: `Tem certeza que deseja excluir "${compromisso.titulo}"?`,
+            text: `Tem certeza que deseja excluir "${item.titulo}"?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#b942f4',
@@ -310,7 +315,7 @@ export function ConsultasExames() {
 
         if (!result.isConfirmed) return;
 
-        const pet = pets.find(p => p.nome_pet === compromisso.pet_nome);
+        const pet = pets.find(p => p.nome_pet === item.pet_nome);
         if (!pet) {
             Swal.fire({
                 title: 'Erro',
@@ -323,7 +328,11 @@ export function ConsultasExames() {
         }
 
         try {
-            await axios.delete(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos/${compromisso.id_compromisso}`);
+            if (item.isConsulta) {
+                await axios.delete(`http://localhost:5000/api/pets/${pet.id_pet}/deletar-consulta/${item.id_consulta || item.originalData.id_consulta}`);
+            } else {
+                await axios.delete(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos/${item.id_compromisso || item.originalData.id_compromisso}`);
+            }
             Swal.fire({
                 title: 'Compromisso Excluído',
                 text: 'Compromisso excluído com sucesso!',

@@ -12,6 +12,7 @@ interface Compromisso {
     id_pet: number;
     titulo: string;
     data_compromisso: string;
+    hora?: string;
     pet_nome: string;
 }
 
@@ -20,6 +21,7 @@ interface Consulta {
     id_pet: number;
     motivo: string;
     data_consulta: string;
+    hora?: string;
     pet_nome?: string;
 }
 
@@ -62,55 +64,77 @@ export function HistoricoCompletoModal ({
     const historicoUnificado = useMemo(() => {
         const listaUnificada: HistoricoItem[] = [];
 
+        const parseDateTimeLocal = (dateString: string, timeString?: string) => {
+            if (!dateString) return new Date(0);
+            const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+            const [hours, minutes] = (timeString || "00:00").split(':').map(Number);
+            return new Date(year, month - 1, day, hours, minutes);
+        };
+        const now = new Date();
+
         vacinas.forEach(vacina => {
             if (vacina.data_vacinacao){
-                listaUnificada.push({
+                const dataVacina = parseDateTimeLocal(vacina.data_vacinacao);
+                if (dataVacina < now) {
+                    listaUnificada.push({
                     id: `v-${vacina.id_vacina}`,
                     id_pet: vacina.id_pet,
                     tipo: 'vacina',
-                    data: new Date(vacina.data_vacinacao.split('T')[0] + 'T00:00:00Z'),
+                    data: dataVacina,
                     titulo: vacina.nome_vacina,
                     petNome: vacina.nome_pet || 'Pet',
                     dataOriginal: vacina,
                 });
+                }
+                
             }
         });
 
         consultas.forEach(consulta => {
-            const isExame = consulta.motivo.toLowerCase().includes('exame');
-            const petId = consulta.id_pet;
-            const nomePet = pets.find(p => p.id_pet === petId)?.nome_pet || 'Pet';
+            if (consulta.data_consulta) {
+                const dataConsulta = parseDateTimeLocal(consulta.data_consulta, consulta.hora);
+                if (dataConsulta < now){
+                    const isExame = consulta.motivo.toLowerCase().includes('exame');
+                    const petId = consulta.id_pet;
+                    const nomePet = pets.find(p => p.id_pet === petId)?.nome_pet || 'Pet';
 
-            listaUnificada.push({
-                id: `c-${consulta.id_consulta}`,
-                id_pet: petId,
-                tipo: isExame ? 'exame' : 'consulta',
-                data: new Date(consulta.data_consulta.split('T')[0] + 'T00:00:00Z'),
-                titulo: consulta.motivo,
-                petNome: nomePet,
-                dataOriginal: consulta,
-            });
+                    listaUnificada.push({
+                        id: `c-${consulta.id_consulta}`,
+                        id_pet: petId,
+                        tipo: isExame ? 'exame' : 'consulta',
+                        data: dataConsulta,
+                        titulo: consulta.motivo,
+                        petNome: nomePet,
+                        dataOriginal: consulta,
+                    });
+                }
+            }
+            
         });
 
         compromissos.forEach(compromisso => {
-            const isExame = compromisso.titulo.toLowerCase().includes('exame');
-            const dataCompromissoStr = compromisso.data_compromisso.split('T')[0];
-            const petId = compromisso.id_pet;
-            const nomePet = pets.find(p => p.id_pet === petId)?.nome_pet || 'Pet';
+            const dataCompromisso = parseDateTimeLocal(compromisso.data_compromisso, compromisso.hora);
+            if (dataCompromisso < now) {
+                const isExame = compromisso.titulo.toLowerCase().includes('exame');
+                const dataCompromissoStr = compromisso.data_compromisso.split('T')[0];
+                const petId = compromisso.id_pet;
+                const nomePet = pets.find(p => p.id_pet === petId)?.nome_pet || 'Pet';
 
-            const today = new Date();
-            today.setHours(23, 59, 59, 999);
+                const today = new Date();
+                today.setHours(23, 59, 59, 999);
 
-            if (new Date(dataCompromissoStr + 'T00:00:00Z') < new Date()) { 
-                listaUnificada.push({
-                    id: `comp-${compromisso.id_compromisso}`,
-                    id_pet: petId,
-                    tipo: isExame ? 'exame' : 'compromisso',
-                    data: new Date(dataCompromissoStr + 'T00:00:00Z'), 
-                    titulo: compromisso.titulo,
-                    petNome: nomePet,
-                    dataOriginal: compromisso,
+                if (new Date(dataCompromissoStr + 'T00:00:00Z') < new Date()) { 
+                    listaUnificada.push({
+                        id: `comp-${compromisso.id_compromisso}`,
+                        id_pet: petId,
+                        tipo: isExame ? 'exame' : 'compromisso',
+                        data: dataCompromisso, 
+                        titulo: compromisso.titulo,
+                        petNome: nomePet,
+                        dataOriginal: compromisso,
                 });
+            }
+            
             }
         });
 

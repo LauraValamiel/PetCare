@@ -79,16 +79,6 @@ export function AgendarCompromissoModal({
             tituloAjustado = `Exame: ${formData.titulo}`;
         }
 
-        const prefsSalvas = localStorage.getItem('user_prefs_config');
-        let permitirEmail = true;
-
-        if (prefsSalvas) {
-            const prefs = JSON.parse(prefsSalvas);
-            if (prefs.notificacoesEmail === false) {
-                permitirEmail = false
-            }
-        }
-
         try {
 
             const url = tipo === 'consulta' 
@@ -105,8 +95,9 @@ export function AgendarCompromissoModal({
                 }
                 : {
                     ...formData,
-                lembrete: true,
-                enviar_notificacao: permitirEmail
+                    titulo: tituloAjustado,
+                    lembrete: true,
+                    enviar_notificacao: true
                 }
 
             const response = await axios.post(url, dataToSend);
