@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from './button';
-import { Plus, X, Stethoscope } from 'lucide-react';
+import { Plus, X, UserPlus } from 'lucide-react';
 import '../styles/AdicionarPet.css';
 
-interface AdicionarClinicaModalProps {
+interface Clinica {
+    id_clinica: number;
+    nome_clinica: string;
+}
+
+interface AdicionarVeterinarioModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onClinicaAdded: () => void;
+    onVeterinarioAdded: () => void;
     tutorId: number;
+    clinicas: Clinica[];
 }
 
 const estadoInicial = {
-    nome_clinica: '',
-    endereco: '',
+    nome: '',
+    especialidade: '',
     telefone: '',
+    id_clinica: '', // Vazio significa sem vínculo
 };
 
 const maskPhone = (value: string) => {
@@ -24,7 +31,7 @@ const maskPhone = (value: string) => {
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
 };
 
-export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId }: AdicionarClinicaModalProps) {
+export function AdicionarVeterinarioModal({ isOpen, onClose, onVeterinarioAdded, tutorId, clinicas }: AdicionarVeterinarioModalProps) {
     const [formData, setFormData] = useState(estadoInicial);
     const [erro, setErro] = useState('');
     const [loading, setLoading] = useState(false);
@@ -36,9 +43,7 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId 
         }
     }, [isOpen]);
 
-    if (!isOpen) {
-        return null;
-    }
+    if (!isOpen) return null;
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = event.target;
@@ -48,31 +53,31 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (loading) return;
-        setLoading(true);
         setErro('');
 
-        if (!formData.nome_clinica || !formData.endereco || !formData.telefone) {
-            setErro('Por favor, preencha todos os campos obrigatórios.');
-            setLoading(false);
+        if (!formData.nome) {
+            setErro('O nome do veterinário é obrigatório.');
             return;
         }
         
+        setLoading(true);
+
         try {
             const dadosParaEnviar = {
                 ...formData,
-                telefone: formData.telefone.replace(/\D/g, '')
+                telefone: formData.telefone.replace(/\D/g, ''),
+                id_clinica: formData.id_clinica === '' ? null : Number(formData.id_clinica)
             };
 
-            const response = await axios.post(`http://localhost:5000/api/tutores/${tutorId}/nova-clinica`, dadosParaEnviar);
+            const response = await axios.post(`http://localhost:5000/api/tutores/${tutorId}/novo-veterinario`, dadosParaEnviar);
             
             if (response.status === 201) {
-                onClinicaAdded(); 
+                onVeterinarioAdded(); 
                 onClose();
             }
-        } catch (error) {
-            console.error("Erro ao adicionar clínica", error);
-            setErro(error.response?.data?.error || 'Erro ao conectar ao servidor.')
-            
+        } catch (error: any) {
+            console.error("Erro ao adicionar veterinário", error);
+            setErro(error.response?.data?.error || 'Erro ao conectar ao servidor.');
         } finally {
             setLoading(false);
         }
@@ -82,7 +87,7 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId 
         <div className='form' onClick={onClose}>
             <div className='form-content' onClick={(event) => event.stopPropagation()}>
                 <div className='form-header'>
-                    <h3><Stethoscope size={20}/>Adicionar Nova Clínica</h3>
+                    <h3><UserPlus size={20}/>Adicionar Veterinário</h3>
                     <button onClick={onClose} className='form-close-btn'><X size={22}/></button>
                 </div>
 
@@ -92,29 +97,48 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId 
 
                         <div className='form-grid'>
                             <div className='form-group full-width'>
-                                <label htmlFor="nome_clinica">Nome da Clínica *</label>
+                                <label htmlFor="nome">Nome do Veterinário *</label>
                                 <input 
                                     type="text" 
-                                    id='nome_clinica' 
-                                    name='nome_clinica' 
-                                    placeholder='Ex: Clínica Vida Animal' 
-                                    value={formData.nome_clinica} 
+                                    id='nome' 
+                                    name='nome' 
+                                    placeholder='Ex: Dr. Carlos Silva' 
+                                    value={formData.nome} 
                                     onChange={handleChange} 
-                                    autoComplete="off" />
+                                    autoComplete="off" 
+                                />
                             </div>
+                            
                             <div className='form-group full-width'>
-                                <label htmlFor="endereco">Endereço *</label>
+                                <label htmlFor="id_clinica">Vincular a uma Clínica (Opcional)</label>
+                                <select 
+                                    id="id_clinica" 
+                                    name="id_clinica" 
+                                    value={formData.id_clinica} 
+                                    onChange={handleChange}
+                                >
+                                    <option value="">-- Sem vínculo com clínica (Atendimento Autônomo) --</option>
+                                    {clinicas.map(c => (
+                                        <option key={c.id_clinica} value={c.id_clinica}>{c.nome_clinica}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className='form-group'>
+                                <label htmlFor="especialidade">Especialidade (Opcional)</label>
                                 <input 
                                     type="text" 
-                                    id='endereco' 
-                                    name='endereco' 
-                                    placeholder='Ex: Rua Exemplo, 123' 
-                                    value={formData.endereco} 
+                                    id='especialidade' 
+                                    name='especialidade' 
+                                    placeholder='Ex: Clínico Geral, Dermatologia' 
+                                    value={formData.especialidade} 
                                     onChange={handleChange} 
-                                    autoComplete="off" />
+                                    autoComplete="off" 
+                                />
                             </div>
+
                             <div className='form-group'>
-                                <label htmlFor="telefone">Telefone *</label>
+                                <label htmlFor="telefone">Telefone / Celular (Opcional)</label>
                                 <input 
                                     type="text" 
                                     id='telefone' 
@@ -123,18 +147,19 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId 
                                     value={formData.telefone} 
                                     onChange={(e) => setFormData({...formData, telefone: maskPhone(e.target.value)})} 
                                     maxLength={15}
-                                    autoComplete="off" />
+                                    autoComplete="off" 
+                                />
                             </div>
-
                         </div>
                     </div>
                     <div className='form-footer'>
                         <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                        <Button variant='primary' type='submit' disabled={loading}><Plus size={16}/>{loading ? 'Salvando...' : 'Adicionar Clínica'}</Button>
+                        <Button variant='primary' type='submit' disabled={loading}>
+                            <Plus size={16}/>{loading ? 'Salvando...' : 'Adicionar Veterinário'}
+                        </Button>
                     </div>
                 </form>
             </div>
         </div>
     )
-
 }

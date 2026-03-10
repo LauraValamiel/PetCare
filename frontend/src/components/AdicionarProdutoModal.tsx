@@ -20,6 +20,7 @@ const estadoInicial = {
     quantidade: '',
     consumo_medio: '',
     data_compra: new Date().toISOString().split('T')[0],
+    data_validade: '',
     preco_compra: '',
     loja: '',
     observacoes: '',
@@ -95,15 +96,7 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
             return;
         }
 
-        const prefsSalvas = localStorage.getItem('user_prefs_config');
-        let permitirEmail = true;
-
-        if (prefsSalvas) {
-            const prefs = JSON.parse(prefsSalvas);
-            if (prefs.notificacoesEmail === false || prefs.alertasProdutos === false) {
-                permitirEmail = false;
-            }
-        }
+        const permitirEmail = true;
 
         try {
             const response = await axios.post(`http://localhost:5000/api/pets/${formData.id_pet}/novo-produto`, {
@@ -189,6 +182,16 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
                             <div className='form-group'>
                                 <label htmlFor="data_compra">Data da Compra *</label>
                                 <input type="date" id='data_compra' name='data_compra' value={formData.data_compra} onChange={handleChange} autoComplete="off" />
+                            </div>
+
+                            <div className='form-group'>
+                                <label htmlFor="data_validade">Data de Validade</label>
+                                <input 
+                                    type="date" 
+                                    id="data_validade"
+                                    value={formData.data_validade}
+                                    onChange={(e) => setFormData({...formData, data_validade: e.target.value})}
+                                />
                             </div>
 
                             <div className='form-group'>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from './button';
-import { ShoppingBag, X } from 'lucide-react';
+import { CalendarIcon, ShoppingBag, X } from 'lucide-react';
 import '../styles/AdicionarPet.css';
 import { type Pet } from '../pages/MeusPets';
 import type Produto from '../pages/Produtos';
@@ -68,6 +68,7 @@ interface EditarProdutoModalProps {
 export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, produto }: EditarProdutoModalProps) {
     const [formData, setFormData] = useState<any>({});
     const [erro, setErro] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (isOpen && produto) {
@@ -78,12 +79,14 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
                 quantidade: produto.quantidade?.toString()?.replace('.', ',') || '',
                 consumo_medio: produto.consumo_medio?.toString()?.replace('.', ',') || '',
                 data_compra: formatarDataParaInput(produto.data_compra),
+                data_validade: formatarDataParaInput(produto.data_validade),
                 preco_compra: produto.preco_compra?.toString()?.replace('.', ',') || '',
                 loja: produto.loja || '',
                 observacoes: produto.observacoes || '',
                 consumo_periodo: produto.consumo_periodo || 'dia',
             });
             setErro('');
+            setLoading(false);
         }
     }, [isOpen, produto]);
 
@@ -98,20 +101,16 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (loading) return;
+
         setErro('');
+        setLoading(true);
 
-        const prefsSalvas = localStorage.getItem('user_prefs_config')
-        let permitirEmail = true;
-
-        if (prefsSalvas) {
-            const prefs = JSON.parse(prefsSalvas);
-            if (prefs.notificacoesEmail === false || prefs.alertasProdutos === false) {
-                permitirEmail = false;
-            }
-        }
+        const permitirEmail = true;
 
         if (!formData.id_pet || !formData.nome_produto || !formData.categoria || !formData.quantidade || !formData.consumo_medio || !formData.data_compra || !formData.preco_compra || !formData.loja) {
             setErro('Por favor, preencha todos os campos obrigatórios (*).');
+            setLoading(false);
             return;
         }
 
@@ -121,6 +120,7 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
                 quantidade: parseCommaFloat(formData.quantidade.replace(',', '.')) || 0,
                 consumo_medio: parseCommaFloat(formData.consumo_medio.replace(',', '.')) || 0,
                 preco_compra: parseCommaFloat(formData.preco_compra.replace(',', '.')) || 0,
+                data_validade: formData.data_validade || null,
                 enviar_notificacao: permitirEmail
             });
 
@@ -131,6 +131,7 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
         } catch (erro: any) {
             console.error("Erro ao editar produto: ", erro);
             setErro(erro.response?.data?.error || 'Erro ao salvar alterações. Tente novamente.');
+            setLoading(false);
 
         }
     };
@@ -197,6 +198,18 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
                                 </div>
 
                                 <div className='form-group'>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <CalendarIcon size={14}/> Data de Validade
+                                    </label>
+                                    <input 
+                                        type="date" 
+                                        name='data_validade' 
+                                        value={formData.data_validade} 
+                                        onChange={handleChange} 
+                                    />
+                                </div>
+
+                                <div className='form-group'>
                                     <label htmlFor="preco_compra">Preço (R$) *</label>
                                     <input type="text" id='preco_compra' name='preco_compra' placeholder='Ex: 120,50' value={formData.preco_compra} onChange={handleChange} />
                                 </div>
@@ -215,7 +228,9 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
                             
                             <div className='form-footer'>
                                 <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                                <Button variant='primary' type='submit'>Salvar Alterações</Button>
+                                <Button variant='primary' type='submit' disabled={loading}>
+                                    {loading ? 'Salvando...' : 'Salvar Alterações'}
+                                </Button>
                             </div>
                     </div>
                 </form>

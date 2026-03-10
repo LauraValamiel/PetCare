@@ -3,6 +3,8 @@
     flex-direction: column;
     min-height: 100vh;
     background-color: #f8f8fa;
+    width: 100%;
+    overflow: hidden;
 }
 
 .consultas-exames-main {
@@ -11,6 +13,7 @@
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .consultas-exames-header {
@@ -39,9 +42,11 @@
 
 .summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
     margin-bottom: 3rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .summary-card {
@@ -50,6 +55,8 @@
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .summary-card .card-header-flex {
@@ -127,6 +134,8 @@
     border-radius: 8px;
     padding: 0.75rem 1rem;
     border: 1px solid #f0f0f0;
+    width: 100% !important;
+    box-sizing: border-box;
     
 }
 
@@ -218,7 +227,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    transition: bacckground-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
     width: 100%;
 }
 
@@ -333,7 +342,7 @@
     flex-shrink: 0;
 }
 
-.comsultas-realizadas {
+.consultas-realizadas {
     font-size: 0.85rem;
     color: #888;
     background-color: #f0f0f0;
@@ -353,6 +362,9 @@
 .clinica-card-header-actions h3 {
     margin: 0;
     flex-grow: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .clinica-actions {
@@ -385,12 +397,14 @@
 }
 
 .summary-card-list {
-    max-height: 160px;
+    max-height: 180px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
     margin-bottom: 1rem;
+    padding-right: 4px;
 }
 
 .summary-card .card-actions .action-btn {
@@ -424,7 +438,7 @@
         grid-template-columns: 1fr;
     }
 
-    .act6ion-button {
+    .action-button {
         width: 100%;
     }
 

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/card';
 import { Button } from '../components/button';
-import { Plus, ShoppingBag, Heart, Activity, Calendar, DollarSign, MapPin, Syringe, Edit, Trash2 } from 'lucide-react';
+import { Plus, ShoppingBag, Heart, Activity, Calendar, DollarSign, MapPin, Syringe, Edit, Trash2, AlertOctagon } from 'lucide-react';
 import { Badge } from '../components/badge';
 import { Navbar } from '../components/navbar';
 import { type Pet, type Tutor, primeiraLetraMaiuscula, formatDate } from './MeusPets';
@@ -28,12 +28,13 @@ interface Produto {
     observacoes: string;
     pet_nome?: string;
     consumo_periodo?: 'dia' | 'semana' | 'mes' | 'ano';
+    data_validade?: string;
 }
 
 interface PrevisaoItem extends Produto {
     dias_restantes: number;
     previsao_termino: string;
-    status_prev: 'urgente' | 'baixo' | 'planejado';
+    status_prev: 'urgente' | 'baixo' | 'planejado' | 'vencendo';
 }
 
 const formatarDiasRestantes = (dias: number): string => {
@@ -90,16 +91,23 @@ const calcularPrevisaoEStatus = (produto: Produto): PrevisaoItem => {
 
     const diasParaComparacao = Math.floor(diasRestantes);
 
-    let status_prev: PrevisaoItem['status_prev'];
-    if(diasParaComparacao <= 0) {
+    let status_prev: PrevisaoItem['status_prev'] = 'planejado';
+    
+    const hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    const dataValidade = produto.data_validade ? new Date(produto.data_validade) : null;
+    const seteDiasDepois = new Date();
+    seteDiasDepois.setDate(hoje.getDate() + 7);
+
+    if (dataValidade && dataValidade <= hoje) {
+        status_prev = 'urgente'; // Vencido é urgente
+    } else if (dataValidade && dataValidade <= seteDiasDepois) {
+        status_prev = 'vencendo'; // Próximo ao vencimento
+    } else if (diasParaComparacao <= 7) {
         status_prev = 'urgente';
-    }else if (diasParaComparacao <= 7) {
-        status_prev = 'urgente';
-    } else if (diasParaComparacao <=14) {
+    } else if (diasParaComparacao <= 14) {
         status_prev = 'baixo';
-    } else {
-        status_prev = 'planejado';
-    }
+    } 
 
     return {
         ...produto,
@@ -175,16 +183,22 @@ export default function Produtos() {
                     previsaoComDetalhes.forEach(p => {
                         let title = '';
                         let subtitle = '';
+                        const hoje = new Date();
+                        hoje.setHours(0,0,0,0);
+                        const validade = p.data_validade ? new Date(p.data_validade) : null;
 
-                        if (p.dias_restantes <= 0) {
+                        if (validade && validade <= hoje) {
+                            title = `Produto vencido: ${p.nome_produto}`;
+                            subtitle = `O produto ${p.nome_produto} do pet ${p.pet_nome} venceu em ${formatDate(p.data_validade!)}.`;
+                        } else if (validade && validade <= new Date(hoje.getTime() + 7 * 24 * 60 * 60 * 1000)) {
+                            title = `Validade próxima: ${p.nome_produto}`;
+                            subtitle = `O produto ${p.nome_produto} do pet ${p.pet_nome} vencerá em breve (${formatDate(p.data_validade!)}).`;
+                        } else if (p.dias_restantes <= 0) {
                             title = `Estoque esgotado: ${p.nome_produto}`;
                             subtitle = `O produto ${p.nome_produto} do pet ${p.pet_nome} está esgotado.`;
                         } else if (p.dias_restantes <= 3) {
                             title = `Estoque crítico: ${p.nome_produto}`;
-                            subtitle = `O produto ${p.nome_produto} do pet ${p.pet_nome} está com estoque crítico (restam ${p.dias_restantes} dias).`;
-                        } else if (p.dias_restantes <= 7) {
-                            title = `Estoque baixo: ${p.nome_produto}`;
-                            subtitle = `O produto ${p.nome_produto} do pet ${p.pet_nome} está com estoque baixo (restam ${p.previsao_termino} dias).`;
+                            subtitle = `O produto ${p.nome_produto} do pet ${p.pet_nome} tem apenas ${p.dias_restantes} dias restantes.`;
                         }
 
                         if (title) {
@@ -200,8 +214,11 @@ export default function Produtos() {
 
                     })
 
-                const produtosAcabando = previsaoComDetalhes.filter(p => p.dias_restantes < Infinity && p.dias_restantes <= 7)
-                    .sort((a, b) => a.dias_restantes - b.dias_restantes);
+                const produtosAcabando = previsaoComDetalhes.filter(p => 
+                    (p.dias_restantes !== Infinity && p.dias_restantes <= 7) || 
+                    p.status_prev === 'vencendo' || 
+                    p.status_prev === 'urgente'
+                ).sort((a, b) => a.dias_restantes - b.dias_restantes);
                 
                 const racaoTotal = previsaoComDetalhes.filter(p => p.categoria.toLowerCase().includes('ração'))
                     .sort((a, b) => a.dias_restantes - b.dias_restantes);
@@ -238,40 +255,22 @@ export default function Produtos() {
     }, [tutorId, refreshData, setNotifications]);
 
     const getStatusBadge = (item: PrevisaoItem) => {
-        const dias = item.dias_restantes;
+        const hoje = new Date();
+        hoje.setHours(0,0,0,0);
+        const validade = item.data_validade ? new Date(item.data_validade) : null;
 
-        if (item.categoria.toLowerCase().includes("ração") || item.categoria.toLowerCase().includes("alimento") || item.categoria.toLowerCase().includes("higiene")) {
-            if (dias <= 3) return { text: "Crítico", variant: "danger" };
-            if (dias <= 7) return { text: "Baixo", variant: "warning" };
-            return {text: "OK", variant: "success"};
-        }
+        if (validade && validade < hoje) return { text: "Vencido", variant: "danger" };
+        if (validade && validade <= new Date(hoje.getTime() + 7 * 24 * 60 * 60 * 1000)) return { text: "Vencendo", variant: "warning" };
 
-        if (item.previsao_termino === 'Estoque suficiente' || item.dias_restantes === Infinity) {
-            return { text: "Em estoque", variant: "success" };
-        }
-
-        if (item.previsao_termino === 'Esgotado' || dias <= 0) {
-            return { text: "Esgotado", variant: "danger" };
-        }
-
-        const hoje = new Date().getTime();
-        const previsao = new Date(item.previsao_termino).getTime();
-
-        if (dias <= 3) return { text: "Crítico", variant: "danger" };
-        if (dias <= 7) return { text: "Baixo", variant: "danger" };
-        if (dias <= 14) return { text: "Atenção", variant: "warning" };
-
-        return { text: "Ativo", variant: "success"};
+        if (item.dias_restantes <= 3) return { text: "Crítico", variant: "danger" };
+        if (item.dias_restantes <= 7) return { text: "Baixo", variant: "warning" };
+        return { text: "OK", variant: "success" };
 
     }
 
     const handleDataChanged = () => {
         setRefreshData(prev => prev + 1);
     }
-
-    const produtosAcabando = allProdutos.map(calcularPrevisaoEStatus).filter(p => p.dias_restantes < Infinity && p.dias_restantes <= 7).sort((a, b) => a.dias_restantes - b.dias_restantes);
-    const racaoTotal = allProdutos.filter(p => p.categoria.toLowerCase().includes('ração'));
-    const medicamentosTotal = allProdutos.filter(p => p.categoria.toLowerCase().includes('medicamento'));
 
     const handleExcluirProduto = async (produto: Produto) => {
 
@@ -313,17 +312,11 @@ export default function Produtos() {
         }
     }
 
-    const getPrevisaoBadge = (status: PrevisaoItem['status_prev'], diasRestantes: number) => {
-        if (diasRestantes <= 7) {
-            return <Badge variant='danger'>Urgente</Badge>;
-        } 
-        if (diasRestantes <= 14) {
-            return <Badge variant='warning'>Baixo</Badge>;
-        }
-        if (diasRestantes <= 30) {
-            return <Badge variant='outline'>Em Breve</Badge>;
-        }
-        return <Badge variant='success'>OK</Badge>
+    const getPrevisaoBadge = (item: PrevisaoItem) => {
+        if (item.status_prev === 'vencendo') return <Badge variant='warning'>Vencendo</Badge>;
+        if (item.dias_restantes <= 7) return <Badge variant='danger'>Urgente</Badge>;
+        if (item.dias_restantes <= 14) return <Badge variant='warning'>Baixo</Badge>;
+        return <Badge variant='success'>OK</Badge>;
     };
 
     return (
@@ -349,12 +342,12 @@ export default function Produtos() {
                                     <h3>Produtos Acabando</h3>
                                 </div>
                                 <CardContent>
-                                    {produtosAcabando.length > 0 ? (
+                                    {produtosAcabandoDetalhes.length > 0 ? (
                                             produtosAcabandoDetalhes.map(p => (
                                                 <div  className='item-info' key={p.id_compra}>
                                                     <div>
                                                     <h4>{p.nome_produto}</h4>
-                                                    <span>Restam {p.dias_restantes} dias</span>
+                                                    <span>{p.status_prev === 'vencendo' ? `Vence em ${formatDate(p.data_validade!)}` : `Restam ${p.dias_restantes} dias`}</span>
                                                     </div>
 
                                                     {(() => {
@@ -379,7 +372,7 @@ export default function Produtos() {
                                     <h3>Ração</h3>
                                 </div>
                                 <CardContent>
-                                    {racaoTotal.length > 0 ? (
+                                    {racaoTotalComDetalhes.length > 0 ? (
                                         racaoTotalComDetalhes.map(p => (
                                                 <div className='item-info' key={p.id_compra}>
                                                     <div>
@@ -408,7 +401,7 @@ export default function Produtos() {
                                     <h3>Medicamentos</h3>
                                 </div>
                                 <CardContent>
-                                    {medicamentosTotal.length > 0 ? (
+                                    {medicamentosTotalComDetalhes.length > 0 ? (
                                         medicamentosTotalComDetalhes.map(p => (
                                                 <div className='item-info' key={p.id_compra}>
                                                     <div>
@@ -445,7 +438,7 @@ export default function Produtos() {
                                                     <Badge variant='default'>{primeiraLetraMaiuscula(item.categoria)}</Badge>
                                                 </div>
                                                 <div className='status-e-actions'>
-                                                    {getPrevisaoBadge(item.status_prev, item.dias_restantes)}
+                                                    {getPrevisaoBadge(item)}
                                                     <div className='produto-actions'>
                                                         <Button variant='link' className='action-btn' onClick={() => handleEditarProduto(item)}><Edit size={18}/></Button>
                                                         <Button variant='link' className='action-btn danger' onClick={() => handleExcluirProduto(item)}><Trash2 size={18}/></Button>
@@ -455,6 +448,9 @@ export default function Produtos() {
 
                                             <div className='produto-detail-body-previsao'>
                                                 <p className='detalhe-info-item'><Calendar size={16}/>Previsão de término: <strong>{item.previsao_termino}</strong> (Restam {item.dias_restantes})</p>
+                                                {item.data_validade && (
+                                                <p className='detalhe-info-item'><AlertOctagon size={16}/>Validade: <strong style={{color: item.status_prev === 'vencendo' ? 'orange' : 'inherit'}}>{formatDate(item.data_validade)}</strong></p>
+                                                )}
                                                 <p className='detalhe-info-item'><ShoppingBag size={16}/>Comprado em: <strong>{formatDate(item.data_compra ? String(item.data_compra) : null)}</strong> | {Number(item.quantidade)} {item.categoria.includes('ração') ? 'kg' : 'unidades'}</p>
                                                 <p className='detalhe-info-item'><DollarSign size={16}/>Valor estimado: R$ {Number(item.preco_compra).toFixed(2).replace('.', ',')}</p>
                                                 <p className='detalhe-info-item'><MapPin size={16}/>{item.loja}</p>

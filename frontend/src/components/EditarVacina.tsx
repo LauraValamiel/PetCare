@@ -12,6 +12,7 @@ interface EditarVacinaModal {
     onVacinaAtualizada: () => void;
     pets: Pet[];
     vacina: VacinaDetalhada | null;
+    tutorId: number;
 }
 
 const formatarDataParaInput = (data: string | null) => {
@@ -32,10 +33,45 @@ const formatarDataParaInput = (data: string | null) => {
     }
 }
 
-export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina}: EditarVacinaModal) {
+export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina, tutorId}: EditarVacinaModal) {
 
     const [formData, setFormData] = useState<any>({});
     const [erro, setErro] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const [clinicas, setClinicas] = useState<any[]>([]);
+    const [todosVeterinarios, setTodosVeterinarios] = useState<any[]>([]);
+    const [veterinariosFiltrados, setVeterinariosFiltrados] = useState<any[]>([]);
+    const [selectedClinica, setSelectedClinica] = useState('');
+
+    useEffect(() => {
+        if (isOpen && tutorId) {
+            axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`)
+                .then(res => setClinicas(res.data))
+                .catch(err => console.error("Erro ao buscar clínicas", err));
+
+                axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`)
+                .then(res => {
+                    setTodosVeterinarios(res.data);
+                    setVeterinariosFiltrados(res.data);
+                })
+                .catch(err => console.error("Erro ao buscar veterinários", err));
+        }
+    }, [isOpen, tutorId]);
+
+    useEffect(() => {
+        if (selectedClinica) {
+            const filtrados = todosVeterinarios.filter(v => v.id_clinica === Number(selectedClinica));
+            setVeterinariosFiltrados(filtrados);
+            
+            // Limpa o veterinário se a nova clínica escolhida não tiver esse veterinário
+            if (formData.id_veterinario && !filtrados.find(v => v.id_veterinario.toString() === formData.id_veterinario.toString())) {
+                setFormData((prev: any) => ({ ...prev, id_veterinario: '' }));
+            }
+        } else {
+            setVeterinariosFiltrados(todosVeterinarios);
+        }
+    }, [selectedClinica, todosVeterinarios]);
 
     useEffect(() => {
         if (isOpen && vacina) {
@@ -45,12 +81,20 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
                 data_vacinacao: formatarDataParaInput(vacina.data_vacinacao),
                 proxima_dose: formatarDataParaInput(vacina.proxima_dose),
                 lote: vacina.lote || '',
-                nome_veterinario: vacina.nome_veterinario || '',
+                id_veterinario: vacina.id_veterinario || '',
                 local_aplicacao: vacina.local_aplicacao || '',
                 preco_vacina: vacina.preco_vacina?.toString() || '0',
                 observacoes: vacina.observacoes || '',
             });
+
+            if (vacina.id_clinica) {
+                setSelectedClinica(vacina.id_clinica.toString());
+            } else {
+                setSelectedClinica('');
+            }
+
             setErro('');
+            setLoading(false);
         }
     }, [isOpen, vacina]);
 
@@ -65,12 +109,20 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (loading) return;
         setErro('');
+
+        if (!formData.nome_vacina || !formData.data_vacinacao || !formData.proxima_dose || !formData.lote || !formData.id_veterinario || !formData.local_aplicacao) {
+            setErro('Por favor, preencha todos os campos obrigatórios (*).');
+            return;
+        }
         
         if (formData.proxima_dose < formData.data_vacinacao) {
             setErro('A data da próxima dose não deve ser anterior à data de vacinação.');
             return;
         }
+
+        setLoading(true);
 
         try {
             const response = await axios.put(`http://localhost:5000/api/pets/${vacina.id_pet}/editar-vacina/${vacina?.id_vacina}`, {
@@ -85,7 +137,9 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
         } catch (erro: any) {
             console.error("Erro ao editar vacina: ", erro);
             setErro(erro.response?.data?.error || 'Erro ao salvar vacina. Tente novamente.');
+            setLoading(false);
         }
+        
 
     };
 
@@ -125,10 +179,37 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
                                 <label htmlFor="lote">Lote *</label>
                                 <input type="text" id='lote' name='lote' value={formData.lote} onChange={handleChange}/>
                             </div>
-                            <div className='form-group full=width'>
-                                <label htmlFor="nome_veterinario">Veterinário/Clínica *</label>
-                                <input type="text" id='nome_veterinario' name='nome_veterinario' value={formData.nome_veterinario} onChange={handleChange}/>
+                            <div className='form-group'>
+                                <label>Clínica *</label>
+                                <select 
+                                    value={selectedClinica} 
+                                    onChange={(e) => setSelectedClinica(e.target.value)}
+                                >
+                                    <option value="">Selecione a clínica</option>
+                                    {clinicas.map(c => (
+                                        <option key={c.id_clinica} value={c.id_clinica}>{c.nome_clinica}</option>
+                                    ))}
+                                </select>
                             </div>
+                            
+                            <div className='form-group'>
+                                <label htmlFor="id_veterinario">Veterinário *</label>
+                                <select 
+                                    id='id_veterinario' 
+                                    name='id_veterinario' 
+                                    value={formData.id_veterinario} 
+                                    onChange={handleChange}
+                                    disabled={!selectedClinica}
+                                >
+                                    <option value="">Selecione o veterinário</option>
+                                    {veterinariosFiltrados.map(v => (
+                                        <option key={v.id_veterinario} value={v.id_veterinario}>
+                                            {v.nome} {v.nome_clinica ? `(${v.nome_clinica})` : '(Independente)'}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div className='form-group'>
                                 <label htmlFor="local_aplicacao">Clínica Veterinária/Local da Aplicação *</label>
                                 <input type="text" id='local_aplicacao' name='local_aplicacao' value={formData.local_aplicacao} onChange={handleChange}/>
@@ -145,7 +226,9 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
                     </div>
                     <div className='form-footer'>
                         <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                        <Button variant='primary' type='submit'>Salvar Alterações</Button>
+                        <Button variant='primary' type='submit' disabled={loading}>
+                            {loading ? 'Salvando...' : 'Salvar Alterações'}
+                        </Button>
                     </div>
                 </form>
             </div>

@@ -84,8 +84,8 @@
 }
 
 .summary-cards-home .card-icon.vacinas {
-    background-color: #fffde7;
-    color: #f57c00;
+    background-color: #f8dddb;
+    color: #e92c28;
 }
 
 .summary-cards-home .card-icon.consultas {
@@ -103,7 +103,7 @@
 }
 
 .card.card-vacinas {
-    background-color: #fffde7;
+    background-color: #f8dddb;
 }
 
 .card.card-consultas {
@@ -360,5 +360,74 @@
 @media (max-width: 480px) {
     .summary-cards {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 992px) {
+    .dashboard {
+        padding: 16px;
+    }
+
+    .main-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .summary-cards-home {
+        grid-template-columns: repeat(2, 1fr); 
+    }
+
+    .acoes-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .dashboard-header h2 {
+        font-size: 1.6rem;
+    }
+
+    .summary-cards-home {
+        grid-template-columns: 1fr; 
+        gap: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .acoes-buttons {
+        grid-template-columns: 1fr; 
+    }
+
+    .pet-card-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .pet-status {
+        align-items: flex-start;
+        text-align: left;
+        min-width: 100%;
+        border-top: 1px solid #f0e9f8;
+        padding-top: 10px;
+    }
+
+    .section-header h3 {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .summary-cards-home .card-content .info p:first-child {
+        font-size: 1.5rem;
+    }
+    
+    .acoes-buttons-card {
+        padding: 15px 10px;
     }
 }

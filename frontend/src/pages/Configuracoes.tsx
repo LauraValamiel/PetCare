@@ -257,18 +257,6 @@ export default function Configuracoes() {
 
                     </Card>
 
-                    <Card className='config-card danger-zone'>
-                        <div className='card-header-icon'>
-                            <LogOut size={20}/>
-                            <div>
-                                <h4>Zona de Perigo</h4>
-                                <small>Ações irreversíveis da conta</small>
-                            </div>
-                            </div>
-                        <Button className='delete-account-btn' onClick={handleExcluirConta}><XCircle size={20}/>Excluir Conta</Button>
-                        <p className='danger-message'>Esta ação não pode ser desfeita. Todos os seus dados serão permanentemente excluídos.</p>
-                    </Card>
-
                 </section>
 
             </main>

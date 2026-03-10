@@ -54,6 +54,7 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
         preco_consulta: '',
     });
     const [erro, setErro] = useState('');
+    const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     
@@ -70,6 +71,7 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
                 preco_consulta: consulta.preco_consulta?.toString() || '',
             });
             setErro('');
+            setLoading(false);
         }
     }, [isOpen, consulta]);
 
@@ -79,6 +81,7 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (loading) return;
         setErro('');
         setIsSaving(true);
 
@@ -87,6 +90,8 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
             setIsSaving(false);
             return;
         }
+
+        setLoading(true);
 
         try {
             const url = `http://localhost:5000/api/pets/${idPet}/editar-consulta/${consulta?.id_consulta}`;
@@ -113,6 +118,7 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
         } catch (error: any) {
             console.error('Erro ao editar consulta:', error);
             setErro(error.response?.data?.error || 'Erro ao atualizar. Verifique os dados.');
+            setLoading(false);
         } finally {
             setIsSaving(false);
         }

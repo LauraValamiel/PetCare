@@ -2,12 +2,15 @@
     width: 100%;
     min-height: 100vh;
     background-color: #f8f7fa;
+    overflow: hidden;
 }
 
 .perfil-container {
     max-width: 1000px;
     margin: 0 auto;
     padding: 24px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .perfil-header {
@@ -39,7 +42,7 @@
 .tutor-summary-card {
     background-color: #7e57c2;
     color: #fff;
-    padding: 30px;
+    padding: 24px;
     margin-bottom: 30px;
     border: none;
     box-shadow: 0 8px 20px rgba(94, 53, 117, 0.3);
@@ -146,8 +149,9 @@
 .main-content-perfil {
     display: grid;
     gap: 20px;
-    align-items: center;
-    
+    grid-template-columns: 1fr;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .info-card {
@@ -510,24 +514,104 @@ input:checked + .slider:before {
     scroll-margin-top: 80px; 
 }
 
+.perfil-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+}
+
+.perfil-actions button {
+    padding: 8px 14px; 
+    font-size: 0.85rem; 
+    height: auto;
+    width: auto; 
+}
+
+.btn-excluir-conta {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-excluir-conta:hover {
+    background-color: #d9363e;
+}
+
+@media (min-width: 992px) {
+    .main-content-perfil {
+        grid-template-columns: 1fr; /* Ou mantenha 1fr se quiser cards largos e legíveis */
+    }
+}
+
+.form-grid-perfil {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 15px 20px;
+}
+
 @media (max-width: 768px) {
     .perfil-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 15px;
+        font-size: 1.8rem;
     }
-    .main-content-perfil {
-        grid-template-columns: 1fr;
+
+    .summary-main {
+        flex-direction: column;
+        text-align: center;
     }
-    .stats-grid, .theme-options, .language-options {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+
+    .summary-badges {
+        flex-wrap: wrap;
+        justify-content: center;
     }
+
     .stats-card {
+        grid-template-columns: repeat(2, 1fr);
         margin-bottom: 20px;
     }
+
+    .perfil-actions {
+        margin-top: 0;
+        border-top: none;
+        padding-top: 0;
+        justify-content: flex-end;
+    }
+    
+    .perfil-actions button {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        flex: 1;
+        max-width: 140px; 
+    }
+
     .profile-actions {
         width: 100%;
         justify-content: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr; 
+    }
+
+    .info-card {
+        padding: 15px; 
+    }
+
+    .perfil-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .perfil-actions {
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 10px;
     }
 }

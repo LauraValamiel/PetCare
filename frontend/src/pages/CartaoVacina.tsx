@@ -13,6 +13,8 @@ import { EditarVacina } from '../components/EditarVacina';
 import Swal from 'sweetalert2';
 
 export interface VacinaDetalhada extends Vacina {
+    id_veterinario: string;
+    id_clinica: any;
     id_vacina: number;
     id_pet: number;
     nome_pet?: string;
@@ -304,7 +306,7 @@ export default function CartaoVacina() {
             <main className='cartao-vacina-container'>
                 <div className='cartao-vacina-header'>
                     <div>
-                        <h2>Cartão de Vacinas</h2>
+                        <h2>Cartões de Vacinas</h2>
                         <p>Acompanhe o calendário vacinal dos seus pets.</p>
                     </div>
                     <Button variant='primary' onClick={() => setIsAdicionarModalOpen(true)}> <Plus size={16}/>Adicionar Vacina</Button>
@@ -324,7 +326,7 @@ export default function CartaoVacina() {
                             </CardContent>
                     </Card>
                     <Card className='card-vencendo'>
-                            <CardTitle><AlertTriangle size={16}/>Vencendo</CardTitle>
+                            <CardTitle><ShieldAlert size={16}/>Vencendo</CardTitle>
                             <CardContent>{countsResumo.vencendo}</CardContent>
                     </Card>
                     <Card className='card-atrasadas'>
@@ -437,13 +439,14 @@ export default function CartaoVacina() {
                 />
             )}
 
-            {vacinaEdit && (
+            {vacinaEdit && tutorId && (
                 <EditarVacina
                     isOpen={!!vacinaEdit}
                     onClose={() => setVacinaEdit(null)}
                     onVacinaAtualizada={handleVacinaDataChanged}
                     pets={pets}
                     vacina={vacinaEdit}
+                    tutorId={tutorId}
                 />
             )}
 

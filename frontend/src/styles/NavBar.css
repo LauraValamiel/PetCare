@@ -383,3 +383,88 @@
     width: 50px;
     height: 50px;
 }
+
+.hamburger-menu {
+    display: none; /* Esconde por padrão no PC */
+    background: transparent;
+    border: none;
+    color: #6a1b9a;
+    cursor: pointer;
+    padding: 5px;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-nav-links {
+    display: none; 
+}
+
+@media (max-width: 992px) {
+    .hamburger-menu {
+        display: flex; 
+        margin-right: 10px;
+    }
+
+    .desktop-nav {
+        display: none !important; 
+    }
+
+    .mobile-nav-links {
+        display: flex; 
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .profile-sidebar {
+        max-width: 100%; 
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 10px 15px;
+    }
+
+    .navbar-left nav {
+        display: none; 
+    }
+
+    .navbar-logo {
+        font-size: 1.1rem;
+    }
+
+    .navbar-right {
+        gap: 12px;
+    }
+
+    .notifications-sidebar,
+    .profile-sidebar {
+        max-width: 100%;
+        box-shadow: none;
+    }
+
+    .sidebar-header h3 {
+        font-size: 1.1rem;
+    }
+
+
+    .profile-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+}
+
+
+@media (max-width: 480px) {
+    .navbar-right span {
+        display: none; 
+    }
+
+    .profile-option-btn {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+}

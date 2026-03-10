@@ -20,6 +20,8 @@ const getEstadoInicial = (tipo: 'consulta' | 'exame') => ({
     data_compromisso: '',
     hora:  '',
     localizacao: '',
+    id_clinica: '',
+    id_veterinario: '',
     descricao: '',
     lembrete: true,
 });
@@ -42,12 +44,45 @@ export function AgendarCompromissoModal({
     const localLabel = tipo === 'consulta' ? 'Clínica/Veterinário *' : 'Laboratório/Clínica *';
     const [loading, setLoading] = useState(false);
 
+    const [clinicas, setClinicas] = useState<any[]>([]);
+    const [todosVeterinarios, setTodosVeterinarios] = useState<any[]>([]);
+    const [veterinariosFiltrados, setVeterinariosFiltrados] = useState<any[]>([]);
+
     useEffect(() => {
         if (isOpen) {
             setFormData(getEstadoInicial(tipo));
             setErro('');
         }
     }, [isOpen, tipo]);
+
+    useEffect(() => {
+        if (isOpen && tutorId && tipo === 'consulta') {
+            axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`)
+                .then(res => setClinicas(res.data))
+                .catch(err => console.error("Erro ao buscar clínicas", err));
+
+            axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`)
+                .then(res => {
+                    setTodosVeterinarios(res.data);
+                    setVeterinariosFiltrados(res.data);
+                })
+                .catch(err => console.error("Erro ao buscar veterinários", err));
+        }
+    }, [isOpen, tutorId, tipo]);
+
+    useEffect(() => {
+        if (formData.id_clinica) {
+            const filtrados = todosVeterinarios.filter(v => v.id_clinica === Number(formData.id_clinica));
+            setVeterinariosFiltrados(filtrados);
+            
+            // Limpa o veterinário selecionado se ele não pertencer à nova clínica
+            if (formData.id_veterinario && !filtrados.find(v => v.id_veterinario.toString() === formData.id_veterinario)) {
+                setFormData(prev => ({...prev, id_veterinario: ''}));
+            }
+        } else {
+            setVeterinariosFiltrados(todosVeterinarios);
+        }
+    }, [formData.id_clinica, todosVeterinarios]);
 
     if (!isOpen) {
         return null;
@@ -69,8 +104,27 @@ export function AgendarCompromissoModal({
         setLoading(true);
         setErro('');
 
-        if (!formData.id_pet || !formData.titulo || !formData.data_compromisso || !formData.hora || !formData.localizacao) {
+        if (!formData.id_pet || !formData.titulo || !formData.data_compromisso || !formData.hora) {
             setErro('Por favor, preencha todos os campos obrigatórios (*).');
+            setLoading(false);
+            return;
+        }
+
+        if (tipo === 'consulta' && !formData.id_veterinario) {
+            setErro('Por favor, selecione pelo menos o veterinário.');
+            setLoading(false);
+            return;
+        }
+
+        if (tipo === 'consulta' && !formData.id_veterinario) {
+            setErro('Por favor, selecione pelo menos o veterinário.');
+            setLoading(false);
+            return;
+        }
+
+        if (tipo === 'exame' && !formData.localizacao) {
+            setErro('Por favor, preencha o local do exame.');
+            setLoading(false);
             return;
         }
 
@@ -91,11 +145,14 @@ export function AgendarCompromissoModal({
                     data_consulta: formData.data_compromisso,
                     hora: formData.hora,
                     motivo: formData.titulo,
-                    nome_clinica: formData.localizacao
+                    id_clinica: formData.id_clinica,
+                    id_veterinario: formData.id_veterinario
                 }
                 : {
                     ...formData,
-                    titulo: tituloAjustado,
+                    titulo: tipo === 'exame' && !formData.titulo.toLowerCase().includes('exame') 
+                        ? `Exame: ${formData.titulo}` 
+                        : formData.titulo,
                     lembrete: true,
                     enviar_notificacao: true
                 }
@@ -154,18 +211,43 @@ export function AgendarCompromissoModal({
                                     />
                             </div>
 
-                            <div className='form-group'>
-                                <label htmlFor="localizacao">{localLabel}</label>
-                                <input 
-                                    type="text"
-                                    id='localizacao'
-                                    name='localizacao'
-                                    placeholder='Ex: Clínica Vet, Pet Center'
-                                    value={formData.localizacao}
-                                    onChange={handleChange} 
-                                    autoComplete="off"
-                                    />
-                            </div>
+                            {tipo === 'consulta' ? (
+                                <>
+                                    <div className='form-group'>
+                                        <label htmlFor="id_clinica">Clínica *</label>
+                                        <select name="id_clinica" id="id_clinica" value={formData.id_clinica} onChange={handleChange}>
+                                            <option value="">Selecione a clínica</option>
+                                            {clinicas.map(c => (
+                                                <option key={c.id_clinica} value={c.id_clinica}>{c.nome_clinica}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className='form-group'>
+                                        <label htmlFor="id_veterinario">Veterinário *</label>
+                                        <select name="id_veterinario" id="id_veterinario" value={formData.id_veterinario} onChange={handleChange}>
+                                            <option value="">Selecione o veterinário</option>
+                                            {veterinariosFiltrados.map(v => (
+                                                <option key={v.id_veterinario} value={v.id_veterinario}>
+                                                    {v.nome} {v.nome_clinica ? `(${v.nome_clinica})` : '(Independente)'}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className='form-group'>
+                                    <label htmlFor="localizacao">{localLabel}</label>
+                                    <input 
+                                        type="text"
+                                        id='localizacao'
+                                        name='localizacao'
+                                        placeholder='Ex: Clínica Vet, Pet Center'
+                                        value={formData.localizacao}
+                                        onChange={handleChange} 
+                                        autoComplete="off"
+                                        />
+                                </div>
+                            )}
 
                             <div className='form-group'>
                                 <label htmlFor="hora">Data *</label>

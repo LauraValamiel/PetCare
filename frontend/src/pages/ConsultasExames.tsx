@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Syringe, Stethoscope, FileText, CalendarPlus, Search, Phone, MapPin, Plus, Edit, Trash2 } from 'lucide-react';
+import { Syringe, Stethoscope, FileText, CalendarPlus, Search, Phone, MapPin, Plus, Edit, Trash2, User } from 'lucide-react';
 import '../styles/ConsultasExames.css';
 import { Navbar } from '../components/navbar';
 import { type Pet, type Tutor, formatDate } from './MeusPets';
@@ -15,8 +15,11 @@ import { Button } from '../components/button';
 import { EditarConsultaModal } from '../components/EditarConsultaModal';
 import { EditarCompromissoModal } from '../components/EditarCompromissoModal';
 import Swal from 'sweetalert2';
+import { AdicionarVeterinarioModal } from '../components/AdicionarVeterinarioModal';
+import { EditarVeterinarioModal } from '../components/EditarVeterinarioModal';
 
 interface Compromisso {
+    id_pet: any;
     id_compromisso: number;
     titulo: string;
     descricao: string;
@@ -27,6 +30,9 @@ interface Compromisso {
 }
 
 interface Consulta {
+    id_pet: any;
+    id_clinica: any;
+    id_veterinario: any;
     id_consulta: number;
     motivo: string;
     data_consulta: string;
@@ -42,11 +48,25 @@ interface Clinica {
     telefone: string;
 }
 
+interface Veterinario {
+    id_veterinario: number;
+    nome: string;
+    especialidade?: string;
+    telefone?: string;
+    id_clinica?: number;
+    nome_clinica?: string;
+}
+
 type HistoricoItemSumario = {
     tipo: 'vacina' | 'consulta' | 'exame' | 'compromisso';
     data: Date;
     titulo: string;
     petNome: string;
+};
+
+const formatarHora = (hora: string) => {
+    if (!hora) return '00:00';
+    return hora.substring(0, 5); // Pega apenas HH:mm
 };
 
 export function ConsultasExames() {
@@ -67,6 +87,7 @@ export function ConsultasExames() {
     const [proximosExames, setProximosExames] = useState<Compromisso[]>([]);
 
     const [clinicas, setClinicas] = useState<Clinica[]>([]);
+    const [veterinarios, setVeterinarios] = useState<Veterinario[]>([]);
 
     const [allCompromissos, setAllCompromissos] = useState<Compromisso[]>([]);
     const [allConsultas, setAllConsultas] = useState<Consulta[]>([]);
@@ -78,6 +99,10 @@ export function ConsultasExames() {
     const [isAgendarConsultaModalOpen, setIsAgendarConsultaModalOpen] = useState(false);
     const [isAgendarExameModalOpen, setIsAgendarExameModalOpen] = useState(false);
     const [isAdicionarClinicaModalOpen, setIsAdicionarClinicaModalOpen] = useState(false);
+
+    const [isAdicionarVeterinarioModalOpen, setIsAdicionarVeterinarioModalOpen] = useState(false);
+    const [veterinarioEdit, setVeterinarioEdit] = useState<Veterinario | null>(null);
+    const [isEditarVeterinarioModalOpen, setIsEditarVeterinarioModalOpen] = useState(false);
 
     const [clinicaEdit, setClinicaEdit] = useState<Clinica | null>(null);
     const [isEditarClinicaModalOpen, setIsEditarClinicaModalOpen] = useState(false);
@@ -121,6 +146,9 @@ export function ConsultasExames() {
 
                 const clinicasResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`);
                 setClinicas(clinicasResponse.data || []);
+
+                const veterinariosResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`).catch(() => ({ data: []}));
+                setVeterinarios(veterinariosResponse.data || []);
 
                 const petsResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
                 const fetchedPets: Pet[] = petsResponse.data.pets || [];
@@ -195,10 +223,18 @@ export function ConsultasExames() {
                     } else {
                         // Se for futuro, vai para os cards
                         eventosFuturos.push({
-                            isConsulta: true, originalData: consulta,
+                            isConsulta: true, 
+                            originalData: consulta,
                             id_consulta: consulta.id_consulta,
-                            titulo: consulta.motivo, data_compromisso: consulta.data_consulta,
-                            hora: consulta.hora || '00:00', localizacao: consulta.nome_clinica, pet_nome: consulta.pet_nome
+                            id_pet: consulta.id_pet, 
+                            id_clinica: consulta.id_clinica, 
+                            id_veterinario: consulta.id_veterinario, 
+                            titulo: consulta.motivo, 
+                            data_compromisso: consulta.data_consulta,
+                            hora: consulta.hora || '00:00', 
+                            localizacao: consulta.nome_clinica, 
+                            pet_nome: consulta.pet_nome,
+                            descricao: consulta.motivo
                         });
                     }
                 });
@@ -213,10 +249,18 @@ export function ConsultasExames() {
                 } else {
                     // Se for futuro, vai para os cards
                     eventosFuturos.push({
-                        isConsulta: false, originalData: compromisso,
-                        id_compromisso: compromisso.id_compromisso,
-                        titulo: compromisso.titulo, data_compromisso: compromisso.data_compromisso,
-                        hora: compromisso.hora, localizacao: compromisso.localizacao, pet_nome: compromisso.pet_nome
+                        isConsulta: false, 
+                            originalData: compromisso,
+                            id_compromisso: compromisso.id_compromisso,
+                            id_pet: compromisso.id_pet,
+                            id_consulta: undefined, 
+                            titulo: compromisso.titulo, 
+                            data_compromisso: compromisso.data_compromisso,
+                            hora: compromisso.hora, 
+                            localizacao: compromisso.localizacao, 
+                            pet_nome: compromisso.pet_nome,
+                            descricao: compromisso.descricao
+
                     });
                 }
             });
@@ -224,7 +268,6 @@ export function ConsultasExames() {
             historicoUnificado.sort((a, b) => b.data.getTime() - a.data.getTime());
             setHistoricoItemMaisRecente(historicoUnificado);
 
-            // Ordena os próximos eventos pela data e hora mais próxima
             eventosFuturos.sort((a, b) => new Date(`${a.data_compromisso.split('T')[0]}T${a.hora}`).getTime() - new Date(`${b.data_compromisso.split('T')[0]}T${b.hora}`).getTime());
 
             setProximasConsultas(eventosFuturos.filter(e => !e.titulo.toLowerCase().includes('exame')));
@@ -261,6 +304,10 @@ export function ConsultasExames() {
         setIsAgendarExameModalOpen(true);
     }
 
+    const handleAdicionarVeterinario = () => {
+        setIsAdicionarVeterinarioModalOpen(true);
+    } 
+
     const handleExcluirClinica = async (clinica: Clinica) => {
 
         const result = await Swal.fire({
@@ -293,6 +340,44 @@ export function ConsultasExames() {
                 Swal.fire({
                     title: 'Erro',
                     text: erro.response?.data?.error || 'Erro ao excluir clínica.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
+            }
+        }
+    }
+
+    const handleExcluirVeterinario = async (vet: Veterinario) => {
+        const result = await Swal.fire({
+            title: 'Confirmação',
+            text: `Tem certeza que deseja excluir o(a) veterinário(a) "${vet.nome}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await axios.delete(`http://localhost:5000/api/veterinario/${vet.id_veterinario}`);
+                if (response.status === 200) {
+                    Swal.fire({
+                        title: 'Sucesso!',
+                        text: 'Veterinário excluído com sucesso!',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#b942f4'
+                    });
+                    handleDataChanged();
+                }
+            } catch (erro: any) {
+                console.error("Erro ao excluir veterinário:", erro);
+                Swal.fire({
+                    title: 'Erro',
+                    text: erro.response?.data?.error || 'Erro ao excluir veterinário.',
                     icon: 'error',
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#b942f4'
@@ -377,10 +462,10 @@ export function ConsultasExames() {
                             {proximasConsultas.length > 0 ? (
                                 <div className='summary-card-list'>
                                     {proximasConsultas.map((consulta, index) => (
-                                        <div className='item-info' key={index} style={{ display: 'flex', flexDirection: 'column', padding: '8px 8px', borderBottom: '1px solid #f0f0f0', width:'94%' }}>
+                                        <div className='item-info' key={index} style={{ display: 'flex', flexDirection: 'column', padding: '8px 8px', borderBottom: '1px solid #f0f0f0', width:'100%', boxSizing: 'border-box' }}>
         
-                                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '4px' }}>
-                                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600', flex: 1, marginRight: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '4px', gap: '8px' }}>
+                                            <div style={{ fontSize: '1rem', color: '#2c3e50', fontWeight: '600', flex: 1, minWidth: 0, marginRight: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 <span style={{ color: '#4285F4' }}>{consulta.pet_nome}</span> - {consulta.titulo}
                                             </div>
 
@@ -414,18 +499,19 @@ export function ConsultasExames() {
                                             alignItems: 'center',
                                             fontSize: '0.85rem', 
                                             color: '#666',
-                                            width: '100%'
+                                            width: '100%',
+                                            gap: '4px'
                                         }}>
                                             
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', maxWidth: '65%', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0, maxWidth: '65%', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                                                 <MapPin size={13} style={{ color: '#999', flexShrink: 0 }}/> 
                                                 <span title={consulta.localizacao}>{consulta.localizacao}</span>
                                             </div>
 
                                             
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, marginLeft: 'auto' }}>
                                                 <CalendarPlus size={13} style={{ color: '#999', flexShrink: 0 }}/> 
-                                                <span className='item-info-data'>{formatDate(consulta.data_compromisso)} às {consulta.hora}</span>
+                                                <span className='item-info-data'>{formatDate(consulta.data_compromisso)} às {formatarHora(consulta.hora)}</span>
                                             </div>
                                         </div>  
                                     </div>
@@ -546,53 +632,105 @@ export function ConsultasExames() {
                         </div>
                     </section>
 
-                    <section className='vet-clinicas-section'>
-                        <h2>Clínicas Veterinárias Cadastradas</h2>
-                        {clinicas.length > 0 ? (
-                            <div className='clinicas-grid'>
-                            {clinicas.map((clinica) => (
-                                <div key={clinica.id_clinica} className='card clinica-card'>
-                                    <div className='clinica-card-header-actions'>
-                                        <h3>{clinica.nome_clinica}</h3>
-                                        <div className='clinica-actions'>
-                                            <Button
-                                                variant='link'
-                                                className="action-btn edit-btn"
-                                                onClick={() => {
-                                                    setClinicaEdit(clinica);
-                                                    setIsEditarClinicaModalOpen(true);
-                                                }}>
-                                                    <Edit size={18}/>
-                                            </Button>
-                                            <Button
-                                                variant='link'
-                                                className='action-btn danger delete-btn'
-                                                onClick={() => handleExcluirClinica(clinica)}>
-                                                    <Trash2 size={18}/>
-                                            </Button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+
+                        <section className='vet-clinicas-section'>
+                            <h2>Clínicas Veterinárias Cadastradas</h2>
+                            {clinicas.length > 0 ? (
+                                <div className='clinicas-grid'>
+                                {clinicas.map((clinica) => (
+                                    <div key={clinica.id_clinica} className='card clinica-card'>
+                                        <div className='clinica-card-header-actions'>
+                                            <h3>{clinica.nome_clinica}</h3>
+                                            <div className='clinica-actions'>
+                                                <Button
+                                                    variant='link'
+                                                    className="action-btn edit-btn"
+                                                    onClick={() => {
+                                                        setClinicaEdit(clinica);
+                                                        setIsEditarClinicaModalOpen(true);
+                                                    }}>
+                                                        <Edit size={18}/>
+                                                </Button>
+                                                <Button
+                                                    variant='link'
+                                                    className='action-btn danger delete-btn'
+                                                    onClick={() => handleExcluirClinica(clinica)}>
+                                                        <Trash2 size={18}/>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className='contato-clinica'>
+                                            <p><MapPin size={16}/>{clinica.endereco}</p>
+                                            <p><Phone size={16}/>{formatarCelular(clinica.telefone)}</p>
+                                        </div>
+                                        
+                                        
+                                    </div>
+                                ))}
+
+                            </div>
+                            ) : (
+                                <p>Nenhuma clínica cadastrada no momento.</p>
+                            )}
+
+                            <div style={{marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                                <button className='action-button primary-button' onClick={handleAdicionarClinica} style={{ width: 'auto' }}>
+                                    <Plus size={16}/>Adicionar Clínica
+                                </button>
+                            </div>
+                        </section>
+
+                        <section className='vet-clinicas-section'>
+                            <h2>Veterinários Cadastrados</h2>
+                            {veterinarios.length > 0 ? (
+                                <div className='clinicas-grid'>
+                                {veterinarios.map((vet) => (
+                                    <div key={vet.id_veterinario} className='card clinica-card'>
+                                        <div className='clinica-card-header-actions'>
+                                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <User size={18} color="#b942f4" />
+                                                {vet.nome}
+                                            </h3>
+                                            <div className='clinica-actions'>
+                                                <Button
+                                                    variant='link'
+                                                    className="action-btn edit-btn"
+                                                    onClick={() => {
+                                                        setVeterinarioEdit(vet);
+                                                        setIsEditarVeterinarioModalOpen(true);
+                                                    }}>
+                                                        <Edit size={18}/>
+                                                </Button>
+                                                <Button
+                                                    variant='link'
+                                                    className='action-btn danger delete-btn'
+                                                    onClick={() => handleExcluirVeterinario(vet)}>
+                                                        <Trash2 size={18}/>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className='contato-clinica'>
+                                            {vet.especialidade && <p><Stethoscope size={16}/>{vet.especialidade}</p>}
+                                            {vet.telefone && <p><Phone size={16}/>{formatarCelular(vet.telefone)}</p>}
+                                            {vet.nome_clinica && <p><MapPin size={16}/>{vet.nome_clinica}</p>}
+                                            {!vet.nome_clinica && <p style={{color: '#888', fontStyle: 'italic'}}><MapPin size={16}/>Sem vínculo com clínica</p>}
                                         </div>
                                     </div>
-                                    <div className='contato-clinica'>
-                                        <p><MapPin size={16}/>{clinica.endereco}</p>
-                                        <p><Phone size={16}/>{formatarCelular(clinica.telefone)}</p>
-                                    </div>
-                                    
-                                    
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                            ) : (
+                                <p>Nenhum veterinário cadastrado no momento.</p>
+                            )}
 
-                        </div>
-                        ) : (
-                            <p>Nenhuma clínica cadastrada no momento.</p>
-                        )}
+                            <div style={{marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                                <button className='action-button primary-button' onClick={handleAdicionarVeterinario} style={{ width: 'auto' }}>
+                                    <Plus size={16}/>Adicionar Veterinário
+                                </button>
+                            </div>
+                        </section>
 
-                        <div style={{marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-                            <button className='action-button primary-button' onClick={handleAdicionarClinica} style={{ width: 'auto' }}>
-                                <Plus size={16}/>Adicionar Clínica
-                            </button>
-                        </div>
-                    </section>
-
+                    </div>
                     </>
                 )}
 
@@ -660,6 +798,16 @@ export function ConsultasExames() {
                 tutorId={tutorId}
             />
 
+            {tutorId && (
+                <AdicionarVeterinarioModal
+                    isOpen={isAdicionarVeterinarioModalOpen}
+                    onClose={() => setIsAdicionarVeterinarioModalOpen(false)}
+                    onVeterinarioAdded={handleDataChanged}
+                    tutorId={tutorId}
+                    clinicas={clinicas} // Passamos as clínicas para o `<select>` de vínculo opcional
+                />
+            )}
+
             {clinicaEdit && (
                 <EditarClinicaModal
                     isOpen={isEditarClinicaModalOpen}
@@ -672,6 +820,19 @@ export function ConsultasExames() {
                 />
             )}
 
+            {veterinarioEdit && tutorId && (
+                <EditarVeterinarioModal
+                    isOpen={isEditarVeterinarioModalOpen}
+                    onClose={() => {
+                        setIsEditarVeterinarioModalOpen(false);
+                        setVeterinarioEdit(null);
+                    }}
+                    onVeterinarioUpdated={handleDataChanged}
+                    veterinario={veterinarioEdit}
+                    clinicas={clinicas}
+                />
+            )}
+
             {consultaEdit && (
                 <EditarConsultaModal
                     isOpen={isEditarConsultaModalOpen}
@@ -681,6 +842,7 @@ export function ConsultasExames() {
                     }}
                     consulta={consultaEdit}
                     idPet={pets.find(p => p.nome_pet === consultaEdit.pet_nome)?.id_pet || ''}
+                    tutorId={tutorId!}
                     onSuccess={handleDataChanged}
                 />
             )}
@@ -694,6 +856,7 @@ export function ConsultasExames() {
                     }}
                     compromisso={compromissoEdit}
                     pets={pets}
+                    tutorId={tutorId!}
                     onCompromissoUpdated={handleDataChanged}
                 />
             )}

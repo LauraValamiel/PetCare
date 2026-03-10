@@ -347,7 +347,7 @@ export default function Login() {
                     </div>
                     <h2>Cuidando do seu melhor amigo</h2>
                     <p>Gerencie a saúde dos seus pets com facilidade. Controle vacinas, consultas, medicamentos e muito mais em um único lugar.</p>
-                    <ul>
+                    <ul className='beneficios-lista'>
                         <li><Heart size={18}/><div className='text'><span>Cartão de Vacinas Digital</span><small>Tenha todo o histórico vacinal dos seus pets sempre à mão</small></div></li>
                         <li><Heart size={18}/><div className='text'><span>Alertas Inteligentes</span><small>Receba notificações sobre vacinas, consultas e produtos acabando</small></div></li>
                         <li><Heart size={18}/><div className='text'><span>Histórico Completo</span><small>Acompanhe consultas, exames e o desenvolvimento dos seus pets</small></div></li>

@@ -55,6 +55,7 @@ const calcularIdade = (dataNascimento: string): number => {
 
 export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: EditarPetModal) {
     const [erro, setErro] = useState('');
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState ({
         nome_pet: '',
         especie: '',
@@ -87,6 +88,7 @@ export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: Ed
                 }
                 setSelectedFile(null);
                 setErro('');
+                setLoading(false);
             }
         }, [isOpen, pet])
     
@@ -109,6 +111,7 @@ export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: Ed
 
         const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (loading) return;
         setErro('');
 
         const idadeCalculada = calcularIdade(formData.data_nascimento);
@@ -128,6 +131,8 @@ export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: Ed
             formDataApi.append('foto_perfil_nova', selectedFile, selectedFile.name);
         } 
 
+        setLoading(true);
+
         try {
             const response = await axios.put(`http://localhost:5000/api/tutores/${tutorId}/pets/${pet.id_pet}/atualizar-pet`, formDataApi, {
                 headers: { 'Content-Type': 'multipart/form-data' },
@@ -140,6 +145,7 @@ export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: Ed
         } catch (erro: any) {
             console.error("Erro ao atualizar pet:", erro);
             setErro(erro.response?.data?.error || 'Erro ao salvar pet. Tente novamente.');
+            setLoading(false);
         }
     };
 
@@ -215,7 +221,9 @@ export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: Ed
                     </div>
                     <div className='form-footer'>
                         <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                        <Button variant='primary' type='submit'>Salvar Alterações</Button>
+                        <Button variant='primary' type='submit' disabled={loading}>
+                            {loading ? 'Salvando...' : 'Salvar Alterações'}
+                        </Button>
                     </div>
                 </form>
             </div>

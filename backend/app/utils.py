@@ -70,9 +70,9 @@ def criar_evento_e_enviar_alerta(id_pet, titulo, data_evento, hora_evento=None, 
             print("Formato de data inválido")
             return
         
-        
-       
+        exibir_horário = False
         if hora_evento:
+            exibir_horário = True
             if isinstance(hora_evento, str):
                 hora_obj = dt.datetime.strptime(hora_evento[:5], "%H:%M").time()
             elif isinstance(hora_evento, dt.time):
@@ -86,10 +86,17 @@ def criar_evento_e_enviar_alerta(id_pet, titulo, data_evento, hora_evento=None, 
                     minute=hora_obj.minute
                 )
 
+        print("ANTES DO STRFTIME:", data_evento_obj)
+        if exibir_horário:
+            data_email_formatada = data_evento_obj.strftime("%d/%m/%Y - %H:%M")
+            label_data = "Data e Hora"
+        else:
+            data_email_formatada = data_evento_obj.strftime("%d/%m/%Y")
+            label_data = "Data"
+
         print("data_evento_obj final:", data_evento_obj)
 
-        print("ANTES DO STRFTIME:", data_evento_obj)
-        data_email_formatada = data_evento_obj.strftime("%d/%m/%Y - %H:%M")
+        
         print("DEPOIS DO STRFTIME:", data_email_formatada)
 
         data_inicio = data_evento_obj
@@ -107,7 +114,7 @@ def criar_evento_e_enviar_alerta(id_pet, titulo, data_evento, hora_evento=None, 
             <p>Olá,</p>
             <p>Este é um lembrete sobre um compromisso importante para <strong>{nome_pet}</strong>:</p>
             <p><strong>📌 Evento:</strong> {titulo}</p>
-            <p><strong>📅 Data e Hora:</strong> {data_email_formatada}</p>
+            <p><strong>📅 {label_data}:</strong> {data_email_formatada}</p>
             <p><a href="{link_agenda}">Adicionar à Agenda Google</a></p>
             <p>Atenciosamente,<br>Equipe PetCare</p>
         """

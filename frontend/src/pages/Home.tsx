@@ -53,6 +53,8 @@ interface Produto {
     nome_produto: string;
     quantidade: number;
     consumo_medio: number;
+    consumo_periodo: 'dia' | 'semana' | 'mes';
+    data_validade?: string;
 }
 
 interface Atividades {
@@ -137,10 +139,11 @@ export default function Home() {
                 if (tutorData.pets?.length > 0) {
                     const today = new Date();
                     today.setHours(0,0,0,0);
-                    const nextWeek = new Date();
-                    nextWeek.setDate(today.getDate() + 7);
 
-                    let vacinasVencendo = 0;
+                    const endOfWeek = new Date(today);
+                    endOfWeek.setDate(today.getDate() + 7);
+
+                    let vacinasAtrasadas= 0;
                     let consultasAgendadas = 0;
                     let produtosAcabando = 0;
                     const atividades: Atividades[] = [];
@@ -150,40 +153,55 @@ export default function Home() {
                         tutorData.pets.map(async (pet: Pet) => {
                             const [vacinasRes, consultasRes, produtosRes, compromissosRes] = await Promise.all([
                                 axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
-                                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/consultas`).catch(() => ({ data: [] })),
+                                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/consultas/semana`).catch(() => ({ data: [] })),
                                 axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] })),
                                 axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos`).catch(() => ({ data: [] })),
                             ])
 
                             const vacinas: Vacina[] = vacinasRes.data;
-                            const consultas: Consulta[] = consultasRes.data;
+                            const consultasSemana: Consulta[] = consultasRes.data;
                             const produtos: Produto[] = produtosRes.data;
                             const compromissos: Compromisso[] = compromissosRes.data;
 
+                            console.log(`\n--- [FRONTEND] Pet: ${pet.nome_pet} (ID: ${pet.id_pet}) ---`);
+                            console.log(`[DEBUG] Consultas Recebidas (${consultasSemana.length}):`, consultasSemana);
 
-                            vacinas.forEach((vacina) => {
+                            consultasAgendadas += consultasSemana.length;
+
+                           /* vacinas.forEach((vacina) => {
                                 const proximaDose = new Date(vacina.proxima_dose);
                                 proximaDose.setHours(0,0,0,0);
                                 if (proximaDose < today) {
-                                    vacinasVencendo++;
-                                } else if (proximaDose >= today && proximaDose <= nextWeek) {
-                                    vacinasVencendo++;
+                                    vacinasAtrasadas++;
+                                } 
+                            });*/
+
+                            const vacinasAtrasadasPet = vacinas.filter((v: any) => new Date(v.proxima_dose) < today);
+                            vacinasAtrasadas += vacinasAtrasadasPet.length;
+
+                            const listaAcabando = produtos.filter((p: any) => {
+                                const qtd = Number(p.quantidade);
+                                let consumoDiario = Number(p.consumo_medio);
+                                
+                                if (p.consumo_periodo === 'semana') consumoDiario /= 7;
+                                if (p.consumo_periodo === 'mes') consumoDiario /= 30;
+                                if (p.consumo_periodo === 'ano' || !p.consumo_periodo) {
+                                     if (p.consumo_periodo === 'ano') consumoDiario /= 365;
                                 }
-                            });
 
-                            compromissos.forEach((compromisso) => {
-                                const dataCompromisso = new Date(`${compromisso.data_compromisso}T${compromisso.hora}:00`);
-
-                                if (dataCompromisso >= today) {
-                                    consultasAgendadas++;
+                                const diasRestantes = (consumoDiario && consumoDiario > 0) ? (qtd / consumoDiario) : 999;
+                                
+                                const estaAcabando = qtd <= 0 || diasRestantes <= 7;
+                                
+                                if (estaAcabando) {
+                                    console.log(`[DEBUG] ACABANDO: ${p.nome_produto} (${pet.nome_pet}) - Qtd: ${qtd} - Dias Restantes: ${diasRestantes.toFixed(1)}`);
                                 }
+                                return estaAcabando;
                             });
 
-                            produtos.forEach((produto) => {
-                                if (produto.quantidade > 0 && produto.quantidade <= 5) {
-                                    produtosAcabando++;
-                                }  
-                            });
+                            produtosAcabando += listaAcabando.length;
+
+                            console.log(`[DEBUG] Produtos Recebidos (${produtos.length}):`, produtos);
 
                             atividades.push(
 
@@ -191,7 +209,7 @@ export default function Home() {
                                     tipo: 'vacina' as const,
                                     titulo: `Vacina: ${vacina.nome_vacina} - ${pet.nome_pet}`,
                                     descricao: `Próxima dose em ${new Date(vacina.proxima_dose).toLocaleDateString()}`,
-                                    data: new Date(vacina.proxima_dose.split('T')[0] + 'T00:00:00Z'),
+                                    data: new Date(vacina.proxima_dose),
                                 })),
 
                                 ...compromissos.filter(c => new Date(c.data_compromisso) >= today).map((compromisso) => {
@@ -210,14 +228,14 @@ export default function Home() {
 
                             const todosEventos = [
                                 ...vacinas.map(vacina => ({ date: new Date(vacina.proxima_dose), nome: vacina.nome_vacina })),
-                                ...consultas.map(consulta => ({ date: new Date(consulta.data_consulta), nome: consulta.motivo })),
+                                ...consultasSemana.map(consulta => ({ date: new Date(consulta.data_consulta), nome: consulta.motivo })),
                             ];
 
                             const proximosEventos = todosEventos.filter(evento => evento.date >= today).sort((a, b) => a.date.getTime() - b.date.getTime());
                             const eventosPassados = todosEventos.filter(evento => evento.date < today).sort((a, b) => b.date.getTime() - a.date.getTime());
 
                             const vacinasOrdenadas = vacinas.sort((a, b) => new Date(a.proxima_dose).getTime() - new Date(b.proxima_dose).getTime());
-                            const consultasOrdenadas = consultas.sort((a, b) => new Date(a.data_consulta).getTime() - new Date(b.data_consulta).getTime());
+                            const consultasOrdenadas = consultasSemana.sort((a, b) => new Date(a.data_consulta).getTime() - new Date(b.data_consulta).getTime());
 
                             const vacinasFuturas = vacinasOrdenadas.filter(v => new Date(v.proxima_dose) >= today);
                             const vacinasPassadas = vacinasOrdenadas.filter(v => new Date(v.proxima_dose) < today);
@@ -233,7 +251,7 @@ export default function Home() {
                             } else if (vacinasFuturas.length > 0) {
                                 const proximaDoseDate = new Date(vacinasFuturas[0].proxima_dose);
                                 proximaVacinaData = vacinasFuturas[0].proxima_dose
-                                if (proximaDoseDate <= nextWeek) {
+                                if (proximaDoseDate <= endOfWeek) {
                                     statusVacina = 'Vencendo';
                                 } else {
                                     statusVacina = 'Em dia';
@@ -261,7 +279,7 @@ export default function Home() {
 
                         setCounts({
                             pets: tutorData.pets.length,
-                            vacinas: vacinasVencendo,
+                            vacinas: vacinasAtrasadas,
                             consultas: consultasAgendadas,
                             produtos: produtosAcabando,
                         });
@@ -325,14 +343,14 @@ export default function Home() {
                 <Card className='card-vacinas'>
                     <CardHeader>
                         <CardTitle>
-                            <AlertTriangle />
-                            Vacinas Vencendo
+                            <Syringe />
+                            Vacinas Atrasadas
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className='info'>
                             <p>{counts.vacinas}</p>
-                            <p>proximos 7 dias</p>
+                            <p>atrasadas no momento</p>
                         </div>
                         <div className='card-icon vacinas'>
                             <AlertTriangle size={24}/>

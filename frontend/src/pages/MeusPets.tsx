@@ -224,7 +224,7 @@ export default function MeusPets() {
                         <Button variant='primary' onClick={() => setIsAdicionarModalOpen(true)}><Plus size={16}/> Adicionar Pet </Button>
                     </div>
 
-                    <div className="pets-summary-cards">
+                    {/* <div className="pets-summary-cards">
                         <Card className="card-total-pets">
                             <CardHeader>
                                 <CardTitle>Total de Pets</CardTitle>
@@ -267,6 +267,8 @@ export default function MeusPets() {
                             </CardContent>
                         </Card>
                     </div>
+
+                        */}
 
                     <div className="pets-grid">
                         {loading && <p>Carregando pets...</p>}

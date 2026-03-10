@@ -19,7 +19,7 @@ const estadoInicial = {
     data_vacinacao: '',
     proxima_dose: '',
     lote: '',
-    nome_veterinario: '',
+    id_veterinario: '',
     local_aplicacao: '',
     preco_vacina: '',
     observacoes: '',
@@ -30,12 +30,44 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
     const [erro, setErro] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const [clinicas, setClinicas] = useState<any[]>([]);
+    const [todosVeterinarios, setTodosVeterinarios] = useState<any[]>([]); 
+    const [veterinariosFiltrados, setVeterinariosFiltrados] = useState<any[]>([]);
+    const [selectedClinica, setSelectedClinica] = useState('');
+
     useEffect(() => {
         if (!isOpen) {
             setFormData(estadoInicial);
+            setSelectedClinica('');
             setErro('');
+        } else if (tutorId) {
+            axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`)
+                .then(res => setClinicas(res.data))
+                .catch(err => console.error("Erro ao buscar clínicas", err));
+            
+            axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`)
+                .then(res => {
+                    setTodosVeterinarios(res.data);
+                    setVeterinariosFiltrados(res.data);
+                })
+                .catch(err => console.error("Erro ao buscar veterinários", err));
         }
-    }, [isOpen]);
+    }, [isOpen, tutorId]);
+
+    useEffect(() => {
+        if (selectedClinica) {
+            const filtrados = todosVeterinarios.filter(v => v.id_clinica === Number(selectedClinica));
+            setVeterinariosFiltrados(filtrados);
+            
+            // Se o veterinário selecionado não pertencer à nova clínica, limpamos o campo
+            if (formData.id_veterinario && !filtrados.find(v => v.id_veterinario.toString() === formData.id_veterinario)) {
+                setFormData(prev => ({ ...prev, id_veterinario: '' }));
+            }
+        } else {
+            // Se não tem clínica selecionada, mostra todos (permitindo selecionar os independentes)
+            setVeterinariosFiltrados(todosVeterinarios);
+        }
+    }, [selectedClinica, todosVeterinarios]);
 
     if (!isOpen) {
         return null;
@@ -52,8 +84,9 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
         setLoading(true);
         setErro('');
 
-        if (!formData.id_pet || !formData.nome_vacina || !formData.data_vacinacao || !formData.proxima_dose || !formData.lote || !formData.nome_veterinario || !formData.local_aplicacao || !formData.preco_vacina) {
+        if (!formData.id_pet || !formData.nome_vacina || !formData.data_vacinacao || !formData.proxima_dose || !formData.lote || !formData.id_veterinario || !formData.local_aplicacao || !formData.preco_vacina) {
             setErro('Por favor, preencha todos os campos obrigatórios (*).');
+            setLoading(false);
             return;
         }
 
@@ -122,13 +155,37 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
                                 <label htmlFor="lote">Lote *</label>
                                 <input type="text" id='lote' name='lote' placeholder='Ex: L123456' value={formData.lote} onChange={handleChange} autoComplete="off"/>
                             </div>
-                            <div className='form-group full-width'>
-                                <label htmlFor="nome_veterinario">Veterinário *</label>
-                                <input type="text" id='nome_veterinario' name='nome_veterinario' placeholder='Ex: Dra Tuane' value={formData.nome_veterinario} onChange={handleChange} autoComplete="off"/>
+                            <div className='form-group'>
+                                <label>Clínica *</label>
+                                <select 
+                                    value={selectedClinica} 
+                                    onChange={(e) => setSelectedClinica(e.target.value)}
+                                >
+                                    <option value="">Selecione a clínica</option>
+                                    {clinicas.map(c => (
+                                        <option key={c.id_clinica} value={c.id_clinica}>{c.nome_clinica}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className='form-group'>
-                                <label htmlFor="local_aplicacao">Clínica Veterinária/Local da Aplicação *</label>
-                                <input type="text" id='local_aplicacao' name='local_aplicacao' placeholder='Ex: Clínica Vet' value={formData.local_aplicacao} onChange={handleChange} autoComplete="off"/>
+                                <label htmlFor="id_veterinario">Veterinário *</label>
+                                <select 
+                                    id='id_veterinario' 
+                                    name='id_veterinario' 
+                                    value={formData.id_veterinario} 
+                                    onChange={handleChange}
+                                >
+                                    <option value="">Selecione o veterinário</option>
+                                    {veterinariosFiltrados.map(v => (
+                                        <option key={v.id_veterinario} value={v.id_veterinario}>
+                                            {v.nome} {v.nome_clinica ? `(${v.nome_clinica})` : '(Independente)'}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className='form-group'>
+                                <label htmlFor="local_aplicacao">Local da Aplicação *</label>
+                                <input type="text" id='local_aplicacao' name='local_aplicacao' placeholder='Ex: Clínica X, Em casa...' value={formData.local_aplicacao} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
                                 <label htmlFor="preco_vacina">Preço (R$) *</label>

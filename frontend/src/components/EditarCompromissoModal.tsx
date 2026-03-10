@@ -6,14 +6,18 @@ import '../styles/AdicionarPet.css';
 import { type Pet } from '../pages/MeusPets';
 
 interface Compromisso {
-    id_compromisso: number;
+    id_compromisso?: number;
+    id_consulta?: number;
     id_pet: number;
     titulo: string;
     data_compromisso: string;
     hora: string;
     localizacao: string;
+    id_clinica?: number | string;
+    id_veterinario?: number | string;
     descricao: string;
     pet_nome?: string;
+    origem?: 'consulta' | 'compromisso';
 }
 
 interface EditarCompromissoModalProps {
@@ -22,6 +26,7 @@ interface EditarCompromissoModalProps {
     onCompromissoUpdated: () => void;
     pets: Pet[];
     compromisso: Compromisso | null;
+    tutorId?: number;
 }
 
 const formatDateToInput = (dateString: string): string => {
@@ -43,7 +48,8 @@ export function EditarCompromissoModal({
     onClose,
     onCompromissoUpdated,
     pets,
-    compromisso
+    compromisso,
+    tutorId
 }: EditarCompromissoModalProps) {
 
     const [formData, setFormData] = useState({
@@ -52,13 +58,50 @@ export function EditarCompromissoModal({
         data_compromisso: '',
         hora: '',
         localizacao: '',
+        id_clinica: '',
+        id_veterinario: '',
         descricao: '',
         lembrete: true,
     });
     const [erro, setErro] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const [clinicas, setClinicas] = useState<any[]>([]);
+    const [todosVeterinarios, setTodosVeterinarios] = useState<any[]>([]);
+    const [veterinariosFiltrados, setVeterinariosFiltrados] = useState<any[]>([]);
 
     const isExame = compromisso?.titulo.toLowerCase().includes('exame');
     const modalTitle = isExame ? 'Editar Exame' : 'Editar Consulta/Compromisso';
+
+    const isConsultaReal = !!compromisso?.id_consulta;
+
+    useEffect(() => {
+        if (isOpen && tutorId && isConsultaReal) {
+            axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`)
+                .then(res => setClinicas(res.data))
+                .catch(err => console.error("Erro ao buscar clínicas", err));
+
+            axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`)
+                .then(res => {
+                    setTodosVeterinarios(res.data);
+                    setVeterinariosFiltrados(res.data);
+                })
+                .catch(err => console.error("Erro ao buscar veterinários", err));
+        }
+    }, [isOpen, tutorId, isConsultaReal]);
+
+    useEffect(() => {
+        if (formData.id_clinica) {
+            const filtrados = todosVeterinarios.filter(v => v.id_clinica === Number(formData.id_clinica));
+            setVeterinariosFiltrados(filtrados);
+            
+            if (formData.id_veterinario && !filtrados.find(v => v.id_veterinario.toString() === formData.id_veterinario.toString())) {
+                setFormData(prev => ({...prev, id_veterinario: ''}));
+            }
+        } else {
+            setVeterinariosFiltrados(todosVeterinarios);
+        }
+    }, [formData.id_clinica, todosVeterinarios]);
 
     useEffect(() => {
         if (isOpen && compromisso) {
@@ -70,14 +113,17 @@ export function EditarCompromissoModal({
 
             setFormData({
                 id_pet: petId || '',
-                titulo: compromisso.titulo,
+                titulo: compromisso.titulo || (compromisso as any).motivo || '',
                 data_compromisso: formatDateToInput(compromisso.data_compromisso),
                 hora: formatTimeToInput(compromisso.hora),
-                localizacao: compromisso.localizacao || '',
-                descricao: compromisso.descricao || '',
+                localizacao: compromisso.localizacao || (compromisso as any).nome_clinica || '',
+                id_clinica: (compromisso as any).id_clinica?.toString() || '',
+                id_veterinario: (compromisso as any).id_veterinario?.toString() || '',
+                descricao: (compromisso as any).descricao || (compromisso as any).motivo || '',
                 lembrete: true,
             });
             setErro('');
+            setLoading(false);
         }
     }, [isOpen, compromisso, pets]);
 
@@ -97,18 +143,50 @@ export function EditarCompromissoModal({
 
     const handleSubmit = async (event: React.FocusEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (loading) return;
         setErro('');
 
-        if (!formData.titulo || !formData.data_compromisso || !formData.hora || !formData.localizacao) {
+        if (!formData.titulo || !formData.data_compromisso || !formData.hora) {
             setErro('Por favor, preencha todos os campos obrigatórios (*).');
             return;
         }
 
+        if (isConsultaReal &&  !formData.id_veterinario) {
+            setErro('Por favor, selecione pelo menos o veterinário.');
+            return;
+        }
+
+        if (!isConsultaReal && !formData.localizacao) {
+            setErro('Por favor, preencha a localização.');
+            return;
+        }
+
+        setLoading(true);
+
         try {
-            const response = await axios.put(`http://localhost:5000/api/pets/${formData.id_pet}/compromissos/${compromisso.id_compromisso}`, {
-                ...formData,
-                lembrete: true
-            });
+            const isConsultaReal = !!compromisso.id_consulta;
+        
+            const idAtual = isConsultaReal ? compromisso.id_consulta : compromisso.id_compromisso;
+
+            const url = isConsultaReal 
+                ? `http://localhost:5000/api/pets/${formData.id_pet}/editar-consulta/${idAtual}`
+                : `http://localhost:5000/api/pets/${formData.id_pet}/compromissos/${idAtual}`;
+
+            const dataToSend = isConsultaReal
+                ? {
+                    data_consulta: formData.data_compromisso,
+                    hora: formData.hora,
+                    motivo: formData.titulo, 
+                    descricao: formData.descricao,
+                    id_clinica: formData.id_clinica,
+                    id_veterinario: formData.id_veterinario, 
+                }
+                : {
+                    ...formData,
+                    lembrete: true
+                };
+
+            const response = await axios.put(url, dataToSend);
 
             if (response.status === 200) {
                 onCompromissoUpdated();
@@ -118,6 +196,7 @@ export function EditarCompromissoModal({
         } catch(erro: any) {
             console.error("Erro ao editar compromisso:", erro);
             setErro(erro.response?.data?.error || 'Erro ao salvar alterações. Tente novamente.');
+            setLoading(false);
         }
     };
 
@@ -162,16 +241,41 @@ export function EditarCompromissoModal({
                                 />
                             </div>
 
-                            <div className='form-group'>
-                                <label htmlFor="localizacao">Localização *</label>
-                                <input 
-                                    type="text"
-                                    id='localizacao'
-                                    name='localizacao'
-                                    value={formData.localizacao}
-                                    onChange={handleChange} 
-                                />
-                            </div>
+                            {isConsultaReal ? (
+                                <>
+                                    <div className='form-group'>
+                                        <label htmlFor="id_clinica">Clínica *</label>
+                                        <select name="id_clinica" id="id_clinica" value={formData.id_clinica} onChange={handleChange}>
+                                            <option value="">Selecione a clínica</option>
+                                            {clinicas.map(c => (
+                                                <option key={c.id_clinica} value={c.id_clinica}>{c.nome_clinica}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className='form-group'>
+                                        <label htmlFor="id_veterinario">Veterinário *</label>
+                                        <select name="id_veterinario" id="id_veterinario" value={formData.id_veterinario} onChange={handleChange}>
+                                            <option value="">Selecione o veterinário</option>
+                                            {veterinariosFiltrados.map(v => (
+                                                <option key={v.id_veterinario} value={v.id_veterinario}>
+                                                    {v.nome} {v.nome_clinica ? `(${v.nome_clinica})` : '(Independente)'}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className='form-group'>
+                                    <label htmlFor="localizacao">Localização *</label>
+                                    <input 
+                                        type="text"
+                                        id='localizacao'
+                                        name='localizacao'
+                                        value={formData.localizacao}
+                                        onChange={handleChange} 
+                                    />
+                                </div>
+                            )}
 
                             <div className='form-group'>
                                 <label htmlFor="data_compromisso">Data *</label>
@@ -207,7 +311,9 @@ export function EditarCompromissoModal({
                         </div>
                         <div className='form-footer'>
                             <Button variant='outline' type='button' onClick={onClose}>Cancelar</Button>
-                            <Button variant='primary' type='submit'><Save size={18} style={{marginRight: 8}}/>Salvar Alterações</Button>
+                            <Button variant='primary' type='submit' disabled={loading}>
+                                {loading ? 'Salvando...' : 'Salvar Alterações'}
+                            </Button>
                         </div>
                     </div>
                 </form>

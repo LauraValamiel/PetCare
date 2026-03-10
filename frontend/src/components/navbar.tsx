@@ -1,4 +1,4 @@
-import { Bell, Calendar, CheckCircle, Edit, LogOut, Settings, ShieldAlert, ShoppingBag, Trash2, User, UserCircle, X } from "lucide-react";
+import { Bell, Calendar, CheckCircle, Edit, LogOut, Settings, ShieldAlert, ShoppingBag, Trash2, User, UserCircle, X, Menu } from "lucide-react";
 //import Bell from "lucide-react/dist/esm/icons/bell";
 //import UserCircle from "lucide-react/dist/esm/icons/user-circle";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -98,6 +98,17 @@ const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, naviga
                 <h3>Meu Perfil</h3>
                 <button className="close-btn" onClick={() => store.setIsProfileOpen(false)}><X size={20}/></button>
             </div>
+
+            <div className="sidebar-content mobile-nav-links">
+                <h4>Navegação</h4>
+                <button className="profile-option-btn" onClick={() => handleNavigation("/")}>Página Inicial</button>
+                <button className="profile-option-btn" onClick={() => handleNavigation("/pets")}>Meus Pets</button>
+                <button className="profile-option-btn" onClick={() => handleNavigation("/vacinas")}>Cartão de Vacina</button>
+                <button className="profile-option-btn" onClick={() => handleNavigation("/consultas-exames")}>Consultas/Exames</button>
+                <button className="profile-option-btn" onClick={() => handleNavigation("/produtos")}>Produtos</button>
+                <div className="divider"></div>
+            </div>
+
             <div className="profile-info">
                 <div className="user-avatar profile-avatar">
                     {profileImageUrl ? (
@@ -152,8 +163,11 @@ export function Navbar() {
         <>
         <header className="navbar">
             <div className="navbar-left">
-                <h1 className="navbar-logo"> 🐾 PetCare </h1>
-                <nav>
+                <button className="hamburger-menu" onClick={() => setIsProfileOpen(true)}>
+                    <Menu size={24} />
+                </button>
+                <h1 className="navbar-logo" onClick={() => navigate("/")} style={{cursor: 'pointer'}}> 🐾 PetCare </h1>
+                <nav className="desktop-navbar">
                     <button onClick={() => navigate("/")} className={getButtonClass("/")}>Página Inicial</button>
                     <button onClick={() => navigate("/pets")} className={getButtonClass("/pets")}>Meus Pets</button>
                     <button onClick={() => navigate("/vacinas")} className={getButtonClass("/vacinas")}>Cartão de Vacina</button>

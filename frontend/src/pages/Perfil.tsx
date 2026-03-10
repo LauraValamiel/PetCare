@@ -2,13 +2,13 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { Navbar } from '../components/navbar';
 import { Card } from '../components/card';
-import { User, ShieldCheck, Calendar, Users, Edit, Check, X, FileText, ShoppingBag, UserCircle, Camera, UserPlus} from 'lucide-react';
+import { User, ShieldCheck, Calendar, Users, Edit, Check, X, FileText, ShoppingBag, UserCircle, Camera, UserPlus, Trash2} from 'lucide-react';
 import { Button } from '../components/button';
 import { Badge } from '../components/badge';
 import StoreContext from '../components/store/Context';
 import { formatDate } from './MeusPets';
 import '../styles/Perfil.css';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ConvidarTutorModal } from '../components/ConvidarTutorModal'; 
 import Swal from 'sweetalert2';
 
@@ -17,7 +17,6 @@ interface TutorData {
     nome_completo: string;
     email: string;
     celular: string;
-    cpf: string;
     data_nascimento: string;
     genero_tutor: string;
     foto_perfil_tutor: string | null;
@@ -30,12 +29,6 @@ interface Stats {
     vacinas: number;
     consultas: number;
     produtos: number;
-}
-
-const formatarCPF = (cpf: string) => {
-    if (!cpf) return 'N/A';
-    const cleanCpf = cpf.replace(/\D/g, '');
-    return cleanCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 }
 
 const formatarCelular = (celular: string) => {
@@ -70,14 +63,6 @@ const maskPhone = (value: string) => {
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
 }
 
-const maskCPF = (value: string) => {
-    const digits = value.replace(/\D/g, "");
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9, 11)}`;
-}
-
 const processarUrlFoto = (foto: string | null) => {
     if (!foto) return null;
     // Remove espaços e aspas indesejadas que possam vir do banco
@@ -92,13 +77,12 @@ const processarUrlFoto = (foto: string | null) => {
 export default function Perfil() {
     const store = useContext(StoreContext);
     const navigate = useNavigate();
-    const location = useLocation();
 
     const [tutorData, setTutorData] = useState<TutorData | null>(null);
     const [stats, setStats] = useState<Stats>({ pets: 0, vacinas: 0, consultas: 0, produtos: 0 });
     
     const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState<any>({nome_completo: '', email: '', celular: '', cpf: '', data_nascimento: ''});
+    const [formData, setFormData] = useState<any>({nome_completo: '', email: '', celular: '', data_nascimento: ''});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [tutorId, setTutorId] = useState<number | null>(null);
@@ -162,7 +146,6 @@ export default function Perfil() {
 
                 if (store) {
                     store.setNome(data.nome_completo);
-                    store.setCpf(data.cpf || '');
                     store.setFotoPerfilTutor(data.foto_perfil_tutor);
                 }
 
@@ -176,6 +159,30 @@ export default function Perfil() {
         fetchTutorData()
     }, [tutorId, store]);
 
+    const handleDeleteAccount = async () => {
+        const result = await Swal.fire({
+            title: 'Tem certeza?',
+            text: "Esta ação é irreversível e excluirá todos os seus dados e de seus pets!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, excluir minha conta',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed && tutorId) {
+            try {
+                await axios.delete(`http://localhost:5000/api/tutores/${tutorId}`);
+                localStorage.clear();
+                sessionStorage.clear();
+                navigate('/login');
+                Swal.fire('Excluído!', 'Sua conta foi removida com sucesso.', 'success');
+            } catch (err) {
+                Swal.fire('Erro', 'Não foi possível excluir a conta.', 'error');
+            }
+        }
+    };
 
     useEffect(() => {
         if (isEditing && tutorData) {
@@ -183,7 +190,6 @@ export default function Perfil() {
                 nome_completo: tutorData.nome_completo || '',
                 email: tutorData.email || '',
                 celular: tutorData.celular || '',
-                cpf: tutorData.cpf || '',
                 data_nascimento: formatarDataParaInput(tutorData.data_nascimento) || '',
                 genero_tutor: tutorData.genero_tutor || ''
             });
@@ -249,8 +255,7 @@ export default function Perfil() {
 
             const payload = { 
                 ...formData, 
-                celular: formData.celular.replace(/\D/g, ''), 
-                cpf: formData.cpf.replace(/\D/g, ''), 
+                celular: formData.celular.replace(/\D/g, ''),
                 foto_perfil_tutor: finalPhotoFilename 
            };
 
@@ -309,7 +314,6 @@ export default function Perfil() {
                 nome_completo: nome,
                 email: email,
                 telefone: telefone.replace(/\D/g, ""), 
-                cpf: cpf.replace(/\D/g, ""),
             };
 
             const response = await axios.put(`http://localhost:5000/api/tutores/${tutorId}`, dadosParaEnviar);
@@ -320,7 +324,6 @@ export default function Perfil() {
                 
                 // 2. Atualiza os dados na tela (shared context/store)
                 if (store?.setNome) store.setNome(nome);
-                if (store?.setCpf) store.setCpf(cpf);
 
                 Swal.fire({
                     title: 'Sucesso',
@@ -427,9 +430,18 @@ export default function Perfil() {
                                 </label>
                             )}
                         </div>
-                        <div className='summary-details'>
-                            <p className='name-title'>{tutorData.nome_completo}</p>
-                            <p className='email-subtitle'>{tutorData.email}</p>
+                        <div className='summary-details' style={{ minWidth: 0, flex: 1 }}>
+                            <p className='name-title' style={{ 
+                                whiteSpace: 'nowrap', 
+                                overflow: 'hidden', 
+                                textOverflow: 'ellipsis',
+                                width: '100%' 
+                            }}>{tutorData.nome_completo}</p>
+                            <p className='email-subtitle' style={{ 
+                                whiteSpace: 'nowrap', 
+                                overflow: 'hidden', 
+                                textOverflow: 'ellipsis' 
+                            }}>{tutorData.email}</p>
                             <div className='summary-badges'>
                                 <Badge variant='default'><Users size={14}/>{stats.pets}  Pets Cadastrados</Badge>
                                 <Badge variant='default'><Calendar size={14}/>  Membro desde {memberSince}</Badge>
@@ -495,19 +507,7 @@ export default function Perfil() {
                                             onChange={handleChange}
                                             autoComplete="off"
                                      />
-                                </div>
-                                <div className='form-group-perfil full-width'>
-                                    <label htmlFor="cpf">CPF</label>
-                                    <input 
-                                        type="text" 
-                                        id='cpf' 
-                                        name='cpf' 
-                                        value={isEditing ? formData.cpf : formatarCPF(tutorData.cpf || '')} 
-                                        disabled={!isEditing} 
-                                        onChange={(e) => setFormData({...formData, cpf: maskCPF(e.target.value)})} 
-                                        placeholder="000.000.000-00"
-                                        maxLength={14}
-                                        autoComplete="off" />
+
                                 </div>
                             </div>
                         </Card>
@@ -515,7 +515,7 @@ export default function Perfil() {
                         <Card className='info-card stats-card'>
                             <div className='card-header-icon'>
                                 <FileText size={20}/>
-                                <h4>Estatísticas de Uso</h4>
+                                <h4>Resumo de Atividades</h4>
                             </div>
                             <div className='stats-grid'>
                                 <div className='stat-item heart'>
@@ -540,6 +540,17 @@ export default function Perfil() {
                                 </div>
                             </div>
                         </Card>
+
+                        <div className="danger-zone-perfil" style={{ marginTop: '20px', textAlign: 'center' }}>
+                            <Button 
+                                variant="danger" 
+                                onClick={handleDeleteAccount}
+                                className="btn-excluir-conta"
+                            >
+                                <Trash2 size={18} style={{ marginRight: '8px' }}/>
+                                Excluir minha conta
+                            </Button>
+                        </div>
 
                     </div>
 

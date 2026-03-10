@@ -10,9 +10,12 @@ saude_bp = Blueprint('saude', __name__)
 # -------- VACINAS --------
 @saude_bp.route('/api/pets/<int:id_pet>/vacinas', methods=['GET'])
 def get_vacinas_por_pet(id_pet):
-    query = "SELECT * " \
-    "        FROM vacinas " \
-    "        WHERE id_pet = %s"
+    query = """
+        SELECT v.*, vet.nome as nome_veterinario 
+        FROM vacinas v
+        LEFT JOIN veterinarios vet ON v.id_veterinario = vet.id_veterinario
+        WHERE v.id_pet = %s
+    """
     vacinas = consultar_db(query, (id_pet,))
 
     for vacina in vacinas:
@@ -31,13 +34,13 @@ def adicionar_vacina_por_pet(id_pet):
     nome_vacina = dados.get('nome_vacina')
     lote = dados.get('lote')
     data_vacinacao = dados.get('data_vacinacao')
-    nome_veterinario = dados.get('nome_veterinario')
+    id_veterinario = dados.get('id_veterinario')
     proxima_dose = dados.get('proxima_dose')
     preco_vacina = dados.get('preco_vacina')
     local_aplicacao = dados.get('local_aplicacao')
     observacoes = dados.get('observacoes')
 
-    if not all([nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao]):
+    if not all([nome_vacina, lote, data_vacinacao, id_veterinario, proxima_dose, preco_vacina, local_aplicacao]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
     if proxima_dose < data_vacinacao:
@@ -45,9 +48,9 @@ def adicionar_vacina_por_pet(id_pet):
 
     enviar_notificacao = dados.get('enviar_notificacao', True)
 
-    query = """INSERT INTO vacinas (id_pet, nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes) 
+    query = """INSERT INTO vacinas (id_pet, nome_vacina, lote, data_vacinacao, id_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes) 
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    _, error = executar_db(query, (id_pet, nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes))
+    _, error = executar_db(query, (id_pet, nome_vacina, lote, data_vacinacao, id_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes))
 
     if error:
         return jsonify({"error": f"Erro ao adicionar vacina: {error}"}), 500    
@@ -97,7 +100,7 @@ def editar_vacina(id_pet, id_vacina):
     nome_vacina = dados.get('nome_vacina')
     lote = dados.get('lote')
     data_vacinacao = dados.get('data_vacinacao')
-    nome_veterinario = dados.get('nome_veterinario')
+    id_veterinario = dados.get('id_veterinario')
     proxima_dose = dados.get('proxima_dose')
     preco_vacina = dados.get('preco_vacina')
     local_aplicacao = dados.get('local_aplicacao')
@@ -109,9 +112,9 @@ def editar_vacina(id_pet, id_vacina):
         return jsonify({"error": "A data da próxima dose deve ser posterior à data de vacinação."}), 400
 
     query = """UPDATE vacinas 
-               SET nome_vacina = %s, lote = %s, data_vacinacao = %s, nome_veterinario = %s, proxima_dose = %s, preco_vacina = %s, local_aplicacao = %s, observacoes = %s 
+               SET nome_vacina = %s, lote = %s, data_vacinacao = %s, id_veterinario = %s, proxima_dose = %s, preco_vacina = %s, local_aplicacao = %s, observacoes = %s 
                WHERE id_pet = %s AND id_vacina = %s"""
-    _, error = executar_db(query, (nome_vacina, lote, data_vacinacao, nome_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes, id_pet, id_vacina))
+    _, error = executar_db(query, (nome_vacina, lote, data_vacinacao, id_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes, id_pet, id_vacina))
 
     if proxima_dose and enviar_notificacao:
         criar_evento_e_enviar_alerta(
@@ -130,9 +133,22 @@ def editar_vacina(id_pet, id_vacina):
 
 @saude_bp.route('/api/pets/<int:id_pet>/consultas', methods=['GET'])
 def consultas_pet(id_pet):
-    query = "SELECT * " \
-    "        FROM consultas " \
-    "        WHERE id_pet = %s"
+    query = """
+        SELECT 
+            c.id_consulta, 
+            c.id_pet, 
+            c.data_consulta, 
+            c.hora, 
+            c.motivo, 
+            c.id_clinica, 
+            c.id_veterinario,
+            cl.nome_clinica, 
+            vet.nome as nome_veterinario 
+        FROM consultas c
+        LEFT JOIN clinicas_veterinarias cl ON c.id_clinica = cl.id_clinica
+        LEFT JOIN veterinarios vet ON c.id_veterinario = vet.id_veterinario
+        WHERE c.id_pet = %s
+    """
     consultas = consultar_db(query, (id_pet,))
 
     for consulta in consultas:
@@ -150,14 +166,15 @@ def criar_consulta_pet(id_pet):
     data_consulta = dados.get('data_consulta')
     hora = dados.get('hora')
     motivo = dados.get('motivo')
-    nome_clinica = dados.get('nome_clinica')
+    id_clinica = dados.get('id_clinica')
+    id_veterinario = dados.get('id_veterinario')
 
-    if not all([data_consulta, hora, motivo, nome_clinica]):
+    if not all([data_consulta, hora, motivo, id_veterinario]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400  
     
-    query = """INSERT INTO consultas (id_pet, data_consulta, hora, motivo, nome_clinica) 
+    query = """INSERT INTO consultas (id_pet, data_consulta, hora, motivo, id_clinica) 
                VALUES (%s, %s, %s, %s, %s)"""
-    _, error = executar_db(query, (id_pet, data_consulta, hora, motivo, nome_clinica))   
+    _, error = executar_db(query, (id_pet, data_consulta, hora, motivo, id_clinica))   
 
     if error:
         return jsonify({"error": f"Erro ao criar consulta: {error}"}), 500
@@ -167,7 +184,7 @@ def criar_consulta_pet(id_pet):
         titulo=f"Consulta agendada: {motivo}",
         data_evento=data_consulta,
         hora_evento=hora,
-        descricao=f"Lembrete para a consulta de {motivo} no dia {data_consulta} às {hora} na clínica {nome_clinica}."
+        descricao=f"Lembrete para a consulta de {motivo} no dia {data_consulta} às {hora}."
     )
 
     return jsonify({"message": "Consulta criada com sucesso."}), 201
@@ -179,14 +196,20 @@ def editar_consulta_pet(id_pet, id_consulta):
     data_consulta = dados.get('data_consulta')
     hora = dados.get('hora')
     motivo = dados.get('motivo')
-    nome_clinica = dados.get('nome_clinica')
+
+    id_clinica = dados.get('id_clinica')
+    id_clinica = int(id_clinica) if id_clinica else None
+    
+    id_veterinario = dados.get('id_veterinario')
+    id_veterinario = int(id_veterinario) if id_veterinario else None
 
     query = """UPDATE consultas 
-               SET data_consulta = %s, hora = %s, motivo = %s, nome_clinica = %s
+               SET data_consulta = %s, hora = %s, motivo = %s, id_clinica = %s, id_veterinario = %s
                WHERE id_pet = %s  AND id_consulta = %s"""
-    _, error = executar_db(query, (data_consulta, hora, motivo, nome_clinica, id_pet, id_consulta))   
+    _, error = executar_db(query, (data_consulta, hora, motivo, id_clinica, id_veterinario, id_pet, id_consulta))   
 
     if error:
+        print(f">>> [ERRO DB EDITAR CONSULTA]: {error}")
         return jsonify({"error": f"Erro ao editar consulta: {error}"}), 500
     
     return jsonify({"message": "Consulta atualizado com sucesso."}), 200
@@ -217,6 +240,30 @@ def deletar_consulta(id_pet, id_consulta):
 
     return jsonify({"message": "Consulta deletada com sucesso."}), 200
 
+@saude_bp.route('/api/pets/<int:id_pet>/consultas/semana', methods=['GET'])
+def consultas_da_semana(id_pet):
+    query = """SELECT c.*, cl.nome_clinica, vet.nome as nome_veterinario 
+               FROM consultas c
+               LEFT JOIN clinicas_veterinarias cl ON c.id_clinica = cl.id_clinica
+               LEFT JOIN veterinarios vet ON c.id_veterinario = vet.id_veterinario
+               WHERE c.id_pet = %s 
+               AND c.data_consulta >= CURRENT_DATE 
+               AND c.data_consulta <= CURRENT_DATE + INTERVAL '7 days'
+               ORDER BY c.data_consulta ASC, c.hora ASC"""
+    
+    consultas = consultar_db(query, (id_pet,))
+
+    print(f"\n>>> [BACKEND] Consultas da semana para o pet {id_pet}: {len(consultas)} encontradas.")
+    for c in consultas:
+        print(f"    - ID: {c.get('id_consulta')} | Data: {c.get('data_consulta')} | Motivo: {c.get('motivo')}")
+
+    for consulta in consultas:
+        if consulta.get('data_consulta'):
+            consulta['data_consulta'] = consulta['data_consulta'].isoformat()
+        if consulta.get('hora'):
+            consulta['hora'] = consulta['hora'].strftime('%H:%M')
+
+    return jsonify(consultas), 200
 
 @saude_bp.route('/api/pets/consultas/<int:id_consulta>/anexar-arquivo', methods=['POST'])
 def anexar_arquivo(id_consulta):

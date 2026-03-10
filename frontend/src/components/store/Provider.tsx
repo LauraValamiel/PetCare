@@ -86,7 +86,7 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           r.data.forEach((v: any) => {
             const dataRef = v.proxima_dose || v.data_proxima_dose;
             if (dataRef) {
-              const dataVac = new Date(dataRef);
+              const dataVac = new Date(dataRef.replace(/-/g, '/'));
               const dataComp = new Date(dataVac);
               dataComp.setHours(0,0,0,0);
 
@@ -94,9 +94,9 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
                 listaAccumulada.push({
                   id: `vac-${v.id_vacina}`,
                   titulo: dataComp < hoje ? 'Vacina Atrasada' : 'Vacina Pendente',
-                  mensagem: `A vacina ${v.nome_vacina} (${r.pet_nome}) vence dia ${dataVac.toLocaleDateString()}.`,
+                  mensagem: `A vacina ${v.nome_vacina} (${r.pet_nome}) vence dia ${dataVac.toLocaleDateString('pt-BR')}.`,
                   tipo: 'vacina',
-                  data: dataRef,
+                  data: dataRef.replace(/-/g, '/'),
                   lida: false
                 });
               }
@@ -110,17 +110,19 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
             r.data.forEach((c: any) => {
               const dataRef = c.data_consulta || c.data_hora;
               if (dataRef) {
-                const dataCons = new Date(dataRef);
+                const dataCons = new Date(dataRef.replace(/-/g, '/'));
                 const dataComp = new Date(dataCons);
                 dataComp.setHours(0,0,0,0);
 
                 if (dataComp >= hoje && dataComp <= tresDiasDepois && c.status !== 'concluido') {
+                  const horaFormatada = (c.hora || c.horario || '??:??').slice(0, 5);
+
                   listaAccumulada.push({
                     id: `cons-${c.id_consulta}`,
                     titulo: 'Consulta Próxima',
-                    mensagem: `Consulta para ${r.pet_nome} dia ${dataCons.toLocaleDateString()} às ${c.horario || '??:??'}.`,
+                    mensagem: `Consulta para ${r.pet_nome} dia ${dataCons.toLocaleDateString('pt-BR')} às ${horaFormatada}.`,
                     tipo: 'consulta',
-                    data: dataRef,
+                    data: dataRef.replace(/-/g, '/'),
                     lida: false
                   });
                 }
@@ -135,20 +137,21 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
               const dataRef = c.data_compromisso || c.data_hora;
               
               if (dataRef) {
-                const dataCompromisso = new Date(dataRef);
+                const dataCompromisso = new Date(dataRef.replace(/-/g, '/'));
                 const dataComp = new Date(dataCompromisso);
                 dataComp.setHours(0,0,0,0);
 
                 if (dataComp >= hoje && dataComp <= tresDiasDepois) {
                   const isExame = c.titulo?.toLowerCase().includes('exame');
                   const tipoTitulo = isExame ? 'Exame Próximo' : 'Compromisso Próximo';
+                  const horaFormatada = (c.hora || c.horario || '??:??').slice(0, 5);
 
                   listaAccumulada.push({
                     id: `comp-${c.id_compromisso}`,
                     titulo: tipoTitulo,
-                    mensagem: `${c.titulo} para ${r.pet_nome} dia ${dataCompromisso.toLocaleDateString()} às ${c.hora || '??:??'}.`,
+                    mensagem: `${c.titulo} para ${r.pet_nome} dia ${dataCompromisso.toLocaleDateString('pt-BR')} às ${horaFormatada}.`,
                     tipo: 'consulta', 
-                    data: dataRef,
+                    data: dataRef.replace(/-/g, '/'),
                     lida: false
                   });
                 }
