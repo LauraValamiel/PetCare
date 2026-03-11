@@ -1,11 +1,10 @@
-import { Bell, Calendar, CheckCircle, Edit, LogOut, Settings, ShieldAlert, ShoppingBag, Trash2, User, UserCircle, X, Menu } from "lucide-react";
-//import Bell from "lucide-react/dist/esm/icons/bell";
-//import UserCircle from "lucide-react/dist/esm/icons/user-circle";
+import { Bell, Calendar, CheckCircle, Edit, LogOut, Settings, ShieldAlert, ShoppingBag, Trash2, User, UserCircle, X, Menu, FileDown } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import '../styles/NavBar.css';
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import StoreContext, { type Notificacao } from "./store/Context";
 import Swal from 'sweetalert2';
+import { RelatorioPetModal } from "./RelatorioPetModal";
 
 const NotificationPanelItem: React.FC<any> = ({ notification }) => {
     let IconComponent;
@@ -45,7 +44,7 @@ const NotificationPanelItem: React.FC<any> = ({ notification }) => {
     );
 };
 
-const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, navigate }) => {
+const ProfileSidebar: React.FC<{ store: any, navigate: any, onOpenRelatorio: () => void }> = ({ store, navigate, onOpenRelatorio }) => {
 
     const fotoPerfilTutor = store.fotoPerfilTutor;
     const profileImageUrl = fotoPerfilTutor 
@@ -90,7 +89,7 @@ const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, naviga
         <div 
                 className={`notifications-overlay ${store.isProfileOpen ? 'open' : ''}`} 
                 onClick={() => store.setIsProfileOpen(false)}
-                style={{ zIndex: 998 }} // Garante que fique abaixo do menu
+                style={{ zIndex: 998 }} 
         ></div>
 
         <div className={`profile-sidebar ${store.isProfileOpen ? 'open' : ''}`}>
@@ -123,6 +122,11 @@ const ProfileSidebar: React.FC<{ store: any, navigate: any }> = ({ store, naviga
 
             <div className="sidebar-content profile-content">
                 <h4>Opções de Conta</h4>
+                
+                <button className="profile-option-btn" onClick={onOpenRelatorio}>
+                    <FileDown size={18}/>Baixar Relatório do Pet
+                </button>
+                
                 <button className="profile-option-btn" onClick={() => handleNavigation('/perfil')}><Edit size={18}/>Editar dados pessoais</button>
                 <button className="profile-option-btn" onClick={() => handleNavigation('/configuracoes')}><Settings size={18}/>Configurações do App</button>
                 <div className="divider"></div>
@@ -139,6 +143,21 @@ export function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
     const store = useContext(StoreContext);
+
+    const [isRelatorioModalOpen, setIsRelatorioModalOpen] = useState(false);
+    const [tutorId, setTutorId] = useState<number | null>(null);
+
+    useEffect(() => {
+        try {
+            const localTutor = localStorage.getItem('tutor') || sessionStorage.getItem('tutor');
+            if (localTutor) {
+                const parsedTutor = JSON.parse(localTutor);
+                setTutorId(parsedTutor.id_tutor);
+            }
+        } catch (error) {
+            console.error("Erro ao ler dados do tutor:", error);
+        }
+    }, []);
 
     if (!store) return <header className="navbar">Erro ao carregar store.</header>;
 
@@ -158,6 +177,10 @@ export function Navbar() {
             ? fotoPerfilTutor.trim() 
             : `http://localhost:5000/api/uploads/${fotoPerfilTutor}`) 
         : null;
+
+    function getTutorId(): number | null {
+        throw new Error("Function not implemented.");
+    }
 
     return (
         <>
@@ -236,7 +259,24 @@ export function Navbar() {
                 onClick={() => setIsNotificationsOpen(false)}>
         </div>
 
-        <ProfileSidebar store={store} navigate={navigate} />
+        <ProfileSidebar store={store} navigate={navigate} onOpenRelatorio={function (): void {
+                throw new Error("Function not implemented.");
+            } } />
+
+        <ProfileSidebar 
+            store={store} 
+            navigate={navigate} 
+            onOpenRelatorio={() => {
+                store.setIsProfileOpen(false);
+                setIsRelatorioModalOpen(true); 
+            }}
+        />
+
+        <RelatorioPetModal 
+            isOpen={isRelatorioModalOpen} 
+            onClose={() => setIsRelatorioModalOpen(false)} 
+            tutorId={tutorId} 
+        />
 
         </>
     )
