@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Card, CardContent, CardHeader, CardTitle } from '../components/card';
+import { Card } from '../components/card';
 import { Button } from '../components/button';
 import { useNavigate } from "react-router-dom";
-import { Heart, Plus, Users, Calendar, ShieldCheck, ShieldAlert, Edit } from 'lucide-react';
+import { Heart, Plus, Calendar, ShieldCheck, ShieldAlert, Edit } from 'lucide-react';
 import { Badge } from '../components/badge';
 import { Navbar } from "../components/navbar";
 import { AdicionarPet } from "../components/AdicionarPet";
@@ -73,6 +73,7 @@ export const formatDate = (dateString: string | undefined | null) : string => {
         return `${d}/${m}/${y}`;
 
     } catch (erro) {
+        printf("Erro ao formatar data: ", erro);
         return '--/--/----';
     }
 }
@@ -223,52 +224,6 @@ export default function MeusPets() {
                         </div>
                         <Button variant='primary' onClick={() => setIsAdicionarModalOpen(true)}><Plus size={16}/> Adicionar Pet </Button>
                     </div>
-
-                    {/* <div className="pets-summary-cards">
-                        <Card className="card-total-pets">
-                            <CardHeader>
-                                <CardTitle>Total de Pets</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="info">
-                                    <p>{counts.pets}</p>
-                                </div>
-                                <div className="card-icon pets">
-                                    <Users size={24}/>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="card-vacinas-vencendo">
-                            <CardHeader>
-                                <CardTitle><ShieldAlert />Vacinas Vencendo</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="info">
-                                    <p>{counts.vacinasVencendo}</p>
-                                </div>
-                                <div className="card-icon vacinas-vencendo">
-                                    <Calendar size={24}/>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="card-vacinas-em-dias">
-                            <CardHeader>
-                                <CardTitle><ShieldCheck/>Vacinas em Dia</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="info">
-                                    <p>{counts.vacinasEmDia}</p>
-                                </div>
-                                <div className="card-icon vacinas-em-dias">
-                                    <Calendar size={24}/>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                        */}
 
                     <div className="pets-grid">
                         {loading && <p>Carregando pets...</p>}

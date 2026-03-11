@@ -3,7 +3,7 @@ import axios from 'axios'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/card'
 import { Button } from '../components/button'
 import { useNavigate } from 'react-router-dom'
-import { Heart, AlertTriangle, Stethoscope, ShoppingBag, Plus, ArrowRight, UserCircle, Bell, Users, Syringe, CalendarPlus } from 'lucide-react'
+import { Heart, AlertTriangle, Stethoscope, ShoppingBag, Plus, ArrowRight, UserCircle, Bell, Users, Syringe, CalendarPlus, Calendar, ChevronLeft, ChevronRight, Scissors } from 'lucide-react'
 import { Badge } from '../components/badge'
 import { Navbar } from '../components/navbar'
 import { VerPet } from '../components/VerPet'
@@ -58,7 +58,7 @@ interface Produto {
 }
 
 interface Atividades {
-    tipo: 'vacina' | 'consulta' | 'exame' | 'produto';
+    tipo: 'vacina' | 'consulta' | 'exame' | 'produto' | 'outro';
     titulo: string;
     descricao: string;
     data: Date;
@@ -71,6 +71,8 @@ interface Compromisso {
     data_compromisso: string;
     hora: string;
     localizacao: string;
+    pet_nome?: string;
+    pet_foto?: string | null;
 }
 
 const primeiraLetraMaiuscula = (str: string): string => {
@@ -80,6 +82,9 @@ const primeiraLetraMaiuscula = (str: string): string => {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+const toDateStringLocal = (date: Date) => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
 
 export default function Home() {
 
@@ -104,6 +109,13 @@ export default function Home() {
     const [atividadesRecentes, setAtividadesRecentes] = useState<any[]>([])
     const navigate = useNavigate();
     const [petsComDetalhes, setPetsComDetalhes] = useState<DetalhesPets[]>([]);
+
+    const [datasMarcadas, setDatasMarcadas] = useState<Set<string>>(new Set());
+    const [eventosCalendario, setEventosCalendario] = useState<Record<string, string[]>>({});
+    const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+    const [outrosCompromissos, setOutrosCompromissos] = useState<Compromisso[]>([]);
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [isAdicionarOutroModalOpen, setIsAdicionarOutroModalOpen] = useState(false);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [refreshData, setRefreshData] = useState(0);
@@ -149,6 +161,8 @@ export default function Home() {
                     const atividades: Atividades[] = [];
                     const petsProcessados: DetalhesPets[] = [];
 
+                    const todosOutrosCompromissos: Compromisso[] = [];
+
                     await Promise.all(
                         tutorData.pets.map(async (pet: Pet) => {
                             const [vacinasRes, consultasRes, produtosRes, compromissosRes] = await Promise.all([
@@ -167,14 +181,6 @@ export default function Home() {
                             console.log(`[DEBUG] Consultas Recebidas (${consultasSemana.length}):`, consultasSemana);
 
                             consultasAgendadas += consultasSemana.length;
-
-                           /* vacinas.forEach((vacina) => {
-                                const proximaDose = new Date(vacina.proxima_dose);
-                                proximaDose.setHours(0,0,0,0);
-                                if (proximaDose < today) {
-                                    vacinasAtrasadas++;
-                                } 
-                            });*/
 
                             const vacinasAtrasadasPet = vacinas.filter((v: any) => new Date(v.proxima_dose) < today);
                             vacinasAtrasadas += vacinasAtrasadasPet.length;
@@ -200,6 +206,13 @@ export default function Home() {
                             });
 
                             produtosAcabando += listaAcabando.length;
+
+                            const compromissosFiltrados = compromissos.filter(c => !c.titulo.toLowerCase().includes('exame') && new Date(`${c.data_compromisso}T00:00:00`) >= today);
+                            compromissosFiltrados.forEach(c => todosOutrosCompromissos.push({
+                                ...c, 
+                                pet_nome: pet.nome_pet,
+                                pet_foto: pet.foto_perfil 
+                            }));
 
                             console.log(`[DEBUG] Produtos Recebidos (${produtos.length}):`, produtos);
 
@@ -288,6 +301,21 @@ export default function Home() {
                         atividadesFuturas.sort((a, b) => a.data.getTime() - b.data.getTime());
                         setAtividadesRecentes(atividadesFuturas.slice(0, 4));
                         setPetsComDetalhes(petsProcessados);
+                        todosOutrosCompromissos.sort((a,b) => new Date(`${a.data_compromisso}T${a.hora || '00:00'}`).getTime() - new Date(`${b.data_compromisso}T${b.hora || '00:00'}`).getTime());
+                        setOutrosCompromissos(todosOutrosCompromissos.slice(0, 5)); // Mostra os próximos 5
+
+                        const marcadas = new Set(atividades.map(act => toDateStringLocal(act.data)));
+                        setDatasMarcadas(marcadas);
+
+                        const mapaEventos: Record<string, string[]> = {};
+                        atividades.forEach(act => {
+                            const dataStr = toDateStringLocal(act.data);
+                            if (!mapaEventos[dataStr]) {
+                                mapaEventos[dataStr] = [];
+                            }
+                            mapaEventos[dataStr].push(act.titulo);
+                        });
+                        setEventosCalendario(mapaEventos);
                     }
 
             } catch (err) {
@@ -310,6 +338,89 @@ export default function Home() {
     const handleDataChanged = () => {
         setRefreshData(prev => prev + 1);
     }
+    
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+
+    const renderCalendarDays = () => {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const todayStr = toDateStringLocal(new Date());
+
+        const days = [];
+        for (let i = 0; i < firstDay; i++) {
+            days.push(<div key={`empty-${i}`} style={{ padding: '10px' }}></div>);
+        }
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const isToday = dateStr === todayStr;
+            const hasEvent = datasMarcadas.has(dateStr);
+
+            const eventosDoDia = eventosCalendario[dateStr];
+            const isHovered = hoveredDate === dateStr;
+
+            days.push(
+                <div 
+                    key={i} 
+                    onMouseEnter={() => setHoveredDate(dateStr)}
+                    onMouseLeave={() => setHoveredDate(null)}
+                    style={{
+                        padding: '8px',
+                        textAlign: 'center',
+                        borderRadius: '8px',
+                        backgroundColor: isToday ? '#3b82f6' : 'transparent', // Dia atual fica azul
+                        color: isToday ? 'white' : '#333',
+                        fontWeight: isToday ? 'bold' : 'normal',
+                        position: 'relative',
+                        cursor: hasEvent ? 'pointer' : 'default'
+                    }}
+                >
+                    {i}
+                    {hasEvent && (
+                        <div style={{
+                            width: '6px', height: '6px', backgroundColor: isToday ? 'white' : '#ef4444', // Bolinha vermelha nos dias com compromisso
+                            borderRadius: '50%', margin: '2px auto 0'
+                        }}></div>
+                    )}
+
+                    {hasEvent && isHovered && (
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '100%',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            backgroundColor: '#333',
+                            color: '#fff',
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            whiteSpace: 'nowrap',
+                            zIndex: 10,
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                            marginBottom: '6px',
+                            pointerEvents: 'none'
+                        }}>
+                            {eventosDoDia.map((texto, idx) => (
+                                <div key={idx} style={{marginBottom: '2px'}}>{texto}</div>
+                            ))}
+                            {/* Setinha do balão */}
+                            <div style={{
+                                position: 'absolute', top: '100%', left: '50%',
+                                transform: 'translateX(-50%)',
+                                borderWidth: '5px', borderStyle: 'solid',
+                                borderColor: '#333 transparent transparent transparent'
+                            }}></div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        return days;
+    };
 
     return (
     <div className='home-page'>
@@ -394,6 +505,69 @@ export default function Home() {
                     </CardContent>
                 </Card>
             </div>
+
+            <section style={{ display: 'flex', gap: '24px', margin: '24px 0', flexWrap: 'wrap' }}>
+                
+                {/* LADO ESQUERDO: Card do Calendário Dinâmico */}
+                <Card style={{ flex: '1 1 300px', padding: '20px', backgroundColor: '#fff' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px' }}><Calendar size={20} color='#3b82f6'/> Calendário</h3>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><ChevronLeft size={20}/></button>
+                            <span style={{ fontWeight: '600', minWidth: '100px', textAlign: 'center' }}>{meses[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
+                            <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><ChevronRight size={20}/></button>
+                        </div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+                        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+                        {renderCalendarDays()}
+                    </div>
+                    <div style={{ marginTop: '16px', fontSize: '12px', color: '#888', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ width: '8px', height: '8px', backgroundColor: '#ef4444', borderRadius: '50%'}}></div> Dias com eventos
+                    </div>
+                </Card>
+
+                {/* LADO DIREITO: Card de Outros Compromissos (Banho/Tosa) */}
+                <Card style={{ flex: '1 1 350px', padding: '20px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px' }}><Scissors size={20} color='#f59e0b'/> Banho, Tosa & Outros</h3>
+                        {/* Botão que abre o modal de Agendar na versão "outro" */}
+                        <Button variant='primary' onClick={() => setIsAdicionarOutroModalOpen(true)} style={{ padding: '6px 12px', fontSize: '14px' }}> <Plus size={16}/> Agendar</Button>
+                    </div>
+                    
+                    {outrosCompromissos.length > 0 ? (
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
+                            {outrosCompromissos.map(comp => (
+                                <li key={comp.id_compromisso} style={{ padding: '12px', border: '1px solid #eee', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{
+                                            width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#f0f0f0',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0
+                                        }}>
+                                            {comp.pet_foto ? (
+                                                <img src={`http://localhost:5000/api/uploads/${comp.pet_foto}`} alt={comp.pet_nome} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
+                                            ) : (
+                                                <Heart size={20} color="#888" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p style={{ margin: 0, fontWeight: '600', color: '#333' }}>{comp.titulo}</p>
+                                            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#666' }}>{comp.pet_nome} • {formatDate(comp.data_compromisso)} às {comp.hora}</p>
+                                        </div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: '14px' }}>
+                            Nenhum compromisso agendado.
+                        </div>
+                    )}
+                </Card>
+            </section>
 
             <div className='main-content'>
                 <section className='atividades-recentes'>
@@ -515,6 +689,17 @@ export default function Home() {
                     tutorId={tutorId}
                 />
             )}
+
+        {tutorId && (
+            <AgendarCompromissoModal 
+                isOpen={isAdicionarOutroModalOpen} 
+                onClose={() => setIsAdicionarOutroModalOpen(false)} 
+                onCompromissoAdded={handleDataChanged} 
+                pets={tutor?.pets || []} 
+                tutorId={tutorId} 
+                tipo='outro' 
+            />
+        )}
         
 
     </div>

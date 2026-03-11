@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from './button';
@@ -11,10 +13,10 @@ interface AgendarCompromissoModalProps {
     onCompromissoAdded: () => void;
     pets: Pet[];
     tutorId: number;
-    tipo: 'consulta' | 'exame';
+    tipo: 'consulta' | 'exame' | 'outro';
 }
 
-const getEstadoInicial = (tipo: 'consulta' | 'exame') => ({
+const getEstadoInicial = (tipo: 'consulta' | 'exame' | 'outro') => ({
     id_pet: '',
     titulo: tipo === 'exame' ? 'Exame' : '',
     data_compromisso: '',
@@ -38,10 +40,22 @@ export function AgendarCompromissoModal({
     const [formData, setFormData] = useState(getEstadoInicial(tipo));
     const [erro, setErro] = useState('');
 
-    const modalTitle = tipo === 'consulta' ? 'Agendar Nova Consulta' : 'Agendar Novo Exame';
-    const tituloLabel = tipo === 'consulta' ? 'Motivo da Consulta *' : 'Nome do Exame*';
-    const tituloPlaceholder = tipo === 'consulta' ? 'Ex: Check-up anual, vacina' : 'Ex: Exame de sangue, raio-x';
-    const localLabel = tipo === 'consulta' ? 'Clínica/Veterinário *' : 'Laboratório/Clínica *';
+    const modalTitle = tipo === 'consulta' ? 'Agendar Nova Consulta' 
+                     : tipo === 'exame' ? 'Agendar Novo Exame' 
+                     : 'Agendar Novo Compromisso';
+                     
+    const tituloLabel = tipo === 'consulta' ? 'Motivo da Consulta *' 
+                      : tipo === 'exame' ? 'Nome do Exame *' 
+                      : 'Título do Compromisso *';
+                      
+    const tituloPlaceholder = tipo === 'consulta' ? 'Ex: Check-up anual, vacina' 
+                            : tipo === 'exame' ? 'Ex: Exame de sangue, raio-x' 
+                            : 'Ex: Banho, Tosa, Passeio...';
+                            
+    const localLabel = tipo === 'consulta' ? 'Clínica/Veterinário *' 
+                     : tipo === 'exame' ? 'Laboratório/Clínica *' 
+                     : 'Localização *';
+
     const [loading, setLoading] = useState(false);
 
     const [clinicas, setClinicas] = useState<any[]>([]);
@@ -116,21 +130,10 @@ export function AgendarCompromissoModal({
             return;
         }
 
-        if (tipo === 'consulta' && !formData.id_veterinario) {
-            setErro('Por favor, selecione pelo menos o veterinário.');
+        if ((tipo === 'exame' || tipo === 'outro') && !formData.localizacao) {
+            setErro(`Por favor, preencha o local do ${tipo === 'exame' ? 'exame' : 'compromisso'}.`);
             setLoading(false);
             return;
-        }
-
-        if (tipo === 'exame' && !formData.localizacao) {
-            setErro('Por favor, preencha o local do exame.');
-            setLoading(false);
-            return;
-        }
-
-        let tituloAjustado = formData.titulo;
-        if (tipo === 'exame' && !formData.titulo.toLowerCase().includes('exame')){
-            tituloAjustado = `Exame: ${formData.titulo}`;
         }
 
         try {
