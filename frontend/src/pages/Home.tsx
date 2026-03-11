@@ -3,7 +3,7 @@ import axios from 'axios'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/card'
 import { Button } from '../components/button'
 import { useNavigate } from 'react-router-dom'
-import { Heart, AlertTriangle, Stethoscope, ShoppingBag, Plus, ArrowRight, UserCircle, Bell, Users, Syringe, CalendarPlus, Calendar, ChevronLeft, ChevronRight, Scissors } from 'lucide-react'
+import { Heart, AlertTriangle, Stethoscope, ShoppingBag, Plus, ArrowRight, UserCircle, Bell, Users, Syringe, CalendarPlus, Calendar, ChevronLeft, ChevronRight, Scissors, Pencil, Trash2, MapPin, AlignLeft, Edit } from 'lucide-react'
 import { Badge } from '../components/badge'
 import { Navbar } from '../components/navbar'
 import { VerPet } from '../components/VerPet'
@@ -12,9 +12,11 @@ import '../styles/Home.css'
 import { formatDate, type DetalhesPets } from './MeusPets'
 import { AdicionarVacina } from '../components/AdicionarVacina'
 import { AgendarCompromissoModal } from '../components/AgendarCompromissoModal'
+import { EditarCompromissoModal } from '../components/EditarCompromissoModal'
 import StoreContext, { type Notificacao } from '../components/store/Context'
 import React from 'react'
 import { AdicionarProdutoModal } from '../components/AdicionarProdutoModal'
+import Swal from 'sweetalert2'
 
 interface Pet {
     peso: number
@@ -66,6 +68,7 @@ interface Atividades {
 
 interface Compromisso {
     id_compromisso: number;
+    id_pet?: number;
     titulo: string;
     descricao: string;
     data_compromisso: string;
@@ -116,6 +119,9 @@ export default function Home() {
     const [outrosCompromissos, setOutrosCompromissos] = useState<Compromisso[]>([]);
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isAdicionarOutroModalOpen, setIsAdicionarOutroModalOpen] = useState(false);
+
+    const [compromissoEditando, setCompromissoEditando] = useState<Compromisso | null>(null);
+    const [isEditarCompromissoModalOpen, setIsEditarCompromissoModalOpen] = useState(false);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [refreshData, setRefreshData] = useState(0);
@@ -209,7 +215,8 @@ export default function Home() {
 
                             const compromissosFiltrados = compromissos.filter(c => !c.titulo.toLowerCase().includes('exame') && new Date(`${c.data_compromisso}T00:00:00`) >= today);
                             compromissosFiltrados.forEach(c => todosOutrosCompromissos.push({
-                                ...c, 
+                                ...c,
+                                id_pet: pet.id_pet, 
                                 pet_nome: pet.nome_pet,
                                 pet_foto: pet.foto_perfil 
                             }));
@@ -338,7 +345,54 @@ export default function Home() {
     const handleDataChanged = () => {
         setRefreshData(prev => prev + 1);
     }
-    
+
+    const handleDeleteCompromisso = async (id_compromisso: number, id_pet?: number) => {
+        const result = await Swal.fire({
+            title: 'Confirmação',
+            text: `Tem certeza que deseja excluir este compromisso?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#b942f4',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                let petIdToUse = id_pet;
+                if (!petIdToUse) {
+                    const compEncontrado = outrosCompromissos.find(c => c.id_compromisso === id_compromisso);
+                    if(compEncontrado) petIdToUse = compEncontrado.id_pet;
+                }
+                
+                await axios.delete(`http://localhost:5000/api/pets/${petIdToUse}/compromissos/${id_compromisso}`);
+            
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Compromisso excluído com sucesso!',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
+                handleDataChanged();
+            } catch (error) {
+                console.error("Erro ao deletar compromisso:", error);
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao excluir o compromisso. Tente novamente.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#b942f4'
+                });
+            }
+        }
+    };
+
+    const handleEditCompromisso = (comp: Compromisso) => {
+        setCompromissoEditando(comp);
+        setIsEditarCompromissoModalOpen(true);
+    };
     const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     
     const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -372,7 +426,7 @@ export default function Home() {
                         padding: '8px',
                         textAlign: 'center',
                         borderRadius: '8px',
-                        backgroundColor: isToday ? '#3b82f6' : 'transparent', // Dia atual fica azul
+                        backgroundColor: isToday ? '#af6fe6' : 'transparent',
                         color: isToday ? 'white' : '#333',
                         fontWeight: isToday ? 'bold' : 'normal',
                         position: 'relative',
@@ -506,130 +560,186 @@ export default function Home() {
                 </Card>
             </div>
 
-            <section style={{ display: 'flex', gap: '24px', margin: '24px 0', flexWrap: 'wrap' }}>
-                
-                {/* LADO ESQUERDO: Card do Calendário Dinâmico */}
-                <Card style={{ flex: '1 1 300px', padding: '20px', backgroundColor: '#fff' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px' }}><Calendar size={20} color='#3b82f6'/> Calendário</h3>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><ChevronLeft size={20}/></button>
-                            <span style={{ fontWeight: '600', minWidth: '100px', textAlign: 'center' }}>{meses[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
-                            <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><ChevronRight size={20}/></button>
-                        </div>
-                    </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            
+                <div className='main-content'>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '14px', color: '#666', marginBottom: '8px' }}>
-                        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
-                        {renderCalendarDays()}
-                    </div>
-                    <div style={{ marginTop: '16px', fontSize: '12px', color: '#888', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '8px', height: '8px', backgroundColor: '#ef4444', borderRadius: '50%'}}></div> Dias com eventos
-                    </div>
-                </Card>
+                    {/* LADO ESQUERDO: Card do Calendário */}
+                    <section className='atividades-recentes' style={{ padding: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
+                        <Card style={{ padding: '20px', backgroundColor: '#fff', height: '380px', display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px' }}><Calendar size={20} color='#3b82f6'/> Calendário</h3>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><ChevronLeft size={20}/></button>
+                                    <span style={{ fontWeight: '600', minWidth: '100px', textAlign: 'center' }}>{meses[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
+                                    <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}><ChevronRight size={20}/></button>
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+                                <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', flex: 1 }}>
+                                {renderCalendarDays()}
+                            </div>
+                            <div style={{ marginTop: '16px', fontSize: '12px', color: '#888', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <div style={{ width: '8px', height: '8px', backgroundColor: '#ef4444', borderRadius: '50%'}}></div> Dias com eventos
+                            </div>
+                        </Card>
+                    </section>
 
-                {/* LADO DIREITO: Card de Outros Compromissos (Banho/Tosa) */}
-                <Card style={{ flex: '1 1 350px', padding: '20px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px' }}><Scissors size={20} color='#f59e0b'/> Banho, Tosa & Outros</h3>
-                        {/* Botão que abre o modal de Agendar na versão "outro" */}
-                        <Button variant='primary' onClick={() => setIsAdicionarOutroModalOpen(true)} style={{ padding: '6px 12px', fontSize: '14px' }}> <Plus size={16}/> Agendar</Button>
-                    </div>
-                    
-                    {outrosCompromissos.length > 0 ? (
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
-                            {outrosCompromissos.map(comp => (
-                                <li key={comp.id_compromisso} style={{ padding: '12px', border: '1px solid #eee', borderRadius: '8px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{
-                                            width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#f0f0f0',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0
-                                        }}>
-                                            {comp.pet_foto ? (
-                                                <img src={`http://localhost:5000/api/uploads/${comp.pet_foto}`} alt={comp.pet_nome} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
-                                            ) : (
-                                                <Heart size={20} color="#888" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p style={{ margin: 0, fontWeight: '600', color: '#333' }}>{comp.titulo}</p>
-                                            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#666' }}>{comp.pet_nome} • {formatDate(comp.data_compromisso)} às {comp.hora}</p>
-                                        </div>
+                    {/* LADO DIREITO: Card de Outros Compromissos */}
+                    <section className='meus-pets' style={{ padding: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
+                        <Card style={{ padding: '20px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', height: '380px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
+                                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px' }}><Scissors size={20} color='#f59e0b'/> Banho, Tosa & Outros</h3>
+                                <Button variant='primary' onClick={() => { setIsAdicionarOutroModalOpen(true); }} style={{ padding: '6px 12px', fontSize: '14px' }}> <Plus size={16}/> Agendar</Button>
+                            </div>
+                            
+                            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
+                                {outrosCompromissos.length > 0 ? (
+                                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {outrosCompromissos.map(comp => (
+                                            <li key={comp.id_compromisso} style={{ padding: '12px', border: '1px solid #eee', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                                                        <div style={{
+                                                            width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#f0f0f0',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0
+                                                        }}>
+                                                            {comp.pet_foto ? (
+                                                                <img src={`http://localhost:5000/api/uploads/${comp.pet_foto}`} alt={comp.pet_nome} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
+                                                            ) : (
+                                                                <Heart size={20} color="#888" />
+                                                            )}
+                                                        </div>
+                                                        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                                                            <p style={{ margin: 0, fontWeight: '600', color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                <span style={{ color: '#42006e' }}>{comp.pet_nome}</span> - {comp.titulo}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                                                        <button 
+                                                            onClick={() => handleEditCompromisso(comp)} 
+                                                            title="Editar compromisso"
+                                                            style={{ 
+                                                                width: '24px', height: '24px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                                                                borderRadius: '4px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' 
+                                                            }}
+                                                        >
+                                                            <Edit size={14} color="#555" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDeleteCompromisso(comp.id_compromisso, comp.id_pet)} 
+                                                            title="Excluir compromisso"
+                                                            style={{ 
+                                                                width: '24px', height: '24px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                                                                borderRadius: '4px', border: '1px solid #ffcccc', background: '#fff5f5', cursor: 'pointer' 
+                                                            }}
+                                                        >
+                                                            <Trash2 size={14} color="#d32f2f" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ paddingLeft: '52px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666', marginBottom: '4px' }}>
+                                                        <CalendarPlus size={13} style={{ color: '#999', flexShrink: 0 }}/> 
+                                                        <span>{formatDate(comp.data_compromisso)} às {comp.hora}</span>
+                                                    </div>
+                                                    
+                                                    {comp.localizacao && (
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666', marginBottom: '4px' }}>
+                                                            <MapPin size={13} style={{ color: '#999', flexShrink: 0 }}/> 
+                                                            <span>{comp.localizacao}</span>
+                                                        </div>
+                                                    )}
+
+                                                    {comp.descricao && (
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666' }}>
+                                                            <AlignLeft size={13} style={{ color: '#999', flexShrink: 0 }}/> 
+                                                            <span>{comp.descricao}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: '14px' }}>
+                                        Nenhum compromisso agendado.
+                                    </div>
+                                )}
+                            </div>
+                        </Card>
+                    </section>
+                </div>
+                
+                <div className='main-content'>
+                    <section className='atividades-recentes'>
+                        <div className='section-header'>
+                            <h3>Atividades Recentes</h3>
+                        </div>
+
+                        <ul className='lista-atividades'>
+                            {atividadesRecentes.length > 0 ? atividadesRecentes.map((act, idx) => (
+                                <li key={idx} className='item-atividade'>
+                                    <div className={`atividade-icon ${act.tipo}`}></div>
+                                    <div className='atividade-info'>
+                                        <p>{act.titulo}</p>
+                                        <small>{act.descricao}</small>
                                     </div>
                                 </li>
-                            ))}
+
+                            )) : <p>Nenhuma atividade encontrada</p>
+                        }
                         </ul>
-                    ) : (
-                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: '14px' }}>
-                            Nenhum compromisso agendado.
+                        <div className='ver-todas-btn'>
+                            <Button variant='link' onClick={() => navigate("/consultas-exames")}> Ver todas as atividades<ArrowRight size={16}/></Button>
                         </div>
-                    )}
-                </Card>
-            </section>
+                    </section>
 
-            <div className='main-content'>
-                <section className='atividades-recentes'>
-                    <div className='section-header'>
-                        <h3>Atividades Recentes</h3>
-                    </div>
+                    <section className='meus-pets'>
+                        <div className='section-header'>
+                            <h3><Heart size={20}/>Meus Pets 🐾</h3>
+                            <Button variant='outline' onClick={() => navigate("/pets")}> Ver todos</Button>  
+                        </div>
+                            <ul className='pets-list'>
+                                {petsComDetalhes.map((pet) => (
+                                    <li key={pet.id_pet} className='pet-card-item'>
+                                        <div className='pet-info'>
+                                            <div className='heart-icon'>
+                                                {pet.foto_perfil ? (
+                                                        <img src={`http://localhost:5000/api/uploads/${pet.foto_perfil}`}  alt={pet.nome_pet} className="foto_perfil_pet"/>
+                                                    ) : (<Heart size={24}/>)}
+                                            </div>
+                                            <div className='pet-details'>
+                                                <p className='pet-name'><strong>{primeiraLetraMaiuscula(pet.nome_pet)}</strong></p>
+                                                <small>{primeiraLetraMaiuscula(pet.especie)} • {primeiraLetraMaiuscula(pet.raca)} </small>
+                                            </div>
+                                        </div>
+                                        <div className='pet-status'>
+                                            <Badge variant={pet.statusVacina === 'Atrasada' ? 'danger' : pet.statusVacina === 'Vencendo' ? 'warning' : 'success'}>
+                                                {pet.statusVacina}
+                                            </Badge>
+                                            <p><small>Próxima vacina em {pet.proximaVacina}</small></p>
 
-                    <ul className='lista-atividades'>
-                        {atividadesRecentes.length > 0 ? atividadesRecentes.map((act, idx) => (
-                            <li key={idx} className='item-atividade'>
-                                <div className={`atividade-icon ${act.tipo}`}></div>
-                                <div className='atividade-info'>
-                                    <p>{act.titulo}</p>
-                                    <small>{act.descricao}</small>
-                                </div>
-                            </li>
-
-                        )) : <p>Nenhuma atividade encontrada</p>
-                    }
-                    </ul>
-                    <div className='ver-todas-btn'>
-                        <Button variant='link' onClick={() => navigate("/consultas-exames")}> Ver todas as atividades<ArrowRight size={16}/></Button>
-                    </div>
-            </ section>
-
-            <section className='meus-pets'>
-                <div className='section-header'>
-                    <h3><Heart size={20}/>Meus Pets 🐾</h3>
-                    <Button variant='outline' onClick={() => navigate("/pets")}> Ver todos</Button>  
+                                            <Button
+                                                variant="outline"
+                                                className="mt-3"
+                                                onClick={() => setPetView(pet)}
+                                            >
+                                            Ver Detalhes
+                                            </Button>
+                                        </div>  
+                                    </li>
+                                ))}
+                            </ul>
+                    </section>
                 </div>
-                    <ul className='pets-list'>
-                        {petsComDetalhes.map((pet) => (
-                            <li key={pet.id_pet} className='pet-card-item'>
-                                <div className='pet-info'>
-                                    <div className='heart-icon'>
-                                        {pet.foto_perfil ? (
-                                                <img src={`http://localhost:5000/api/uploads/${pet.foto_perfil}`}  alt={pet.nome_pet} className="foto_perfil_pet"/>
-                                            ) : (<Heart size={24}/>)}
-                                    </div>
-                                    <div className='pet-details'>
-                                        <p className='pet-name'><strong>{primeiraLetraMaiuscula(pet.nome_pet)}</strong></p>
-                                        <small>{primeiraLetraMaiuscula(pet.especie)} • {primeiraLetraMaiuscula(pet.raca)} </small>
-                                    </div>
-                                </div>
-                                <div className='pet-status'>
-                                    <Badge variant={pet.statusVacina === 'Atrasada' ? 'danger' : pet.statusVacina === 'Vencendo' ? 'warning' : 'success'}>
-                                        {pet.statusVacina}
-                                    </Badge>
-                                    <p><small>Próxima vacina em {pet.proximaVacina}</small></p>
-
-                                    <Button
-                                        variant="outline"
-                                        className="mt-3"
-                                        onClick={() => setPetView(pet)}
-                                    >
-                                    Ver Detalhes
-                                    </Button>
-                                </div>  
-                            </li>
-                        ))}
-                    </ul>
-            </section>
             </div>
             
             <section className='acoes-section'>
@@ -698,6 +808,20 @@ export default function Home() {
                 pets={tutor?.pets || []} 
                 tutorId={tutorId} 
                 tipo='outro' 
+            />
+        )}
+
+        {tutorId && compromissoEditando && (
+            <EditarCompromissoModal
+                isOpen={isEditarCompromissoModalOpen}
+                onClose={() => {
+                    setIsEditarCompromissoModalOpen(false);
+                    setCompromissoEditando(null); // Limpa o estado ao fechar
+                }}
+                onCompromissoUpdated={handleDataChanged}
+                pets={tutor?.pets || []}
+                compromisso={compromissoEditando}
+                tutorId={tutorId}
             />
         )}
         
