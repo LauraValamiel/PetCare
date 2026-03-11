@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useEffect, useState, type ReactNode } from 'react';
 import axios from 'axios';
 import StoreContext, { type Notificacao } from './Context';
