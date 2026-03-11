@@ -39,8 +39,12 @@ def adicionar_vacina_por_pet(id_pet):
     preco_vacina = dados.get('preco_vacina')
     local_aplicacao = dados.get('local_aplicacao')
     observacoes = dados.get('observacoes')
+    id_clinica = dados.get('id_clinica')
 
-    if not all([nome_vacina, lote, data_vacinacao, id_veterinario, proxima_dose, preco_vacina, local_aplicacao]):
+    id_vet_val = int(dados.get('id_veterinario')) if dados.get('id_veterinario') else None
+    id_clinica_val = int(id_clinica) if id_clinica else None
+
+    if not all([nome_vacina, lote, data_vacinacao, dados.get('id_veterinario'), proxima_dose, preco_vacina, local_aplicacao]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
     if proxima_dose < data_vacinacao:
@@ -48,9 +52,9 @@ def adicionar_vacina_por_pet(id_pet):
 
     enviar_notificacao = dados.get('enviar_notificacao', True)
 
-    query = """INSERT INTO vacinas (id_pet, nome_vacina, lote, data_vacinacao, id_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes) 
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    _, error = executar_db(query, (id_pet, nome_vacina, lote, data_vacinacao, id_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes))
+    query = """INSERT INTO vacinas (id_pet, nome_vacina, lote, data_vacinacao, id_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes, id_clinica) 
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+    _, error = executar_db(query, (id_pet, nome_vacina, lote, data_vacinacao, id_vet_val, proxima_dose, preco_vacina, local_aplicacao, observacoes, id_clinica_val))
 
     if error:
         return jsonify({"error": f"Erro ao adicionar vacina: {error}"}), 500    
@@ -105,6 +109,10 @@ def editar_vacina(id_pet, id_vacina):
     preco_vacina = dados.get('preco_vacina')
     local_aplicacao = dados.get('local_aplicacao')
     observacoes = dados.get('observacoes')
+    id_clinica = dados.get('id_clinica')
+
+    id_vet_val = int(dados.get('id_veterinario')) if dados.get('id_veterinario') else None
+    id_clinica_val = int(id_clinica) if id_clinica else None
 
     enviar_notificacao = dados.get('enviar_notificacao', True)
 
@@ -112,10 +120,9 @@ def editar_vacina(id_pet, id_vacina):
         return jsonify({"error": "A data da próxima dose deve ser posterior à data de vacinação."}), 400
 
     query = """UPDATE vacinas 
-               SET nome_vacina = %s, lote = %s, data_vacinacao = %s, id_veterinario = %s, proxima_dose = %s, preco_vacina = %s, local_aplicacao = %s, observacoes = %s 
+               SET nome_vacina = %s, lote = %s, data_vacinacao = %s, id_veterinario = %s, proxima_dose = %s, preco_vacina = %s, local_aplicacao = %s, observacoes = %s, id_clinica = %s
                WHERE id_pet = %s AND id_vacina = %s"""
-    _, error = executar_db(query, (nome_vacina, lote, data_vacinacao, id_veterinario, proxima_dose, preco_vacina, local_aplicacao, observacoes, id_pet, id_vacina))
-
+    _, error = executar_db(query, (nome_vacina, lote, data_vacinacao, id_vet_val, proxima_dose, preco_vacina, local_aplicacao, observacoes, id_clinica_val, id_pet, id_vacina))
     if proxima_dose and enviar_notificacao:
         criar_evento_e_enviar_alerta(
             id_pet=id_pet,
@@ -166,15 +173,15 @@ def criar_consulta_pet(id_pet):
     data_consulta = dados.get('data_consulta')
     hora = dados.get('hora')
     motivo = dados.get('motivo')
-    id_clinica = dados.get('id_clinica')
-    id_veterinario = dados.get('id_veterinario')
+    id_clinica = int(dados.get('id_clinica')) if dados.get('id_clinica') else None
+    id_veterinario = int(dados.get('id_veterinario')) if dados.get('id_veterinario') else None
 
     if not all([data_consulta, hora, motivo, id_veterinario]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400  
     
-    query = """INSERT INTO consultas (id_pet, data_consulta, hora, motivo, id_clinica) 
-               VALUES (%s, %s, %s, %s, %s)"""
-    _, error = executar_db(query, (id_pet, data_consulta, hora, motivo, id_clinica))   
+    query = """INSERT INTO consultas (id_pet, data_consulta, hora, motivo, id_clinica, id_veterinario) 
+               VALUES (%s, %s, %s, %s, %s, %s)"""
+    _, error = executar_db(query, (id_pet, data_consulta, hora, motivo, id_clinica, id_veterinario))  
 
     if error:
         return jsonify({"error": f"Erro ao criar consulta: {error}"}), 500
@@ -197,16 +204,13 @@ def editar_consulta_pet(id_pet, id_consulta):
     hora = dados.get('hora')
     motivo = dados.get('motivo')
 
-    id_clinica = dados.get('id_clinica')
-    id_clinica = int(id_clinica) if id_clinica else None
-    
-    id_veterinario = dados.get('id_veterinario')
-    id_veterinario = int(id_veterinario) if id_veterinario else None
+    id_clinica = int(dados.get('id_clinica')) if dados.get('id_clinica') else None
+    id_veterinario = int(dados.get('id_veterinario')) if dados.get('id_veterinario') else None
 
     query = """UPDATE consultas 
                SET data_consulta = %s, hora = %s, motivo = %s, id_clinica = %s, id_veterinario = %s
-               WHERE id_pet = %s  AND id_consulta = %s"""
-    _, error = executar_db(query, (data_consulta, hora, motivo, id_clinica, id_veterinario, id_pet, id_consulta))   
+               WHERE id_pet = %s AND id_consulta = %s"""
+    _, error = executar_db(query, (data_consulta, hora, motivo, id_clinica, id_veterinario, id_pet, id_consulta))
 
     if error:
         print(f">>> [ERRO DB EDITAR CONSULTA]: {error}")
@@ -304,123 +308,7 @@ def anexar_arquivo(id_consulta):
         return jsonify({"error": "Tipo de arquivo nao permitido."}), 400
     
 
-# -------- REMÉDIOS --------
-
-@saude_bp.route('/api/pets/<int:id_pet>/remedios', methods=['GET'])
-def remedios_por_pet(id_pet):
-    query = "SELECT * FROM remedios WHERE id_pet = %s"
-    remedios = consultar_db(query, (id_pet,))
-    return jsonify(remedios), 200
 
 
-@saude_bp.route('/api/pets/<int:id_pet>/novo-remedio', methods=['POST'])
-def criar_remedio_pet(id_pet):
-    dados = request.json
-    nome_remedio = dados.get('nome_remedio')
-    tipo_remedio = dados.get('tipo_remedio')
-    dosagem = dados.get('dosagem')
-    data_inicio = dados.get('data_inicio')
-    data_fim = dados.get('data_fim')
-    frequencia = dados.get('frequencia')
-    proxima_dose = dados.get('proxima_dose')
-    observacoes = dados.get('observacoes')
-    preco_remedio = dados.get('preco_remedio')
-
-    enviar_notificacao = dados.get('enviar_notificacao', True)
-
-    query = """INSERT INTO remedios (id_pet, nome_remedio, tipo_remedio, dosagem, data_inicio, data_fim, frequencia, proxima_dose, observacoes, preco_remedio)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    _, error = executar_db(query, (id_pet, nome_remedio, tipo_remedio, dosagem, data_inicio, data_fim, frequencia, proxima_dose, observacoes, preco_remedio))
-    if error:
-        return jsonify({"error": f"Erro ao criar remedio: {error}"}), 500
-    
-    if proxima_dose and enviar_notificacao:
-        query_pet = """SELECT nome_pet 
-                       FROM pets
-                       WHERE id_pet = %s"""
-        pet = consultar_db(query_pet, (id_pet,), one=True)
-        nome_pet = pet['nome_pet'] if pet else "seu pet"
-
-        criar_evento_e_enviar_alerta(
-            id_pet=id_pet,
-            titulo=f"Proxima dose do remedio {dados.get('nome_remedio')}",
-            data_evento=proxima_dose,
-            descricao=f"Lembrete para a proxima dose do remedio {dados.get('nome_remedio')} para {nome_pet}."
-        )
-
-    return jsonify({"message": "Remedio criado com sucesso."}), 201
 
 
-@saude_bp.route('/api/pets/<int:id_pet>/editar-remedio/<int:id_remedio>', methods=['PUT'])
-def editar_remedio_pet(id_pet, id_remedio):
-    dados = request.json
-    nome_remedio = dados.get('nome_remedio')
-    tipo_remedio = dados.get('tipo_remedio')
-    dosagem = dados.get('dosagem')
-    data_inicio = dados.get('data_inicio')
-    data_fim = dados.get('data_fim')
-    frequencia = dados.get('frequencia')
-    proxima_dose_nova = dados.get('proxima_dose')
-    observacoes = dados.get('observacoes')
-    preco_remedio = dados.get('preco_remedio')
-
-    enviar_notificacao = dados.get('enviar_notificacao', True)
-
-    query = """SELECT proxima_dose
-               FROM remedios
-               WHERE id_remedio = %s AND id_pet = %s"""
-    proxima_dose_original = consultar_db(query, (id_remedio, id_pet), one=True)
-
-    if not proxima_dose_original:
-        return jsonify({"error": "Remedio nao encontrado."}), 404
-    
-    proxima_dose_antiga = proxima_dose_original.get('proxima_dose')
-
-    query_editar = """UPDATE remedios 
-               SET nome_remedio = %s, tipo_remedio = %s, dosagem = %s, data_inicio = %s, data_fim = %s, frequencia = %s, proxima_dose = %s, observacoes = %s, preco_remedio = %s
-               WHERE id_pet = %s AND id_remedio = %s"""
-    _, error = executar_db(query_editar, (nome_remedio, tipo_remedio, dosagem, data_inicio, data_fim, frequencia, proxima_dose_nova, observacoes, preco_remedio, id_pet, id_remedio))
-    if error:
-        return jsonify({"error": f"Erro ao editar remedio: {error}"}), 500
-    
-    if proxima_dose_nova:
-        proxima_dose_nova_date = datetime.strptime(proxima_dose_nova, '%Y-%m-%d').date()
-    
-    if proxima_dose_nova_date and proxima_dose_nova_date != proxima_dose_antiga and enviar_notificacao:
-        query_pet = """SELECT nome_pet 
-                       FROM pets
-                       WHERE id_pet = %s"""
-        pet = consultar_db(query_pet, (id_pet,), one=True) 
-        nome_pet = pet['nome_pet'] if pet else "seu pet"
-
-        criar_evento_e_enviar_alerta(
-            id_pet=id_pet,
-            titulo=f"Proxima dose do remedio {dados.get('nome_remedio')} foi atualizada!",
-            data_evento=proxima_dose_nova,
-            descricao=f"Lembrete para a proxima dose do remédio {dados.get('nome_remedio')} para {nome_pet}."
-        )
-
-    return jsonify({"message": "Remedio atualizado com sucesso."}), 200
-
-
-@saude_bp.route('/api/pets/<int:id_pet>/deletar-remedio/<int:id_remedio>', methods=['DELETE'])
-def deletar_remedio_pet(id_pet, id_remedio):
-
-    query_remedio = """SELECT id_remedio
-                       FROM remedios
-                       WHERE id_remedio = %s AND id_pet = %s"""
-    remedio = consultar_db(query_remedio, (id_remedio, id_pet), one=True)
-    if not remedio:
-        return jsonify({"error": "Remedio nao encontrado ou nao pertence ao pet."}), 404
-    
-    query_delete = """DELETE FROM remedios
-                      WHERE id_remedio = %s AND id_pet = %s"""
-    rows_affected, error = executar_db(query_delete, (id_remedio, id_pet))
-
-    if error:
-        return jsonify({"error": f"Erro ao deletar remedio: {error}"}), 500
-    
-    if rows_affected == 0:
-        return jsonify({"message": "Nenhum remedio foi deletado"}), 404
-    
-    return jsonify({"message": "Remedio deletado com sucesso."}), 200

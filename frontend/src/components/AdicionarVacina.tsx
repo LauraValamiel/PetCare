@@ -99,6 +99,7 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
         try {
             const response = await axios.post(`http://localhost:5000/api/pets/${formData.id_pet}/nova-vacina`, {
                 ...formData,
+                id_clinica: selectedClinica, 
                 preco_vacina: parseFloat(formData.preco_vacina.replace(',', '.')) || 0,
             });
 

@@ -5,29 +5,6 @@ from app.utils import criar_evento_e_enviar_alerta
 
 servicos_bp = Blueprint('servicos', __name__)
 
-@servicos_bp.route('/api/fix-tabela', methods=['GET'])
-def fix_tabela():
-    comandos = [
-       "ALTER TABLE consultas ADD COLUMN id_veterinario INT REFERENCES veterinarios(id_veterinario) ON DELETE SET NULL",
-        "ALTER TABLE vacinas ADD COLUMN id_veterinario INT REFERENCES veterinarios(id_veterinario) ON DELETE SET NULL",
-        "ALTER TABLE vacinas DROP COLUMN nome_veterinario"
-    ]
-
-    erros = []
-    
-    for query in comandos:
-        # Executa cada comando individualmente
-        _, error = executar_db(query)
-        if error:
-            print(f"Erro ao executar: {query} -> {error}")
-            erros.append(f"Erro no comando '{query}': {error}")
-            
-    if erros:
-        return jsonify({"error": "Houve erros ao atualizar a tabela", "detalhes": erros}), 500
-        
-    return jsonify({"message": "Sucesso! Tabelas atualizadas com as colunas de relacionamento e notificações."}), 200
-
-
 # -------- CLÍNICAS --------
 
 @servicos_bp.route('/api/tutores/<int:id_tutor>/clinicas', methods=['GET'])

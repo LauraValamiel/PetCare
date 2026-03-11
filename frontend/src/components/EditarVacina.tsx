@@ -127,6 +127,7 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
         try {
             const response = await axios.put(`http://localhost:5000/api/pets/${vacina.id_pet}/editar-vacina/${vacina?.id_vacina}`, {
                 ...formData,
+                id_clinica: selectedClinica,
                 preco_vacina: parseFloat(formData.preco_vacina.replace(',', '.')) || 0
             });
 
@@ -199,7 +200,6 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
                                     name='id_veterinario' 
                                     value={formData.id_veterinario} 
                                     onChange={handleChange}
-                                    disabled={!selectedClinica}
                                 >
                                     <option value="">Selecione o veterinário</option>
                                     {veterinariosFiltrados.map(v => (
@@ -220,7 +220,7 @@ export function EditarVacina({ isOpen, onClose, onVacinaAtualizada, pets, vacina
                             </div>
                             <div className='form-group full-width'>
                                 <label htmlFor="observacoes">Observações *</label>
-                                <input id='observacoes' name='observacoes' value={formData.observacoes} onChange={handleChange}/>
+                                <textarea id='observacoes' name='observacoes' value={formData.observacoes} onChange={handleChange}/>
                             </div>
                         </div>
                     </div>
