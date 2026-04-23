@@ -33,6 +33,7 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId 
         if (!isOpen) {
             setFormData(estadoInicial);
             setErro('');
+            setLoading(false);
         }
     }, [isOpen]);
 

@@ -24,12 +24,33 @@ CREATE TABLE IF NOT EXISTS tutores (
     nome_completo VARCHAR(100) NOT NULL,
     celular VARCHAR(15),
     email VARCHAR(100) UNIQUE NOT NULL,
+    data_nascimento DATE,
     genero_tutor VARCHAR(50),
     senha VARCHAR(255) NOT NULL,
     foto_perfil_tutor VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     reset_token VARCHAR(255),
     reset_token_expires TIMESTAMP
+);
+
+-- Tabela de Clinicas Veterinárias
+CREATE TABLE IF NOT EXISTS clinicas_veterinarias (
+    id_clinica SERIAL PRIMARY KEY,
+    id_tutor INT REFERENCES tutores(id_tutor) ON DELETE CASCADE,
+    nome_clinica VARCHAR(100) NOT NULL,
+    endereco VARCHAR(255),
+    telefone VARCHAR(15),
+    email VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS veterinarios (
+    id_veterinario SERIAL PRIMARY KEY,
+    id_tutor INT REFERENCES tutores(id_tutor) ON DELETE CASCADE,
+    id_clinica INT REFERENCES clinicas_veterinarias(id_clinica) ON DELETE SET NULL,
+    nome VARCHAR(100) NOT NULL,
+    telefone VARCHAR(15),
+    email VARCHAR(100),
+    especialidade VARCHAR(100)
 );
 
 -- Tabela de Associação Tutor-Pet
@@ -65,7 +86,9 @@ CREATE TABLE IF NOT EXISTS produtos (
     data_compra DATE DEFAULT CURRENT_DATE,
     preco_compra DECIMAL(10,2),
     loja VARCHAR(100),
-    observacoes TEXT
+    observacoes TEXT,
+    consumo_medio VARCHAR(50),
+    data_validade DATE
 );
 
 -- Tabela de Consultas Veterinárias
@@ -77,8 +100,8 @@ CREATE TABLE IF NOT EXISTS consultas (
     motivo TEXT,
     diagnostico TEXT,
     tratamento TEXT,
-    nome_clinica VARCHAR(100),
-    nome_veterinario VARCHAR(100),
+    id_clinica INT REFERENCES clinicas_veterinarias(id_clinica),
+    id_veterinario INT REFERENCES veterinarios(id_veterinario),
     preco_consulta DECIMAL(10,2)
 );
 
@@ -115,18 +138,11 @@ CREATE TABLE IF NOT EXISTS vacinas (
     nome_vacina VARCHAR(100) NOT NULL,
     lote VARCHAR(100),
     data_vacinacao DATE,
-    nome_veterinario VARCHAR(100),
+    id_veterinario INT REFERENCES veterinarios(id_veterinario),
+    id_clinica INT REFERENCES clinicas_veterinarias(id_clinica),
     proxima_dose DATE,
     preco_vacina DECIMAL(10,2),
     local_aplicacao VARCHAR(100),
     observacoes TEXT
 );
 
--- Tabela de Clinicas Veterinárias
-CREATE TABLE IF NOT EXISTS clinicas_veterinarias (
-    id_clinica SERIAL PRIMARY KEY,
-    nome_clinica VARCHAR(100) NOT NULL,
-    endereco VARCHAR(255),
-    telefone VARCHAR(15),
-    email VARCHAR(100)
-);

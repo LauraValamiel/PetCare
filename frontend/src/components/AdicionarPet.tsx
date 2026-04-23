@@ -64,6 +64,7 @@ export function AdicionarPet({isOpen, onClose, onPetAdded, tutorId} : AdicionarP
             setSelectedFile(null);
             setImagePreview(null);
             setErro('');
+            setLoading(false);
         }
     }, [isOpen])
 

@@ -40,6 +40,7 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
             setFormData(estadoInicial);
             setSelectedClinica('');
             setErro('');
+            setLoading(false);
         } else if (tutorId) {
             axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`)
                 .then(res => setClinicas(res.data))
@@ -84,7 +85,7 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
         setLoading(true);
         setErro('');
 
-        if (!formData.id_pet || !formData.nome_vacina || !formData.data_vacinacao || !formData.proxima_dose || !formData.lote || !formData.id_veterinario || !formData.local_aplicacao || !formData.preco_vacina) {
+        if (!formData.id_pet || !formData.nome_vacina || !formData.data_vacinacao || !formData.proxima_dose || !formData.local_aplicacao) {
             setErro('Por favor, preencha todos os campos obrigatórios (*).');
             setLoading(false);
             return;
@@ -99,8 +100,9 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
         try {
             const response = await axios.post(`http://localhost:5000/api/pets/${formData.id_pet}/nova-vacina`, {
                 ...formData,
-                id_clinica: selectedClinica, 
-                preco_vacina: parseFloat(formData.preco_vacina.replace(',', '.')) || 0,
+                id_clinica: selectedClinica ? selectedClinica : null,
+                id_veterinario: formData.id_veterinario ? formData.id_veterinario : null,
+                preco_vacina: formData.preco_vacina ? parseFloat(formData.preco_vacina.replace(',', '.')) : null,
             });
 
             if (response.status === 201) {
@@ -153,11 +155,11 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
                                 <input type="date" id='proxima_dose' name='proxima_dose' value={formData.proxima_dose} min={formData.data_vacinacao} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
-                                <label htmlFor="lote">Lote *</label>
+                                <label htmlFor="lote">Lote</label>
                                 <input type="text" id='lote' name='lote' placeholder='Ex: L123456' value={formData.lote} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
-                                <label>Clínica *</label>
+                                <label>Clínica</label>
                                 <select 
                                     value={selectedClinica} 
                                     onChange={(e) => setSelectedClinica(e.target.value)}
@@ -169,7 +171,7 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
                                 </select>
                             </div>
                             <div className='form-group'>
-                                <label htmlFor="id_veterinario">Veterinário *</label>
+                                <label htmlFor="id_veterinario">Veterinário</label>
                                 <select 
                                     id='id_veterinario' 
                                     name='id_veterinario' 
@@ -189,11 +191,11 @@ export function AdicionarVacina({ isOpen, onClose, onVacinaAdded, pets, tutorId}
                                 <input type="text" id='local_aplicacao' name='local_aplicacao' placeholder='Ex: Clínica X, Em casa...' value={formData.local_aplicacao} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group'>
-                                <label htmlFor="preco_vacina">Preço (R$) *</label>
+                                <label htmlFor="preco_vacina">Preço (R$) </label>
                                 <input type="text" id='preco_vacina' name='preco_vacina' placeholder='Ex: 80,00' value={formData.preco_vacina} onChange={handleChange} autoComplete="off"/>
                             </div>
                             <div className='form-group full-width'>
-                                <label htmlFor="observacoes">Observações *</label>
+                                <label htmlFor="observacoes">Observações </label>
                                 <textarea id='observacoes' name='observacoes' placeholder='Ex: Reações, recomendações especiais...' value={formData.observacoes} onChange={handleChange} autoComplete="off"/>
                             </div>
                         </div>

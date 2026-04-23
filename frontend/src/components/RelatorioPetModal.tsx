@@ -129,7 +129,7 @@ export function RelatorioPetModal({ isOpen, onClose, tutorId }: RelatorioPetModa
                     
                     return [
                         p.nome_produto,
-                        `${qtdeFormatada}g por dia`
+                        `${qtdeFormatada}kg por dia`
                     ];
                 });
 

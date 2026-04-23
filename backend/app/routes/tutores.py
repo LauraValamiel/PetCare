@@ -24,9 +24,9 @@ def criar_tutor():
     
     senha_hash = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
-    query = "INSERT INTO tutores (nome_completo, celular, email, data_nascimento, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s) " \
+    query = "INSERT INTO tutores (nome_completo, celular, email, senha, foto_perfil_tutor, created_at) VALUES (%s, %s, %s, %s, %s, %s) " \
     "        RETURNING id_tutor"
-    _, error = executar_db(query, (nome_completo, celular, email, data_nascimento, senha_hash, foto_perfil_tutor, created_at))
+    _, error = executar_db(query, (nome_completo, celular, email, senha_hash, foto_perfil_tutor, created_at))
 
     if error:
         return jsonify({"error": f"Erro ao criar tutor: {error}"}), 500
@@ -46,9 +46,9 @@ def atualizar_tutor(id_tutor):
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     query = "UPDATE tutores " \
-    "        SET nome_completo = %s, celular = %s, email = %s, cpf = %s, data_nascimento = %s, foto_perfil_tutor = %s" \
+    "        SET nome_completo = %s, celular = %s, email = %s, data_nascimento = %s, foto_perfil_tutor = %s" \
     "        WHERE id_tutor = %s"
-    _, error = executar_db(query, (nome_completo, celular, email, cpf, data_nascimento, foto_perfil_tutor, id_tutor))
+    _, error = executar_db(query, (nome_completo, celular, email, data_nascimento, foto_perfil_tutor, id_tutor))
     if error:
         return jsonify({"error": f"Erro ao atualizar tutor: {error}"}), 500
     return jsonify({"message": "Tutor atualizado com sucesso."}), 200

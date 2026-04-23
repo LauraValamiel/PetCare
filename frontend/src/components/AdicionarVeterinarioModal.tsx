@@ -40,6 +40,7 @@ export function AdicionarVeterinarioModal({ isOpen, onClose, onVeterinarioAdded,
         if (!isOpen) {
             setFormData(estadoInicial);
             setErro('');
+            setLoading(false);
         }
     }, [isOpen]);
 

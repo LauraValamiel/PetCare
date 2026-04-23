@@ -239,17 +239,25 @@ export function ConsultasExames() {
                     }
                 });
 
-            compromissosTotais.forEach(compromisso => {
-                const dataObj = parseDateLocal(compromisso.data_compromisso, compromisso.hora);
-                if (dataObj < today) {
-                    historicoUnificado.push({
-                        tipo: compromisso.titulo.toLowerCase().includes('exame') ? 'exame' : 'consulta',
-                        data: dataObj, titulo: compromisso.titulo, petNome: compromisso.pet_nome || 'Pet',
-                    });
-                } else {
-                    // Se for futuro, vai para os cards
-                    eventosFuturos.push({
-                        isConsulta: false, 
+                compromissosTotais.forEach(compromisso => {
+                    const isExame = compromisso.titulo.toLowerCase().includes('exame');
+                    
+                    // Se NÃO for exame (ex: Banho, Tosa, Passeio), ignoramos para manter a tela limpa
+                    if (!isExame) return; 
+
+                    const dataObj = parseDateLocal(compromisso.data_compromisso, compromisso.hora);
+                    
+                    if (dataObj < today) {
+                        historicoUnificado.push({
+                            tipo: 'exame',
+                            data: dataObj, 
+                            titulo: compromisso.titulo, 
+                            petNome: compromisso.pet_nome || 'Pet',
+                        });
+                    } else {
+                        // Vai para o card de Próximos Exames
+                        eventosFuturos.push({
+                            isConsulta: false, 
                             originalData: compromisso,
                             id_compromisso: compromisso.id_compromisso,
                             id_pet: compromisso.id_pet,
@@ -260,10 +268,10 @@ export function ConsultasExames() {
                             localizacao: compromisso.localizacao, 
                             pet_nome: compromisso.pet_nome,
                             descricao: compromisso.descricao
+                        });
+                    }
+                });
 
-                    });
-                }
-            });
 
             historicoUnificado.sort((a, b) => b.data.getTime() - a.data.getTime());
             setHistoricoItemMaisRecente(historicoUnificado);

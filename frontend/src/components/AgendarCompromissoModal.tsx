@@ -66,21 +66,27 @@ export function AgendarCompromissoModal({
         if (isOpen) {
             setFormData(getEstadoInicial(tipo));
             setErro('');
+            setLoading(false);
         }
     }, [isOpen, tipo]);
 
     useEffect(() => {
-        if (isOpen && tutorId && tipo === 'consulta') {
-            axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`)
+        if (isOpen && tutorId) {
+            if (tipo === 'consulta' || tipo === 'exame') {
+                axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`)
                 .then(res => setClinicas(res.data))
                 .catch(err => console.error("Erro ao buscar clínicas", err));
-
-            axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`)
+            }
+            
+            if (tipo === 'consulta') {
+                axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`)
                 .then(res => {
                     setTodosVeterinarios(res.data);
                     setVeterinariosFiltrados(res.data);
                 })
                 .catch(err => console.error("Erro ao buscar veterinários", err));
+            }
+            
         }
     }, [isOpen, tutorId, tipo]);
 
@@ -237,6 +243,21 @@ export function AgendarCompromissoModal({
                                         </select>
                                     </div>
                                 </>
+                            ) : tipo === 'exame' ? (
+                                <div className='form-group'>
+                                    <label htmlFor="localizacao">{localLabel}</label>
+                                    <select
+                                        id='localizacao'
+                                        name='localizacao'
+                                        value={formData.localizacao}
+                                        onChange={handleChange} 
+                                        >
+                                        <option value="">Selecione a clínica/laboratório</option>
+                                        {clinicas.map(c => (
+                                            <option key={c.id_clinica} value={c.nome_clinica}>{c.nome_clinica}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             ) : (
                                 <div className='form-group'>
                                     <label htmlFor="localizacao">{localLabel}</label>
@@ -248,7 +269,7 @@ export function AgendarCompromissoModal({
                                         value={formData.localizacao}
                                         onChange={handleChange} 
                                         autoComplete="off"
-                                        />
+                                    />
                                 </div>
                             )}
 

@@ -43,6 +43,7 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
         if (!isOpen) {
             setFormData(estadoInicial);
             setErro('');
+            setLoading(false);
         }
     }, [isOpen]);
 
@@ -93,6 +94,7 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
 
         if (!formData.id_pet || !formData.nome_produto || !formData.categoria || !formData.quantidade || !formData.consumo_medio || !formData.data_compra || !formData.preco_compra || !formData.loja) {
             setErro('Por favor, preencha todos os campos obrigatórios (*).');
+            setLoading(false);
             return;
         }
 
@@ -104,6 +106,7 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
                 quantidade: parseCommaFloat(formData.quantidade.replace(',', '.')) || 0,
                 consumo_medio: parseCommaFloat(formData.consumo_medio.replace(',', '.')) || 0,
                 preco_compra: parseCommaFloat(formData.preco_compra.replace(',', '.')) || 0,
+                data_validade: formData.data_validade === '' ? null : formData.data_validade,
                 enviar_notificacao: permitirEmail
             });
 

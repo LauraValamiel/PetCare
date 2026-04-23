@@ -194,6 +194,7 @@ export default function Home() {
                             const listaAcabando = produtos.filter((p: any) => {
                                 const qtd = Number(p.quantidade);
                                 let consumoDiario = Number(p.consumo_medio);
+                                const consumoPeriodo = p.consumo_periodo || 'dia';
                                 
                                 if (p.consumo_periodo === 'semana') consumoDiario /= 7;
                                 if (p.consumo_periodo === 'mes') consumoDiario /= 30;
@@ -203,7 +204,19 @@ export default function Home() {
 
                                 const diasRestantes = (consumoDiario && consumoDiario > 0) ? (qtd / consumoDiario) : 999;
                                 
-                                const estaAcabando = qtd <= 0 || diasRestantes <= 7;
+                                let vencendo = false;
+                                if (p.data_validade) {
+                                    const hoje = new Date();
+                                    hoje.setHours(0,0,0,0);
+                                    const dataValidade = new Date(p.data_validade);
+                                    const seteDiasDepois = new Date(hoje.getTime() + 7 * 24 * 60 * 60 * 1000);
+                                    
+                                    if (dataValidade <= seteDiasDepois) {
+                                        vencendo = true;
+                                    }
+                                }
+
+                                const estaAcabando = qtd <= 0 || diasRestantes <= 7 || vencendo;
                                 
                                 if (estaAcabando) {
                                     console.log(`[DEBUG] ACABANDO: ${p.nome_produto} (${pet.nome_pet}) - Qtd: ${qtd} - Dias Restantes: ${diasRestantes.toFixed(1)}`);

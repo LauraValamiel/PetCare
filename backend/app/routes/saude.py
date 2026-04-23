@@ -44,7 +44,7 @@ def adicionar_vacina_por_pet(id_pet):
     id_vet_val = int(dados.get('id_veterinario')) if dados.get('id_veterinario') else None
     id_clinica_val = int(id_clinica) if id_clinica else None
 
-    if not all([nome_vacina, lote, data_vacinacao, dados.get('id_veterinario'), proxima_dose, preco_vacina, local_aplicacao]):
+    if not all([nome_vacina, data_vacinacao, proxima_dose, local_aplicacao]):
         return jsonify({"error": "Todos os campos obrigatorios devem ser preenchidos."}), 400
     
     if proxima_dose < data_vacinacao:

@@ -6,10 +6,8 @@ services:
   banco_de_dados:
     image: postgres:14-alpine
     container_name: petcare_db
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - ./backend/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/tables.sql:/docker-entrypoint-initdb.d/tables.sql
