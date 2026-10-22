@@ -125,6 +125,8 @@ Principais responsabilidades:
 
 - **Docker**
 - **Docker Compose**
+- **Gunicorn** (servidor da API em produção)
+- **Nginx** (servidor dos arquivos estáticos do frontend)
 
 Permite subir todo o ambiente com apenas um comando.
 
@@ -144,11 +146,23 @@ Instalar:
 
 # 🐋 Execução com Docker (Recomendado)
 
+Antes do primeiro uso, crie os arquivos de variáveis de ambiente a partir dos
+modelos versionados:
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+cp .env.example .env
+```
+
 Na raiz do projeto execute:
 
 ```bash
 docker-compose up --build
 ```
+
+Sobem quatro serviços: banco de dados, API, frontend e pgAdmin.
+
 Após iniciar:
 ```bash
 http://localhost:5173
@@ -197,6 +211,75 @@ A aplicação ficará disponível em:
 ```bash
 http://localhost:5173
 ```
+
+# ☁️ Hospedagem (Deploy)
+
+Nenhum endereço fica mais fixo no código: tanto o frontend quanto o backend
+leem os endereços de variáveis de ambiente, então o mesmo código roda local
+ou hospedado.
+
+## Variáveis de ambiente
+
+### Backend
+
+| Variável | Para que serve | Exemplo em produção |
+|---|---|---|
+| `DATABASE_URL` | Conexão completa do PostgreSQL (tem prioridade) | `postgresql://user:senha@host:5432/petcare` |
+| `DB_HOST` / `DB_PORT` | Alternativa ao `DATABASE_URL` | `banco_de_dados` / `5432` |
+| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | Credenciais do banco | — |
+| `FRONTEND_URL` | Endereço público do site (links enviados por e-mail) | `https://petcare.com.br` |
+| `CORS_ORIGINS` | Origens autorizadas a chamar a API (separadas por vírgula) | `https://petcare.com.br` |
+| `PORT` | Porta da API (vários provedores definem sozinhos) | `5000` |
+| `FLASK_DEBUG` | Modo debug — **sempre `false` em produção** | `false` |
+| `UPLOAD_FOLDER` | Pasta das fotos enviadas pelos tutores | `/app/app/uploads` |
+| `MAIL_*` | Configuração de envio de e-mail | — |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Login com o Google | — |
+
+### Frontend
+
+| Variável | Para que serve | Exemplo em produção |
+|---|---|---|
+| `VITE_API_URL` | Endereço da API | `https://api.petcare.com.br` |
+| `VITE_GOOGLE_CLIENT_ID` | Client ID do login com o Google | — |
+
+> ⚠️ O Vite embute as variáveis `VITE_*` no momento do **build**. Ao trocar o
+> endereço da API é preciso gerar um novo build do frontend.
+
+## Subindo com Docker
+
+Cada parte tem a sua própria imagem e pode ser publicada em qualquer provedor
+que aceite containers (Render, Railway, Fly.io, VPS...):
+
+```bash
+# API (gunicorn na porta 5000)
+docker build -t petcare-api ./backend
+
+# Site (build do Vite servido pelo nginx na porta 80)
+docker build -t petcare-web \
+  --build-arg VITE_API_URL=https://api.seu-dominio.com \
+  ./frontend
+```
+
+Ou tudo de uma vez, já apontando para os endereços públicos:
+
+```bash
+VITE_API_URL=https://api.seu-dominio.com \
+FRONTEND_URL=https://seu-dominio.com \
+CORS_ORIGINS=https://seu-dominio.com \
+docker-compose up --build -d
+```
+
+## Checklist de produção
+
+- [ ] `FLASK_DEBUG=false`
+- [ ] `CORS_ORIGINS` com o domínio real do site (nunca `*`)
+- [ ] `FRONTEND_URL` com o domínio real, para os links de e-mail funcionarem
+- [ ] Banco de dados com a tabela criada a partir de `database/tables.sql`
+- [ ] Volume persistente para as fotos (`UPLOAD_FOLDER`) — sem ele, os arquivos
+      enviados somem a cada reinício do container
+- [ ] URIs autorizadas do login com o Google atualizadas no Google Cloud Console
+
+---
 
 # 📂 Estrutura do Projeto
 ```bash

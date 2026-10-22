@@ -6,7 +6,17 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),
 class Config:
 
     basedir = os.path.abspath(os.path.dirname(__file__))
-    UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
+    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER') or os.path.join(basedir, 'uploads')
+
+    # Endereco publico do frontend, usado nos links enviados por e-mail.
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+
+    # Origens autorizadas a chamar a API (separadas por virgula).
+    CORS_ORIGINS = [
+        origem.strip().rstrip('/')
+        for origem in os.environ.get('CORS_ORIGINS', FRONTEND_URL).split(',')
+        if origem.strip()
+    ]
     
     GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
     

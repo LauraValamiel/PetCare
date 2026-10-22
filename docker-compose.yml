@@ -1,5 +1,4 @@
 #docker-compose.yml
-#version: '3.8'
 
 services:
   # Serviço do Banco de Dados:
@@ -14,7 +13,54 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
+      - backend
+
+  # Serviço da API (Flask + gunicorn)
+  backend:
+    build: ./backend
+    container_name: petcare_api
+    env_file:
+      - ./backend/.env
+    environment:
+      # Dentro da rede do Docker o banco responde pelo nome do serviço.
+      - DB_HOST=banco_de_dados
+      - DB_PORT=5432
+      - PORT=5000
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173}
+    volumes:
+      - uploads_data:/app/app/uploads
+    ports:
+      - "5000:5000"
+    depends_on:
+      banco_de_dados:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - backend
+
+  # Serviço do Frontend (build do Vite servido pelo nginx)
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # O Vite embute estes valores no bundle durante o build.
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+    container_name: petcare_web
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - frontend
       - backend
 
   # Serviço do pgAdmin
@@ -30,10 +76,11 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     networks:
       - backend
-  
+
 volumes:
   postgres_data:
   pgadmin_data:
+  uploads_data:
 
 networks:
   frontend:

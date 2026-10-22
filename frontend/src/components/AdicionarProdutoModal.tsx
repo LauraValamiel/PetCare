@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from './button';
@@ -101,7 +102,7 @@ export function AdicionarProdutoModal({ isOpen, onClose, onProdutoAdded, pets, t
         const permitirEmail = true;
 
         try {
-            const response = await axios.post(`http://localhost:5000/api/pets/${formData.id_pet}/novo-produto`, {
+            const response = await axios.post(`${API_BASE_URL}/api/pets/${formData.id_pet}/novo-produto`, {
                 ...formData,
                 quantidade: parseCommaFloat(formData.quantidade.replace(',', '.')) || 0,
                 consumo_medio: parseCommaFloat(formData.consumo_medio.replace(',', '.')) || 0,

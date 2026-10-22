@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from './button';
@@ -81,7 +82,7 @@ export function EditarVeterinarioModal({ isOpen, onClose, onVeterinarioUpdated, 
                 id_clinica: formData.id_clinica === '' ? null : Number(formData.id_clinica)
             };
 
-            const response = await axios.put(`http://localhost:5000/api/veterinario/${veterinario.id_veterinario}`, dadosParaEnviar);
+            const response = await axios.put(`${API_BASE_URL}/api/veterinario/${veterinario.id_veterinario}`, dadosParaEnviar);
 
             if (response.status === 200) {
                 onVeterinarioUpdated();

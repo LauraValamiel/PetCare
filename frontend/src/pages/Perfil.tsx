@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { Navbar } from '../components/navbar';
@@ -71,7 +72,7 @@ const processarUrlFoto = (foto: string | null) => {
     if (limpa.startsWith('http') || limpa.startsWith('https')) {
         return limpa;
     }
-    return `http://localhost:5000/api/uploads/${limpa}`;
+    return `${API_BASE_URL}/api/uploads/${limpa}`;
 };
 
 export default function Perfil() {
@@ -109,7 +110,7 @@ export default function Perfil() {
             setLoading(true);
 
             try {
-                const response = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
+                const response = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/tutores-e-pets`);
                 const data: TutorData = response.data;
 
                 const petsCount = data.pets ? data.pets.length : 0;
@@ -119,9 +120,9 @@ export default function Perfil() {
 
                 const petPromises = data.pets ? data.pets.map(async (pet: any) => {
                     const [vacinasRes, consultasRes, produtosRes] = await Promise.all([
-                        axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
-                        axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/consultas`).catch(() => ({ data: [] })),
-                        axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] })),
+                        axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
+                        axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/consultas`).catch(() => ({ data: [] })),
+                        axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] })),
                     ]);
 
                     vacinasCount += vacinasRes.data.length || 0;
@@ -173,7 +174,7 @@ export default function Perfil() {
 
         if (result.isConfirmed && tutorId) {
             try {
-                await axios.delete(`http://localhost:5000/api/tutores/${tutorId}`);
+                await axios.delete(`${API_BASE_URL}/api/tutores/${tutorId}`);
                 localStorage.clear();
                 sessionStorage.clear();
                 navigate('/login');
@@ -217,7 +218,7 @@ export default function Perfil() {
 
         try {
 
-            const photoResponse = await axios.put(`http://localhost:5000/api/tutores/${tutorId}/atualizar-foto`, formDataImage, {
+            const photoResponse = await axios.put(`${API_BASE_URL}/api/tutores/${tutorId}/atualizar-foto`, formDataImage, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
@@ -259,10 +260,10 @@ export default function Perfil() {
                 foto_perfil_tutor: finalPhotoFilename 
            };
 
-            const response = await axios.put(`http://localhost:5000/api/tutores/${tutorId}`, payload);
+            const response = await axios.put(`${API_BASE_URL}/api/tutores/${tutorId}`, payload);
 
             if (response.status === 200) {
-                const updatedDataResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
+                const updatedDataResponse = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/tutores-e-pets`);
                 const updatedData: TutorData = updatedDataResponse.data;
                 const newFotoUrl = processarUrlFoto(updatedData.foto_perfil_tutor);
                 setImagePreview(newFotoUrl);
@@ -316,7 +317,7 @@ export default function Perfil() {
                 telefone: telefone.replace(/\D/g, ""), 
             };
 
-            const response = await axios.put(`http://localhost:5000/api/tutores/${tutorId}`, dadosParaEnviar);
+            const response = await axios.put(`${API_BASE_URL}/api/tutores/${tutorId}`, dadosParaEnviar);
 
             if (response.status === 200) {
                 // 1. Fecha o modo de edição automaticamente

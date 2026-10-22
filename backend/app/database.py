@@ -14,12 +14,19 @@ class DatabaseConnection:
     
     def _connect(self):
         try:
-            self._connection = psycopg2.connect(
-                host='localhost',
-                database=os.environ.get('POSTGRES_DB'),
-                user=os.environ.get('POSTGRES_USER'),
-                password=os.environ.get('POSTGRES_PASSWORD')
-            )
+            database_url = os.environ.get('DATABASE_URL')
+            if database_url:
+                # Provedores de hospedagem (Render, Railway, Heroku...) entregam
+                # a conexao pronta em uma unica variavel.
+                self._connection = psycopg2.connect(database_url)
+            else:
+                self._connection = psycopg2.connect(
+                    host=os.environ.get('DB_HOST', 'localhost'),
+                    port=os.environ.get('DB_PORT', '5432'),
+                    database=os.environ.get('POSTGRES_DB'),
+                    user=os.environ.get('POSTGRES_USER'),
+                    password=os.environ.get('POSTGRES_PASSWORD')
+                )
             print("Conexao com o banco de dados estabelecida.")
         except Exception as e:
             print(f"Erro ao conectar ao banco de dados: {e}")

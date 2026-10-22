@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { X, Mail, CheckCircle } from 'lucide-react';
@@ -31,7 +32,7 @@ export function ConvidarTutorModal({ isOpen, onClose, tutorId, pets }: ConvidarT
         setLoading(true);
 
         try {
-            await axios.post(`http://localhost:5000/api/tutores/${tutorId}/pets/${petSelecionado}/convidar-tutor`, {
+            await axios.post(`${API_BASE_URL}/api/tutores/${tutorId}/pets/${petSelecionado}/convidar-tutor`, {
                 email: emailConvidado
             });
 

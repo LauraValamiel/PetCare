@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from './button';
@@ -77,11 +78,11 @@ export function EditarCompromissoModal({
 
     useEffect(() => {
         if (isOpen && tutorId && isConsultaReal) {
-            axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`)
+            axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/clinicas`)
                 .then(res => setClinicas(res.data))
                 .catch(err => console.error("Erro ao buscar clínicas", err));
 
-            axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`)
+            axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/veterinarios`)
                 .then(res => {
                     setTodosVeterinarios(res.data);
                     setVeterinariosFiltrados(res.data);
@@ -169,8 +170,8 @@ export function EditarCompromissoModal({
             const idAtual = isConsultaReal ? compromisso.id_consulta : compromisso.id_compromisso;
 
             const url = isConsultaReal 
-                ? `http://localhost:5000/api/pets/${formData.id_pet}/editar-consulta/${idAtual}`
-                : `http://localhost:5000/api/pets/${formData.id_pet}/compromissos/${idAtual}`;
+                ? `${API_BASE_URL}/api/pets/${formData.id_pet}/editar-consulta/${idAtual}`
+                : `${API_BASE_URL}/api/pets/${formData.id_pet}/compromissos/${idAtual}`;
 
             const dataToSend = isConsultaReal
                 ? {

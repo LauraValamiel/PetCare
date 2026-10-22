@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import { Bell, Calendar, CheckCircle, Edit, LogOut, Settings, ShieldAlert, ShoppingBag, Trash2, User, UserCircle, X, Menu, FileDown } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import '../styles/NavBar.css';
@@ -50,7 +51,7 @@ const ProfileSidebar: React.FC<{ store: any, navigate: any, onOpenRelatorio: () 
     const profileImageUrl = fotoPerfilTutor 
         ? (fotoPerfilTutor.trim().startsWith('http') 
             ? fotoPerfilTutor.trim() 
-            : `http://localhost:5000/api/uploads/${fotoPerfilTutor}`) 
+            : `${API_BASE_URL}/api/uploads/${fotoPerfilTutor}`) 
         : null;
 
     const handleLogout = async () => {
@@ -175,7 +176,7 @@ export function Navbar() {
     const profileImageUrl = fotoPerfilTutor 
         ? (fotoPerfilTutor.trim().startsWith('http') 
             ? fotoPerfilTutor.trim() 
-            : `http://localhost:5000/api/uploads/${fotoPerfilTutor}`) 
+            : `${API_BASE_URL}/api/uploads/${fotoPerfilTutor}`) 
         : null;
 
     function getTutorId(): number | null {

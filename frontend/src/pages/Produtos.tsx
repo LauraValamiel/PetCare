@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -160,14 +161,14 @@ export default function Produtos() {
             setLoading(true);
 
             try {
-                const petsResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
+                const petsResponse = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/tutores-e-pets`);
                 const fetchedPets: Pet[] = petsResponse.data.pets || [];
                 setPets(fetchedPets);
 
                 const produtosTotais: Produto[] = [];
 
                 await Promise.all(fetchedPets.map(async (pet) => {
-                    const produtosResponse = await axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] }));
+                    const produtosResponse = await axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] }));
                     if (Array.isArray(produtosResponse.data)) {
                         produtosResponse.data.forEach((produto: Produto) => {
                             produtosTotais.push({ ...produto, pet_nome: pet.nome_pet });
@@ -287,7 +288,7 @@ export default function Produtos() {
 
         if (result.isConfirmed) {
             try{
-                const response = await axios.delete(`http://localhost:5000/api/pets/${produto.id_pet}/produtos/${produto.id_compra}`);
+                const response = await axios.delete(`${API_BASE_URL}/api/pets/${produto.id_pet}/produtos/${produto.id_compra}`);
 
                 if (response.status === 200) {
                     Swal.fire({

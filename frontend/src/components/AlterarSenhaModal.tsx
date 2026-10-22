@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState } from "react";
 import axios from 'axios';
 import { Button } from "./button";
@@ -60,7 +61,7 @@ export function AlterarSenhaModal({ isOpen, onClose, tutorId}: AlterarSenhaModal
         }
 
         try {
-            await axios.put(`http://localhost:5000/api/tutores/${tutorId}/alterar-senha`, {
+            await axios.put(`${API_BASE_URL}/api/tutores/${tutorId}/alterar-senha`, {
                 senha_atual: formData.senha_atual,
                 nova_senha: formData.nova_senha
             });

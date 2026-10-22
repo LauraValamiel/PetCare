@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { X, Save, FileText } from 'lucide-react';
@@ -94,7 +95,7 @@ export function EditarConsultaModal({ isOpen, onClose, consulta, idPet, onSucces
         setLoading(true);
 
         try {
-            const url = `http://localhost:5000/api/pets/${idPet}/editar-consulta/${consulta?.id_consulta}`;
+            const url = `${API_BASE_URL}/api/pets/${idPet}/editar-consulta/${consulta?.id_consulta}`;
             
             
             const payload = {

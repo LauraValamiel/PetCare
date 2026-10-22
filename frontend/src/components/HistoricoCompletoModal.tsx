@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useMemo } from 'react';
 import { X, Syringe, Stethoscope, FileText, Edit, Calendar, Trash2 } from 'lucide-react';
 import { Button } from './button';
@@ -183,11 +184,11 @@ export function HistoricoCompletoModal ({
         try {
             let url = '';
             if (prefixo === 'v') {
-                url = `http://localhost:5000/api/pets/${item.id_pet}/deletar-vacina/${idReal}`;
+                url = `${API_BASE_URL}/api/pets/${item.id_pet}/deletar-vacina/${idReal}`;
             } else if (prefixo === 'comp') { 
-                url = `http://localhost:5000/api/pets/${item.id_pet}/compromissos/${idReal}`;
+                url = `${API_BASE_URL}/api/pets/${item.id_pet}/compromissos/${idReal}`;
             } else if (prefixo === 'c') {
-                url = `http://localhost:5000/api/pets/${item.id_pet}/deletar-consulta/${idReal}`;
+                url = `${API_BASE_URL}/api/pets/${item.id_pet}/deletar-consulta/${idReal}`;
             }
 
             await axios.delete(url);

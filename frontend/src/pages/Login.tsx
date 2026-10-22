@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect, useContext, use } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -140,7 +141,7 @@ export default function Login() {
         const setTutor = store?.setTutor;
         const setFotoPerfilTutor = store?.setFotoPerfilTutor;
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/google', {
+            const res = await axios.post(`${API_BASE_URL}/api/auth/google`, {
                 id_token: response.credential,
             });
 
@@ -194,7 +195,7 @@ export default function Login() {
 
         try {
 
-            const response = await axios.post('http://localhost:5000/api/login', {
+            const response = await axios.post(`${API_BASE_URL}/api/login`, {
                 email: email,
                 senha: senha
             });
@@ -242,7 +243,7 @@ export default function Login() {
         }
 
         try {
-            const response = await axios.post('http://localhost:5000/api/novo-tutor', {
+            const response = await axios.post(`${API_BASE_URL}/api/novo-tutor`, {
                 nome_completo: nome_completo.value,
                 email: email.value,
                 senha: senha.value
@@ -251,7 +252,7 @@ export default function Login() {
             if (response.status === 201) {
                 setNotification('Cadastro realizado com sucesso!');
                 try {
-                    const loginResponse = await axios.post('http://localhost:5000/api/login', {
+                    const loginResponse = await axios.post(`${API_BASE_URL}/api/login`, {
                         email: email.value,
                         senha: senha.value
                     });
@@ -311,7 +312,7 @@ export default function Login() {
         }
 
         try {
-            const response = await axios.post('http://localhost:5000/api/tutores/esqueci-senha', { email: email.value });
+            const response = await axios.post(`${API_BASE_URL}/api/tutores/esqueci-senha`, { email: email.value });
             Swal.fire({
                 title: 'Sucesso',
                 text: response.data.message || 'Se o email estiver cadastrado, um link de redefinição foi enviado.',

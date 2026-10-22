@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, {useState} from "react";
 import axios from "axios";
 import { Button } from "./button";
@@ -36,7 +37,7 @@ export function AlterarEmailModal({ isOpen, onClose, tutorId, emailAtual }: Alte
         setErro('');
 
         try {
-            await axios.put(`http://localhost:5000/api/tutores/${tutorId}/alterar-email`, {
+            await axios.put(`${API_BASE_URL}/api/tutores/${tutorId}/alterar-email`, {
                 novo_email: formData.novo_email,
                 senha_atual: formData.senha_atual
             });

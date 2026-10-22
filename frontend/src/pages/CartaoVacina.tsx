@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect,useState } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardTitle } from '../components/card';
@@ -108,7 +109,7 @@ export default function CartaoVacina() {
             setLoading(true);
             
             try {
-                const petsResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
+                const petsResponse = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/tutores-e-pets`);
 
                 const tutorData: Tutor = petsResponse.data;
                 const fetchedPets = Array.isArray((tutorData as any).pets) ? (tutorData as any).pets : [];
@@ -116,7 +117,7 @@ export default function CartaoVacina() {
 
                 if (fetchedPets.length > 0) {
                     const vacinasPromises = fetchedPets.map((pet: Pet) =>
-                        axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`)
+                        axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/vacinas`)
                         .then(response => {
                              const vacinasData = Array.isArray(response.data) ? response.data : [];
                              return vacinasData.map((v: Vacina): VacinaDetalhada => ({...v, id_pet: pet.id_pet, nome_pet: pet.nome_pet}));
@@ -273,7 +274,7 @@ export default function CartaoVacina() {
 
         if (result.isConfirmed) {
             try {
-                const response = await axios.delete(`http://localhost:5000/api/pets/${vacina.id_pet}/deletar-vacina/${vacina.id_vacina}`);
+                const response = await axios.delete(`${API_BASE_URL}/api/pets/${vacina.id_pet}/deletar-vacina/${vacina.id_vacina}`);
 
                 if (response.status === 200) {
                     Swal.fire({

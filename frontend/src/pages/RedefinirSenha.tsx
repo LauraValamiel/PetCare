@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -41,7 +42,7 @@ export default function RedefinirSenha() {
         }
 
         try {
-            const response = await axios.post('http://localhost:5000/api/tutores/redefinir-senha', {
+            const response = await axios.post(`${API_BASE_URL}/api/tutores/redefinir-senha`, {
                 token: token,
                 nova_senha: senha
             });
