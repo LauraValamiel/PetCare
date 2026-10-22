@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { X, Download, FileText, Heart, Loader2 } from 'lucide-react';
@@ -44,7 +45,7 @@ export function RelatorioPetModal({ isOpen, onClose, tutorId }: RelatorioPetModa
     useEffect(() => {
         if (isOpen && tutorId) {
             setLoading(true);
-            axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`)
+            axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/tutores-e-pets`)
                 .then(res => {
                     setPets(res.data.pets || []);
                 })
@@ -66,8 +67,8 @@ export function RelatorioPetModal({ isOpen, onClose, tutorId }: RelatorioPetModa
         setGeneratingPetId(pet.id_pet);
         try {
             const [vacinasRes, produtosRes] = await Promise.all([
-                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
-                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] }))
+                axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
+                axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] }))
             ]);
 
             const vacinas = vacinasRes.data || [];
@@ -78,7 +79,7 @@ export function RelatorioPetModal({ isOpen, onClose, tutorId }: RelatorioPetModa
             let currentY = 20;
             
             if (pet.foto_perfil) {
-                const fotoUrl = `http://localhost:5000/api/uploads/${pet.foto_perfil}`;
+                const fotoUrl = `${API_BASE_URL}/api/uploads/${pet.foto_perfil}`;
                 const base64Img = await getBase64ImageFromUrl(fotoUrl);
                 
                 if (base64Img) {
@@ -254,7 +255,7 @@ export function RelatorioPetModal({ isOpen, onClose, tutorId }: RelatorioPetModa
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                         <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                             {pet.foto_perfil ? (
-                                                <img src={`http://localhost:5000/api/uploads/${pet.foto_perfil}`} alt={pet.nome_pet} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                <img src={`${API_BASE_URL}/api/uploads/${pet.foto_perfil}`} alt={pet.nome_pet} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                             ) : (
                                                 <Heart size={20} color="#999" />
                                             )}

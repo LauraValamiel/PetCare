@@ -11,7 +11,7 @@ def create_app():
     
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-    CORS(app, resources={r"/api/*": {"origins":"http://localhost:5173", "methods": ["GET", "POST", "PUT", "DELETE"], "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"]}})
+    CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ORIGINS'], "methods": ["GET", "POST", "PUT", "DELETE"], "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"]}})
     mail.init_app(app)
     
     try:

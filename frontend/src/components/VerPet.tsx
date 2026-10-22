@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React from 'react';
 import { Badge } from './badge';
 import { X, Heart, Edit } from 'lucide-react';
@@ -11,7 +12,7 @@ interface VerPetModal {
     pet: DetalhesPets;
 }
 
-const API_URL = 'http://localhost:5000/api/uploads';
+const API_URL = `${API_BASE_URL}/api/uploads`;
 
 export function VerPet({ isOpen, onClose, pet}: VerPetModal) {
     if (!isOpen) {

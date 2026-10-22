@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
@@ -73,13 +74,13 @@ export function AgendarCompromissoModal({
     useEffect(() => {
         if (isOpen && tutorId) {
             if (tipo === 'consulta' || tipo === 'exame') {
-                axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`)
+                axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/clinicas`)
                 .then(res => setClinicas(res.data))
                 .catch(err => console.error("Erro ao buscar clínicas", err));
             }
             
             if (tipo === 'consulta') {
-                axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`)
+                axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/veterinarios`)
                 .then(res => {
                     setTodosVeterinarios(res.data);
                     setVeterinariosFiltrados(res.data);
@@ -145,8 +146,8 @@ export function AgendarCompromissoModal({
         try {
 
             const url = tipo === 'consulta' 
-                ? `http://localhost:5000/api/pets/${formData.id_pet}/nova-consulta`
-                : `http://localhost:5000/api/pets/${formData.id_pet}/agendar-compromissos`;
+                ? `${API_BASE_URL}/api/pets/${formData.id_pet}/nova-consulta`
+                : `${API_BASE_URL}/api/pets/${formData.id_pet}/agendar-compromissos`;
 
             
             const dataToSend = tipo === 'consulta'

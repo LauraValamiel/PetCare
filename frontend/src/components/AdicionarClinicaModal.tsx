@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from './button';
@@ -64,7 +65,7 @@ export function AdicionarClinicaModal({ isOpen, onClose, onClinicaAdded,tutorId 
                 telefone: formData.telefone.replace(/\D/g, '')
             };
 
-            const response = await axios.post(`http://localhost:5000/api/tutores/${tutorId}/nova-clinica`, dadosParaEnviar);
+            const response = await axios.post(`${API_BASE_URL}/api/tutores/${tutorId}/nova-clinica`, dadosParaEnviar);
             
             if (response.status === 201) {
                 onClinicaAdded(); 

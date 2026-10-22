@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from './button';
@@ -82,7 +83,7 @@ export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: Ed
                     castrado: pet.castrado ? 'sim' : 'nao',
                 });
                 if (pet.foto_perfil) {
-                    setImagePreview(`http://localhost:5000/api/uploads/${pet.foto_perfil}`);
+                    setImagePreview(`${API_BASE_URL}/api/uploads/${pet.foto_perfil}`);
                 } else {
                     setImagePreview(null);
                 }
@@ -134,7 +135,7 @@ export function EditarPet({ isOpen, onClose, onPetAtualizado, pet, tutorId }: Ed
         setLoading(true);
 
         try {
-            const response = await axios.put(`http://localhost:5000/api/tutores/${tutorId}/pets/${pet.id_pet}/atualizar-pet`, formDataApi, {
+            const response = await axios.put(`${API_BASE_URL}/api/tutores/${tutorId}/pets/${pet.id_pet}/atualizar-pet`, formDataApi, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             }); //ver
 

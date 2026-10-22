@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useContext, useState, useEffect } from 'react';
 import { Navbar } from '../components/navbar';
 import { Card } from '../components/card';
@@ -39,7 +40,7 @@ export default function Configuracoes() {
         const carregarPreferencia = async () => {
             if (!tutorId) return;
             try {
-                const response = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
+                const response = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/tutores-e-pets`);
                 const dados = response.data;
                 
                 setPreferencias({
@@ -67,7 +68,7 @@ export default function Configuracoes() {
         setPreferencias(novasPreferencias);
 
         try {
-            await axios.put(`http://localhost:5000/api/tutores/${tutorId}/notificacoes`, {
+            await axios.put(`${API_BASE_URL}/api/tutores/${tutorId}/notificacoes`, {
                 [campo]: valor
             });
 
@@ -115,7 +116,7 @@ export default function Configuracoes() {
 
         if (confirmacao.isConfirmed) {
             try {
-                const response = await fetch(`http://localhost:5000/api/tutores/${tutorId}`, {
+                const response = await fetch(`${API_BASE_URL}/api/tutores/${tutorId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',

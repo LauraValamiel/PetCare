@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -144,13 +145,13 @@ export function ConsultasExames() {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
-                const clinicasResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/clinicas`);
+                const clinicasResponse = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/clinicas`);
                 setClinicas(clinicasResponse.data || []);
 
-                const veterinariosResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/veterinarios`).catch(() => ({ data: []}));
+                const veterinariosResponse = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/veterinarios`).catch(() => ({ data: []}));
                 setVeterinarios(veterinariosResponse.data || []);
 
-                const petsResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
+                const petsResponse = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/tutores-e-pets`);
                 const fetchedPets: Pet[] = petsResponse.data.pets || [];
                 setPets(fetchedPets);
 
@@ -164,21 +165,21 @@ export function ConsultasExames() {
                 const vacinasTotais: VacinaDetalhada[] = [];
 
                 await Promise.all(fetchedPets.map(async (pet) => {
-                    const compromissosResponse = await axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos`).catch(() => ({ data: []}));
+                    const compromissosResponse = await axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/compromissos`).catch(() => ({ data: []}));
                     if (Array.isArray(compromissosResponse.data)) {
                         compromissosResponse.data.forEach((compromisso: Compromisso) => {
                             compromissosTotais.push({ ...compromisso, pet_nome: pet.nome_pet });
                         });
                     }
 
-                    const consultasResponse = await axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/consultas`).catch(() => ({ data: []}));
+                    const consultasResponse = await axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/consultas`).catch(() => ({ data: []}));
                     if (Array.isArray(consultasResponse.data)) {
                         consultasResponse.data.forEach((consulta: Consulta) => {
                             consultasTotais.push({ ...consulta, pet_nome: pet.nome_pet });
                         });
                     }
 
-                    const vacinasResponse = await axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: []}));
+                    const vacinasResponse = await axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: []}));
                     if (Array.isArray(vacinasResponse.data)) {
                         vacinasResponse.data.forEach((vacina: VacinaDetalhada) => {
                             vacinasTotais.push({ ...vacina, id_pet: pet.id_pet, nome_pet: pet.nome_pet });
@@ -331,7 +332,7 @@ export function ConsultasExames() {
 
         if (result.isConfirmed) {
             try {
-                const response = await axios.delete(`http://localhost:5000/api/clinica/${clinica.id_clinica}`);
+                const response = await axios.delete(`${API_BASE_URL}/api/clinica/${clinica.id_clinica}`);
 
                 if (response.status === 200) {
                     Swal.fire({
@@ -370,7 +371,7 @@ export function ConsultasExames() {
 
         if (result.isConfirmed) {
             try {
-                const response = await axios.delete(`http://localhost:5000/api/veterinario/${vet.id_veterinario}`);
+                const response = await axios.delete(`${API_BASE_URL}/api/veterinario/${vet.id_veterinario}`);
                 if (response.status === 200) {
                     Swal.fire({
                         title: 'Sucesso!',
@@ -422,9 +423,9 @@ export function ConsultasExames() {
 
         try {
             if (item.isConsulta) {
-                await axios.delete(`http://localhost:5000/api/pets/${pet.id_pet}/deletar-consulta/${item.id_consulta || item.originalData.id_consulta}`);
+                await axios.delete(`${API_BASE_URL}/api/pets/${pet.id_pet}/deletar-consulta/${item.id_consulta || item.originalData.id_consulta}`);
             } else {
-                await axios.delete(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos/${item.id_compromisso || item.originalData.id_compromisso}`);
+                await axios.delete(`${API_BASE_URL}/api/pets/${pet.id_pet}/compromissos/${item.id_compromisso || item.originalData.id_compromisso}`);
             }
             Swal.fire({
                 title: 'Compromisso Excluído',

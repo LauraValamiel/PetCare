@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../config/api';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useEffect, useState, type ReactNode } from 'react';
 import axios from 'axios';
@@ -33,7 +34,7 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
     try {
       
-      const responsePets = await axios.get(`http://localhost:5000/api/tutores/${tutor.id_tutor}/tutores-e-pets`);
+      const responsePets = await axios.get(`${API_BASE_URL}/api/tutores/${tutor.id_tutor}/tutores-e-pets`);
       const pets = responsePets.data.pets || responsePets.data;
 
       if (!Array.isArray(pets) || pets.length === 0) {
@@ -42,25 +43,25 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       }
 
       const promisesVacinas = pets.map((pet: any) => 
-            axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`)
+            axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/vacinas`)
                 .then(res => ({ pet_nome: pet.nome_pet, data: res.data }))
                 .catch(() => ({ pet_nome: pet.nome_pet, data: [] }))
       );
 
       const promisesConsultas = pets.map((pet: any) => 
-            axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/consultas`)
+            axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/consultas`)
                 .then(res => ({ pet_nome: pet.nome_pet, data: res.data }))
                 .catch(() => ({ pet_nome: pet.nome_pet, data: [] }))
       );
 
       const promisesCompromissos = pets.map((pet: any) => 
-            axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos`)
+            axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/compromissos`)
                 .then(res => ({ pet_nome: pet.nome_pet, data: res.data }))
                 .catch(() => ({ pet_nome: pet.nome_pet, data: [] }))
       );
 
       const promisesProdutos = pets.map((pet: any) => 
-            axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/produtos`)
+            axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/produtos`)
                 .then(res => ({ pet_nome: pet.nome_pet, data: res.data }))
                 .catch(() => ({ pet_nome: pet.nome_pet, data: [] }))
       );

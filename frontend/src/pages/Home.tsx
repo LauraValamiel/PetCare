@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import { useContext, useEffect, useState } from 'react'
 import axios from 'axios'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/card'
@@ -150,7 +151,7 @@ export default function Home() {
                 return;
             }
             try {
-                const tutorPets = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
+                const tutorPets = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/tutores-e-pets`);
                 const tutorData = tutorPets.data;
                 setTutor(tutorData);
 
@@ -172,10 +173,10 @@ export default function Home() {
                     await Promise.all(
                         tutorData.pets.map(async (pet: Pet) => {
                             const [vacinasRes, consultasRes, produtosRes, compromissosRes] = await Promise.all([
-                                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
-                                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/consultas/semana`).catch(() => ({ data: [] })),
-                                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] })),
-                                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/compromissos`).catch(() => ({ data: [] })),
+                                axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
+                                axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/consultas/semana`).catch(() => ({ data: [] })),
+                                axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/produtos`).catch(() => ({ data: [] })),
+                                axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/compromissos`).catch(() => ({ data: [] })),
                             ])
 
                             const vacinas: Vacina[] = vacinasRes.data;
@@ -379,7 +380,7 @@ export default function Home() {
                     if(compEncontrado) petIdToUse = compEncontrado.id_pet;
                 }
                 
-                await axios.delete(`http://localhost:5000/api/pets/${petIdToUse}/compromissos/${id_compromisso}`);
+                await axios.delete(`${API_BASE_URL}/api/pets/${petIdToUse}/compromissos/${id_compromisso}`);
             
                 Swal.fire({
                     title: 'Sucesso!',
@@ -622,7 +623,7 @@ export default function Home() {
                                                             display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0
                                                         }}>
                                                             {comp.pet_foto ? (
-                                                                <img src={`http://localhost:5000/api/uploads/${comp.pet_foto}`} alt={comp.pet_nome} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
+                                                                <img src={`${API_BASE_URL}/api/uploads/${comp.pet_foto}`} alt={comp.pet_nome} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
                                                             ) : (
                                                                 <Heart size={20} color="#888" />
                                                             )}
@@ -726,7 +727,7 @@ export default function Home() {
                                         <div className='pet-info'>
                                             <div className='heart-icon'>
                                                 {pet.foto_perfil ? (
-                                                        <img src={`http://localhost:5000/api/uploads/${pet.foto_perfil}`}  alt={pet.nome_pet} className="foto_perfil_pet"/>
+                                                        <img src={`${API_BASE_URL}/api/uploads/${pet.foto_perfil}`}  alt={pet.nome_pet} className="foto_perfil_pet"/>
                                                     ) : (<Heart size={24}/>)}
                                             </div>
                                             <div className='pet-details'>

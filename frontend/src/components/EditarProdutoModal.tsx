@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from './button';
@@ -115,7 +116,7 @@ export function EditarProdutoModal({ isOpen, onClose, onProdutoUpdated, pets, pr
         }
 
         try {
-            const response = await axios.put(`http://localhost:5000/api/pets/${produto.id_pet}/produtos/${produto.id_compra}`, {
+            const response = await axios.put(`${API_BASE_URL}/api/pets/${produto.id_pet}/produtos/${produto.id_compra}`, {
                 ...formData,
                 quantidade: parseCommaFloat(formData.quantidade.replace(',', '.')) || 0,
                 consumo_medio: parseCommaFloat(formData.consumo_medio.replace(',', '.')) || 0,

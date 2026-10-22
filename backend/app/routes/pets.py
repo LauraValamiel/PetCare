@@ -162,7 +162,7 @@ def convidar_tutor_para_pet(id_tutor, id_pet):
     try:
         nome_pet = pet['nome_pet']
         nome_remetente = tutor_remetente['nome_completo']
-        link_app = "http://localhost:5173/login"
+        link_app = f"{current_app.config['FRONTEND_URL']}/login"
 
         assunto = f"Convite para cuidar de {nome_pet} no PetCare"
 

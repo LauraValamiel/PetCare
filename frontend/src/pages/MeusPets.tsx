@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api';
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card } from '../components/card';
@@ -121,7 +122,7 @@ export default function MeusPets() {
             }
 
             try {
-                const tutorPetsResponse = await axios.get(`http://localhost:5000/api/tutores/${tutorId}/tutores-e-pets`);
+                const tutorPetsResponse = await axios.get(`${API_BASE_URL}/api/tutores/${tutorId}/tutores-e-pets`);
                 const tutorData: Tutor = tutorPetsResponse.data;
 
                 if (tutorData.pets?.length > 0) {
@@ -138,8 +139,8 @@ export default function MeusPets() {
                     await Promise.all(
                         tutorData.pets.map(async (pet: Pet) => {
                             const [vacinasResponse, consultasResponse] = await Promise.all([
-                                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
-                                axios.get(`http://localhost:5000/api/pets/${pet.id_pet}/consultas`).catch(() => ({ data: [] })),
+                                axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/vacinas`).catch(() => ({ data: [] })),
+                                axios.get(`${API_BASE_URL}/api/pets/${pet.id_pet}/consultas`).catch(() => ({ data: [] })),
                             ]);
 
                             const vacinas: Vacina[] = vacinasResponse.data;
@@ -241,7 +242,7 @@ export default function MeusPets() {
                                     <div className="pet-card-info">
                                         <div className="heart-icon">
                                             {pet.foto_perfil ? (
-                                                <img src={`http://localhost:5000/api/uploads/${pet.foto_perfil}`}  alt={pet.nome_pet} className="foto_perfil_pet"/>
+                                                <img src={`${API_BASE_URL}/api/uploads/${pet.foto_perfil}`}  alt={pet.nome_pet} className="foto_perfil_pet"/>
                                             ) : (<Heart size={24}/>)}
                                             </div>
                                         <div className="pet-details">

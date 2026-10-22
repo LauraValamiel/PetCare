@@ -159,7 +159,7 @@ def esqueci_senha():
             return jsonify({"error": f"Erro ao gerar token de redefinição: {error}"}), 500
         
         try:
-            link_redefinicao = f"http://localhost:5173/redefinir-senha?token={token}"
+            link_redefinicao = f"{current_app.config['FRONTEND_URL']}/redefinir-senha?token={token}"
 
             msg = Message(
                 "Redefinição de Senha - PetCare",
